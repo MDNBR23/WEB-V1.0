@@ -510,6 +510,42 @@ app.put('/api/profile', async (req, res) => {
   }
 });
 
+app.post('/api/change-password', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    const {currentPassword, newPassword} = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({error: 'Datos incompletos'});
+    }
+    
+    const users = await readJSON('users.json', []);
+    const user = users.find(u => u.username === req.session.user.username);
+    
+    if (!user) {
+      return res.status(404).json({error: 'Usuario no encontrado'});
+    }
+    
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!validPassword) {
+      return res.status(401).json({error: 'Contraseña actual incorrecta'});
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    
+    await writeJSON('users.json', users);
+    
+    res.json({success: true, message: 'Contraseña actualizada correctamente'});
+  } catch (err) {
+    console.error('Error changing password:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
 app.get('/api/anuncios', async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({error: 'No autenticado'});

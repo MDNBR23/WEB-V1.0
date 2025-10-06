@@ -13,11 +13,28 @@
         html.setAttribute('data-theme',th);
         localStorage.setItem('theme',th);
         document.querySelectorAll('.theme-toggle').forEach(x=>x.checked=t.checked);
+        
+        const prev=document.getElementById('avatarTopPreview');
+        if(prev && !prev.src.startsWith('data:image/jpeg') && !prev.src.startsWith('data:image/png')){
+          prev.src=getDefaultAvatar();
+        }
+        
+        const headerAvatar=document.getElementById('avatarTop');
+        if(headerAvatar && !headerAvatar.src.startsWith('data:image/jpeg') && !headerAvatar.src.startsWith('data:image/png')){
+          headerAvatar.src=getDefaultAvatar();
+        }
       };
     });
   }
 
-  const DEF_AV = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB4Mj0iMSIgeTE9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjNjY3ZWVhIiBvZmZzZXQ9IjAiLz48c3RvcCBzdG9wLWNvbG9yPSIjNzY0YmEyIiBvZmZzZXQ9IjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjIwNiIgcj0iOTAiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48cGF0aCBkPSJNODAgNDMyYzAtOTcgOTUtMTQyIDE3Ni0xNDJzMTc2IDQ1IDE3NiAxNDIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48L3N2Zz4=";
+  const DEF_AV_LIGHT = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB4Mj0iMSIgeTE9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA4QjhCIiBvZmZzZXQ9IjAiLz48c3RvcCBzdG9wLWNvbG9yPSIjMDA4MDgwIiBvZmZzZXQ9IjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjIwNiIgcj0iOTAiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48cGF0aCBkPSJNODAgNDMyYzAtOTcgOTUtMTQyIDE3Ni0xNDJzMTc2IDQ1IDE3NiAxNDIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48L3N2Zz4=";
+  const DEF_AV_DARK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB4Mj0iMSIgeTE9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjNjY3ZWVhIiBvZmZzZXQ9IjAiLz48c3RvcCBzdG9wLWNvbG9yPSIjNzY0YmEyIiBvZmZzZXQ9IjEiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjIwNiIgcj0iOTAiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48cGF0aCBkPSJNODAgNDMyYzAtOTcgOTUtMTQyIDE3Ni0xNDJzMTc2IDQ1IDE3NiAxNDIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44NSkiLz48L3N2Zz4=";
+  
+  function getDefaultAvatar(){
+    const theme = document.documentElement.getAttribute('data-theme');
+    return theme === 'dark' ? DEF_AV_DARK : DEF_AV_LIGHT;
+  }
+  const DEF_AV = getDefaultAvatar();
 
   function toast(m,t='info'){
     const o=document.querySelector('.toast');
@@ -106,7 +123,7 @@
         const profile = await api('/profile');
         info.textContent=`${profile.name||profile.username} — ${profile.role}`;
         if(av){
-          av.src=profile.avatar||DEF_AV;
+          av.src=profile.avatar||getDefaultAvatar();
           av.alt=(profile.name||profile.username)[0]||'';
         }
         
@@ -283,7 +300,13 @@
       $('cfgInst').value=profile.institucion||'';
       
       const prev=$('avatarTopPreview');
-      prev.src=profile.avatar||DEF_AV;
+      prev.src=profile.avatar||getDefaultAvatar();
+      
+      let cropState = null;
+      const modalCrop = document.getElementById('modalCrop');
+      const cropCanvas = document.getElementById('cropCanvas');
+      const zoomSlider = document.getElementById('zoomSlider');
+      const ctx = cropCanvas.getContext('2d');
       
       $('cfgAvatarFile').addEventListener('change',(e)=>{
         const f=e.target.files[0];
@@ -291,33 +314,144 @@
         const r=new FileReader();
         r.onload=()=>{
           const img=new Image();
-          img.onload=async()=>{
-            const s=Math.min(img.width,img.height);
-            const sx=Math.floor((img.width-s)/2);
-            const sy=Math.floor((img.height-s)/2);
-            const c=document.createElement('canvas');
-            c.width=c.height=512;
-            const ctx=c.getContext('2d');
-            ctx.imageSmoothingEnabled=true;
-            ctx.imageSmoothingQuality='high';
-            ctx.drawImage(img,sx,sy,s,s,0,0,512,512);
-            const d=c.toDataURL('image/jpeg',.9);
-            prev.src=d;
+          img.onload=()=>{
+            const containerW = 600;
+            const containerH = 400;
+            cropCanvas.width = containerW;
+            cropCanvas.height = containerH;
             
-            try {
-              await api('/profile', {
-                method: 'PUT',
-                body: JSON.stringify({avatar: d})
-              });
-              await fillTop();
-              toast('Avatar actualizado.','success');
-            } catch (err) {
-              toast('Error al actualizar avatar.','error');
+            cropState = {
+              img: img,
+              x: 0,
+              y: 0,
+              scale: 1,
+              dragging: false,
+              lastX: 0,
+              lastY: 0
+            };
+            
+            const imgAspect = img.width / img.height;
+            const containerAspect = containerW / containerH;
+            
+            if(imgAspect > containerAspect){
+              cropState.scale = containerH / img.height;
+            } else {
+              cropState.scale = containerW / img.width;
             }
+            
+            cropState.x = (containerW - img.width * cropState.scale) / 2;
+            cropState.y = (containerH - img.height * cropState.scale) / 2;
+            
+            drawCropCanvas();
+            modalCrop.style.display='flex';
+            zoomSlider.value = 100;
           };
           img.src=r.result;
         };
         r.readAsDataURL(f);
+      });
+      
+      function drawCropCanvas(){
+        if(!cropState)return;
+        ctx.fillStyle='#000';
+        ctx.fillRect(0,0,cropCanvas.width,cropCanvas.height);
+        ctx.drawImage(
+          cropState.img,
+          cropState.x,
+          cropState.y,
+          cropState.img.width * cropState.scale,
+          cropState.img.height * cropState.scale
+        );
+        
+        ctx.strokeStyle='rgba(255,255,255,0.5)';
+        ctx.lineWidth=2;
+        const size = Math.min(cropCanvas.width, cropCanvas.height) - 40;
+        const cropX = (cropCanvas.width - size) / 2;
+        const cropY = (cropCanvas.height - size) / 2;
+        ctx.strokeRect(cropX, cropY, size, size);
+      }
+      
+      cropCanvas.addEventListener('mousedown', (e)=>{
+        if(!cropState)return;
+        cropState.dragging=true;
+        cropState.lastX=e.offsetX;
+        cropState.lastY=e.offsetY;
+      });
+      
+      cropCanvas.addEventListener('mousemove', (e)=>{
+        if(!cropState || !cropState.dragging)return;
+        const dx = e.offsetX - cropState.lastX;
+        const dy = e.offsetY - cropState.lastY;
+        cropState.x += dx;
+        cropState.y += dy;
+        cropState.lastX = e.offsetX;
+        cropState.lastY = e.offsetY;
+        drawCropCanvas();
+      });
+      
+      cropCanvas.addEventListener('mouseup', ()=>{
+        if(cropState)cropState.dragging=false;
+      });
+      
+      cropCanvas.addEventListener('mouseleave', ()=>{
+        if(cropState)cropState.dragging=false;
+      });
+      
+      zoomSlider.addEventListener('input', ()=>{
+        if(!cropState)return;
+        const baseScale = cropState.scale / (parseInt(zoomSlider.dataset.lastValue||'100')/100);
+        cropState.scale = baseScale * (parseInt(zoomSlider.value)/100);
+        zoomSlider.dataset.lastValue = zoomSlider.value;
+        drawCropCanvas();
+      });
+      
+      document.getElementById('closeCrop').addEventListener('click', ()=>{
+        modalCrop.style.display='none';
+        cropState=null;
+        $('cfgAvatarFile').value='';
+      });
+      
+      document.getElementById('cancelCrop').addEventListener('click', ()=>{
+        modalCrop.style.display='none';
+        cropState=null;
+        $('cfgAvatarFile').value='';
+      });
+      
+      document.getElementById('applyCrop').addEventListener('click', async ()=>{
+        if(!cropState)return;
+        
+        const size = Math.min(cropCanvas.width, cropCanvas.height) - 40;
+        const cropX = (cropCanvas.width - size) / 2;
+        const cropY = (cropCanvas.height - size) / 2;
+        
+        const outputCanvas = document.createElement('canvas');
+        outputCanvas.width = 512;
+        outputCanvas.height = 512;
+        const outCtx = outputCanvas.getContext('2d');
+        
+        outCtx.drawImage(
+          cropCanvas,
+          cropX, cropY, size, size,
+          0, 0, 512, 512
+        );
+        
+        const d = outputCanvas.toDataURL('image/jpeg',.9);
+        prev.src=d;
+        
+        modalCrop.style.display='none';
+        cropState=null;
+        $('cfgAvatarFile').value='';
+        
+        try {
+          await api('/profile', {
+            method: 'PUT',
+            body: JSON.stringify({avatar: d})
+          });
+          await fillTop();
+          toast('Avatar actualizado.','success');
+        } catch (err) {
+          toast('Error al actualizar avatar.','error');
+        }
       });
       
       $('cfgAvatarClear').addEventListener('click',async()=>{
@@ -326,7 +460,7 @@
             method: 'PUT',
             body: JSON.stringify({avatar: ''})
           });
-          prev.src=DEF_AV;
+          prev.src=getDefaultAvatar();
           await fillTop();
           toast('Avatar eliminado.','info');
         } catch (err) {
@@ -356,6 +490,40 @@
     } catch (err) {
       console.error('Error loading config:', err);
     }
+  }
+
+  const cfgPasswordForm=document.getElementById('cfgPasswordForm');
+  if(cfgPasswordForm){
+    cfgPasswordForm.addEventListener('submit',async(e)=>{
+      e.preventDefault();
+      const $=id=>document.getElementById(id);
+      const currentPass=$('cfgCurrentPass').value;
+      const newPass=$('cfgNewPass').value;
+      const confirmPass=$('cfgConfirmPass').value;
+      
+      if(newPass!==confirmPass){
+        toast('Las contraseñas no coinciden','error');
+        return;
+      }
+      
+      if(newPass.length<6){
+        toast('La contraseña debe tener al menos 6 caracteres','error');
+        return;
+      }
+      
+      try {
+        await api('/change-password', {
+          method: 'POST',
+          body: JSON.stringify({currentPassword: currentPass, newPassword: newPass})
+        });
+        toast('Contraseña actualizada correctamente','success');
+        $('cfgCurrentPass').value='';
+        $('cfgNewPass').value='';
+        $('cfgConfirmPass').value='';
+      } catch (err) {
+        toast(err.message||'Error al cambiar contraseña','error');
+      }
+    });
   }
 
   const adminUsersTable=document.getElementById('adminUsersTable');

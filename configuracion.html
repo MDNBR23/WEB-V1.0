@@ -34,12 +34,12 @@
         <section class="card glass">
           <h3>Perfil</h3>
           <form id="cfgForm">
-            <div class="grid-2col" style="grid-template-columns:320px 1fr;">
-              <div>
-                <div class="field"><label>Imagen de Perfil</label><img id="avatarTopPreview" src="" alt="" style="width:140px;height:140px;border-radius:16px;border:1px solid var(--border);object-fit:cover;background:linear-gradient(135deg,var(--g1),var(--g2));"></div>
-                <div class="field" style="display:flex;gap:8px;flex-direction:column;">
-                  <button class="btn sm" type="button" onclick="document.getElementById('cfgAvatarFile').click()">Añadir imagen de perfil</button>
-                  <button class="btn secondary sm" type="button" id="cfgAvatarClear">Quitar imagen de perfil</button>
+            <div class="grid-2col" style="grid-template-columns:280px 1fr;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                <div class="field" style="width:100%;"><label>Imagen de Perfil</label><img id="avatarTopPreview" src="" alt="" class="profile-preview" style="margin:0 auto;display:block;"></div>
+                <div style="display:flex;gap:6px;width:100%;">
+                  <button class="btn grow" type="button" style="font-size:12px;padding:8px 12px;" onclick="document.getElementById('cfgAvatarFile').click()">Añadir imagen</button>
+                  <button class="btn secondary grow" type="button" style="font-size:12px;padding:8px 12px;" id="cfgAvatarClear">Quitar imagen</button>
                   <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
                 </div>
               </div>
@@ -62,8 +62,39 @@
             </div>
           </form>
         </section>
+
+        <section class="card glass">
+          <h3>Cambiar contraseña</h3>
+          <form id="cfgPasswordForm">
+            <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+              <div class="field"><label>Contraseña actual</label><input id="cfgCurrentPass" type="password" required></div>
+              <div class="field"><label>Nueva contraseña</label><input id="cfgNewPass" type="password" required></div>
+              <div class="field"><label>Confirmar contraseña</label><input id="cfgConfirmPass" type="password" required></div>
+            </div>
+            <div class="auth-actions" style="margin-top:14px">
+              <button class="btn grow" type="submit">Actualizar contraseña</button>
+            </div>
+          </form>
+        </section>
       </main>
     </div>
   </div>
+
+  <div class="modal-backdrop" id="modalCrop">
+    <div class="modal glass" style="max-width:700px;">
+      <header><h3 style="margin:0;">Recortar imagen</h3><button class="btn secondary sm" type="button" id="closeCrop">✕</button></header>
+      <div style="position:relative;width:600px;height:400px;overflow:hidden;margin:0 auto;background:#000;border-radius:12px;">
+        <canvas id="cropCanvas" style="position:absolute;top:0;left:0;cursor:move;"></canvas>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSlider" min="100" max="300" value="100" style="width:200px;"></label>
+      </div>
+      <div class="auth-actions" style="margin-top:14px;">
+        <button class="btn grow" type="button" id="applyCrop">Aplicar recorte</button>
+        <button class="btn secondary" type="button" id="cancelCrop">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body></html>

@@ -193,6 +193,11 @@ html[data-theme="dark"] .field textarea{
 
 .btn.secondary:hover{
   background:rgba(51,65,85,.95);
+  text-decoration:none;
+}
+
+a.btn:hover{
+  text-decoration:none;
 }
 
 .btn.danger{
@@ -655,6 +660,15 @@ textarea{
 .accordion-content{
   overflow:hidden;
   transition:all .3s ease;
+}
+
+.profile-preview{
+  width:140px;
+  height:140px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  object-fit:cover;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
 }
 
 @media(max-width: 768px){
