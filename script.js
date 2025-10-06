@@ -36,7 +36,29 @@
   }
   const DEF_AV = getDefaultAvatar();
 
-  function toast(m,t='info'){
+  function playDing(){
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (err) {
+      console.log('Audio not available');
+    }
+  }
+
+  function toast(m,t='info',playSound=false){
     const o=document.querySelector('.toast');
     if(o)o.remove();
     const d=document.createElement('div');
@@ -45,7 +67,8 @@
     document.body.appendChild(d);
     const c=()=>d.remove();
     d.querySelector('.close').onclick=c;
-    setTimeout(c,4200);
+    setTimeout(c,6000);
+    if(playSound) playDing();
   } 
   window.showToast=toast;
 
@@ -166,10 +189,27 @@
         });
         
         if(data.success) {
-          const titulo=data.user.role==='admin'?'Administrador':(data.user.cat||'Usuario');
+          const cat = data.user.cat || '';
+          let titulo = 'Usuario';
+          
+          if(data.user.role === 'admin') {
+            titulo = 'Administrador';
+          } else if(cat === 'Pediatra') {
+            titulo = 'Dr.(a) Especialista en Pediatría';
+          } else if(cat === 'Médico General') {
+            titulo = 'Dr.(a)';
+          } else if(cat === 'Residente') {
+            titulo = 'Dr.(a) Residente';
+          } else if(cat === 'Interno') {
+            titulo = 'Interno';
+          } else if(cat === 'Estudiante') {
+            titulo = 'Estudiante';
+          }
+          
           localStorage.setItem('nbr_pending_toast', JSON.stringify({
             msg:`¡Bienvenido(a), ${titulo} ${data.user.name||data.user.username}!`,
-            type:'success'
+            type:'success',
+            sound: true
           }));
           location.replace('main.html');
         }
@@ -281,7 +321,7 @@
   if(raw){
     try{
       const d=JSON.parse(raw);
-      toast(d.msg,d.type||'info');
+      toast(d.msg,d.type||'info',d.sound||false);
     }catch{}
     localStorage.removeItem('nbr_pending_toast');
   }
@@ -548,7 +588,7 @@
         const status = u.status||'pendiente';
         const statusText = status === 'aprobado' ? 'APROBADO' : (status === 'rechazado' ? 'RECHAZADO' : status);
         const statusColor = status === 'aprobado' ? 'background:#16a34a;color:#fff;' : (status === 'rechazado' ? 'background:#dc2626;color:#fff;' : '');
-        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${u.role}</td><td><span class='chip' style='${statusColor}'>${statusText}</span></td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></td></tr>`;
+        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${u.role}</td><td><span class='chip' style='${statusColor}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></div></td></tr>`;
       }).join('');
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
@@ -656,7 +696,7 @@
     
     try {
       const list = await api('/anuncios');
-      tb.innerHTML=list.map(a=>`<tr><td>${a.img?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:'—'}</td><td>${a.titulo}</td><td>${a.fecha}</td><td>${a.texto}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></td></tr>`).join('');
+      tb.innerHTML=list.map(a=>`<tr><td>${a.img && a.img.startsWith('data:')?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:''}</td><td>${a.titulo}</td><td>${a.fecha}</td><td>${a.texto}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></div></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-an]').forEach(b=>b.addEventListener('click',()=>openAnuncio(b.getAttribute('data-edit-an'))));
       tb.querySelectorAll('[data-del-an]').forEach(b=>b.addEventListener('click',async()=>{
@@ -684,7 +724,15 @@
       document.getElementById('anuncioTitulo').value=a.titulo||'';
       document.getElementById('anuncioFecha').value=a.fecha||'';
       document.getElementById('anuncioTexto').value=a.texto||'';
-      document.getElementById('anuncioPreview').src=a.img||'';
+      
+      const preview = document.getElementById('anuncioPreview');
+      if(a.img) {
+        preview.src = a.img;
+        preview.style.display = 'block';
+      } else {
+        preview.src = '';
+        preview.style.display = 'none';
+      }
       
       const globalCheckbox = document.getElementById('anuncioGlobal');
       if(globalCheckbox) {
@@ -704,24 +752,33 @@
       const f=e.target.files[0];
       if(!f) return;
       const r=new FileReader();
-      r.onload=()=>{document.getElementById('anuncioPreview').src=r.result;};
+      r.onload=()=>{
+        const preview = document.getElementById('anuncioPreview');
+        preview.src=r.result;
+        preview.style.display='block';
+      };
       r.readAsDataURL(f);
     });
     
     document.getElementById('btnAnuncioQuitarImg').addEventListener('click',()=>{
-      document.getElementById('anuncioPreview').src='';
+      const preview = document.getElementById('anuncioPreview');
+      preview.src='';
+      preview.style.display='none';
     });
     
     anuncioForm.addEventListener('submit',async(e)=>{
       e.preventDefault();
       
       const globalCheckbox = document.getElementById('anuncioGlobal');
+      const preview = document.getElementById('anuncioPreview');
+      const imgSrc = preview.src && preview.src.startsWith('data:') ? preview.src : '';
+      
       const obj={
         id: document.getElementById('anuncioId').value||undefined,
         titulo: document.getElementById('anuncioTitulo').value.trim(),
         fecha: document.getElementById('anuncioFecha').value||new Date().toISOString().slice(0,10),
         texto: document.getElementById('anuncioTexto').value.trim(),
-        img: document.getElementById('anuncioPreview').src||'',
+        img: imgSrc,
         global: globalCheckbox ? globalCheckbox.checked : true
       };
       
@@ -756,7 +813,7 @@
     
     try {
       const list = await api('/guias');
-      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.texto}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></td></tr>`).join('');
+      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.texto}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></div></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-g]').forEach(b=>b.addEventListener('click',()=>openGuia(b.getAttribute('data-edit-g'))));
       tb.querySelectorAll('[data-del-g]').forEach(b=>b.addEventListener('click',async()=>{
@@ -840,7 +897,7 @@
     try {
       const list = await api('/anuncios');
       const sorted = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-      cont.innerHTML=sorted.map(a=>`<article class='glass' style='padding:10px;border-radius:12px;display:flex;gap:10px;align-items:flex-start'>${a.img?`<img src='${a.img}' alt='' style='width:120px;height:120px;border-radius:10px;border:1px solid var(--border);object-fit:cover;flex-shrink:0;'>`:''}<div style='flex:1'><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><strong>${a.titulo}</strong><span class='chip'>${a.fecha}</span></div><div class='text-muted'>${a.texto}</div></div></article>`).join('');
+      cont.innerHTML=sorted.map(a=>`<article class='glass' style='padding:10px;border-radius:12px;display:flex;gap:10px;align-items:flex-start'>${a.img && a.img.startsWith('data:')?`<img src='${a.img}' alt='' style='width:120px;height:120px;border-radius:10px;border:1px solid var(--border);object-fit:cover;flex-shrink:0;'>`:''}<div style='flex:1'><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><strong>${a.titulo}</strong><span class='chip'>${a.fecha}</span></div><div class='text-muted'>${a.texto}</div></div></article>`).join('');
     } catch (err) {
       console.error('Error rendering anuncios main:', err);
     }
@@ -902,7 +959,7 @@
     try {
       const list = await api('/medications');
       tbody.innerHTML = list.sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(m => 
-        `<tr><td>${m.nombre}</td><td>${m.grupo}</td><td>${m.dilucion}</td><td>${m.comentarios}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-med='${m.id}'>Editar</button><button class='btn sm danger' data-del-med='${m.id}'>Eliminar</button></td></tr>`
+        `<tr><td>${m.nombre}</td><td>${m.grupo}</td><td>${m.dilucion}</td><td>${m.comentarios}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-med='${m.id}'>Editar</button><button class='btn sm danger' data-del-med='${m.id}'>Eliminar</button></div></td></tr>`
       ).join('');
       
       tbody.querySelectorAll('[data-edit-med]').forEach(b => b.addEventListener('click', () => openMedicamento(b.getAttribute('data-edit-med'))));

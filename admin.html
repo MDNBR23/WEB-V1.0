@@ -46,36 +46,40 @@
           </div>
         </section>
 
-        <div class="grid-2col" style="grid-template-columns:1fr 1fr;">
-          <section class="card glass accordion">
-            <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="anuncios">
-              <h3 style="margin:0;">Anuncios</h3><div class="grow"></div>
-              <button id="btnNuevoAnuncio" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nuevo anuncio</button>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-content" id="anuncios" style="display:none;margin-top:10px;">
-              <div class="table-wrap">
-                <table id="adminAnunciosTable"><thead>
-                  <tr><th>Imagen</th><th>Título</th><th>Fecha</th><th>Contenido</th><th style="width:160px;">Acciones</th></tr>
-                </thead><tbody></tbody></table>
+        <div style="display:flex;gap:20px;">
+          <div style="flex:1;">
+            <section class="card glass accordion">
+              <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="anuncios">
+                <h3 style="margin:0;">Anuncios</h3><div class="grow"></div>
+                <button id="btnNuevoAnuncio" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nuevo anuncio</button>
+                <span class="accordion-icon">▼</span>
               </div>
-            </div>
-          </section>
+              <div class="accordion-content" id="anuncios" style="display:none;margin-top:10px;">
+                <div class="table-wrap">
+                  <table id="adminAnunciosTable"><thead>
+                    <tr><th>Imagen</th><th>Título</th><th>Fecha</th><th>Contenido</th><th style="width:180px;">Acciones</th></tr>
+                  </thead><tbody></tbody></table>
+                </div>
+              </div>
+            </section>
+          </div>
 
-          <section class="card glass accordion">
-            <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="guias">
-              <h3 style="margin:0;">Guías</h3><div class="grow"></div>
-              <button id="btnNuevaGuia" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nueva guía</button>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-content" id="guias" style="display:none;margin-top:10px;">
-              <div class="table-wrap">
-                <table id="adminGuiasTable"><thead>
-                  <tr><th>Título</th><th>Fecha</th><th>Contenido</th><th>Enlace</th><th style="width:160px;">Acciones</th></tr>
-                </thead><tbody></tbody></table>
+          <div style="flex:1;">
+            <section class="card glass accordion">
+              <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="guias">
+                <h3 style="margin:0;">Guías</h3><div class="grow"></div>
+                <button id="btnNuevaGuia" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nueva guía</button>
+                <span class="accordion-icon">▼</span>
               </div>
-            </div>
-          </section>
+              <div class="accordion-content" id="guias" style="display:none;margin-top:10px;">
+                <div class="table-wrap">
+                  <table id="adminGuiasTable"><thead>
+                    <tr><th>Título</th><th>Fecha</th><th>Contenido</th><th>Enlace</th><th style="width:180px;">Acciones</th></tr>
+                  </thead><tbody></tbody></table>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
 
         <section class="card glass accordion">
@@ -87,7 +91,7 @@
           <div class="accordion-content" id="medicamentos" style="display:none;margin-top:10px;">
             <div class="table-wrap">
               <table id="adminMedicamentosTable"><thead>
-                <tr><th>Fármaco</th><th>Grupo</th><th>Dilución</th><th>Comentarios</th><th style="width:160px;">Acciones</th></tr>
+                <tr><th>Fármaco</th><th>Grupo</th><th>Dilución</th><th>Comentarios</th><th style="width:180px;">Acciones</th></tr>
               </thead><tbody></tbody></table>
             </div>
           </div>
@@ -131,7 +135,7 @@
             <div class="field"><label class="switch"><input id="anuncioGlobal" type="checkbox" checked><span class="slider"></span><span>Visible para todos los usuarios</span></label></div>
           </div>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            <div class="field"><label>Imagen</label><img id="anuncioPreview" class="thumb" alt="" style="width:100%;height:120px;border-radius:12px;border:1px solid var(--border);object-fit:cover;background:linear-gradient(135deg,var(--g1),var(--g2));"></div>
+            <div class="field"><label>Imagen</label><img id="anuncioPreview" class="thumb" alt="" style="width:100%;height:120px;border-radius:12px;border:1px solid var(--border);object-fit:cover;background:linear-gradient(135deg,var(--g1),var(--g2));display:none;"></div>
             <button class="btn sm" type="button" onclick="document.getElementById('anuncioImg').click()">Añadir imagen</button>
             <button class="btn secondary sm" type="button" id="btnAnuncioQuitarImg">Quitar imagen</button>
             <input id="anuncioImg" type="file" accept="image/*" style="display:none;">
