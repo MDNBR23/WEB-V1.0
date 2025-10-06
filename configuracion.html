@@ -1,5 +1,10 @@
 <!doctype html><html lang="es" data-theme="light"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#008B8B">
 <title>Configuración — NBR WEB</title>
 <link rel="stylesheet" href="style.css">
 <script>
@@ -15,7 +20,9 @@
       <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
       <nav>
         <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
-        <a href="calculadora.html"><span class="icon">💊</span><span>Banco de medicamentos</span></a>
+        <a href="calculadora.html"><span class="icon">💊</span><span>Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span>Herramientas</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span></a>
         <a href="configuracion.html" class="active"><span class="icon">⚙️</span><span>Configuración</span></a>
         <a href="admin.html"><span class="icon">🛠️</span><span>Administración</span></a>
       </nav>
@@ -87,7 +94,7 @@
         <canvas id="cropCanvas" style="position:absolute;top:0;left:0;cursor:move;"></canvas>
       </div>
       <div style="margin-top:14px;">
-        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSlider" min="100" max="300" value="100" style="width:200px;"></label>
+        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSlider" min="50" max="300" value="50" style="width:200px;"></label>
       </div>
       <div class="auth-actions" style="margin-top:14px;">
         <button class="btn grow" type="button" id="applyCrop">Aplicar recorte</button>

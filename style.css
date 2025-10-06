@@ -552,6 +552,19 @@ tbody tr:hover{
   color:var(--text);
 }
 
+.status-pendiente{
+  animation:blink-orange 1.5s infinite;
+}
+
+@keyframes blink-orange{
+  0%, 100% {
+    opacity:1;
+  }
+  50% {
+    opacity:0.4;
+  }
+}
+
 .mt12{
   margin-top:12px;
 }
@@ -681,9 +694,189 @@ textarea{
     left:-280px;
     z-index:100;
     transition:left .3s cubic-bezier(0.4, 0, 0.2, 1);
+    height:100vh;
+    box-shadow:4px 0 20px rgba(0,0,0,0.5);
   }
   
   .layout.sidebar-open .sidebar{
     left:0;
+  }
+
+  .sidebar.collapsed{
+    left:-80px;
+  }
+
+  .layout.sidebar-open .sidebar.collapsed{
+    left:0;
+  }
+
+  .header{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .header h2{
+    font-size:20px;
+    order:2;
+    width:100%;
+  }
+
+  .user-info{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .user-info span{
+    font-size:13px;
+  }
+
+  .grid-2col{
+    grid-template-columns:1fr;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  table{
+    min-width:600px;
+  }
+
+  .modal{
+    width:95vw;
+    max-height:85vh;
+  }
+
+  .modal.glass{
+    padding:16px;
+  }
+
+  .auth-box{
+    width:95vw;
+    padding:24px;
+  }
+
+  .btn{
+    font-size:13px;
+    padding:10px 14px;
+  }
+
+  .btn.sm{
+    padding:7px 10px;
+    font-size:12px;
+    min-width:70px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea{
+    font-size:16px;
+  }
+
+  #cropCanvas,
+  #cropCanvasAnuncio{
+    max-width:100%;
+    height:auto;
+  }
+
+  .modal-backdrop{
+    padding:10px;
+  }
+
+  #btnToggleSidebar{
+    width:40px;
+    height:40px;
+    font-size:18px;
+  }
+
+  .card{
+    padding:14px;
+  }
+
+  .accordion-header{
+    flex-wrap:wrap;
+  }
+
+  .accordion-header h3{
+    font-size:18px;
+  }
+
+  .auth-title{
+    font-size:28px;
+  }
+
+  input[type="range"]{
+    width:100%!important;
+  }
+
+  .toast{
+    right:10px;
+    bottom:10px;
+    font-size:14px;
+    max-width:calc(100vw - 20px);
+  }
+
+  #cropCanvas,
+  #cropCanvasAnuncio{
+    touch-action:none;
+  }
+
+  .user-info img{
+    width:32px;
+    height:32px;
+  }
+
+  .profile-preview{
+    width:120px;
+    height:120px;
+  }
+
+  .chip{
+    font-size:11px;
+    padding:5px 10px;
+  }
+}
+
+@media(max-width: 480px){
+  .header h2{
+    font-size:18px;
+  }
+
+  .btn{
+    font-size:12px;
+    padding:9px 12px;
+  }
+
+  .btn.sm{
+    padding:6px 8px;
+    font-size:11px;
+    min-width:60px;
+  }
+
+  .auth-actions{
+    flex-direction:column;
+  }
+
+  .auth-actions .btn{
+    width:100%;
+  }
+
+  table{
+    font-size:13px;
+  }
+
+  thead th{
+    font-size:12px;
+    padding:10px 8px;
+  }
+
+  tbody td{
+    padding:10px 8px;
+    font-size:13px;
   }
 }

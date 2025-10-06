@@ -1,5 +1,10 @@
 <!doctype html><html lang="es" data-theme="light"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#008B8B">
 <title>Administración — NBR WEB</title>
 <link rel="stylesheet" href="style.css">
 <script>
@@ -15,7 +20,9 @@
       <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
       <nav>
         <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
-        <a href="calculadora.html"><span class="icon">💊</span><span>Banco de medicamentos</span></a>
+        <a href="calculadora.html"><span class="icon">💊</span><span>Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span>Herramientas</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span></a>
         <a href="configuracion.html"><span class="icon">⚙️</span><span>Configuración</span></a>
         <a href="admin.html" class="active"><span class="icon">🛠️</span><span>Administración</span></a>
       </nav>
@@ -84,7 +91,7 @@
 
         <section class="card glass accordion">
           <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="medicamentos">
-            <h3 style="margin:0;">Banco de Medicamentos</h3><div class="grow"></div>
+            <h3 style="margin:0;">Vademecum</h3><div class="grow"></div>
             <button id="btnNuevoMedicamento" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nuevo medicamento</button>
             <span class="accordion-icon">▼</span>
           </div>
@@ -92,6 +99,20 @@
             <div class="table-wrap">
               <table id="adminMedicamentosTable"><thead>
                 <tr><th>Fármaco</th><th>Grupo</th><th>Dilución</th><th>Comentarios</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card glass accordion">
+          <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="sugerencias">
+            <h3 style="margin:0;">Sugerencias <span id="sugerenciasCounter" class="chip" style="display:none;margin-left:8px;background:#ff8c00;color:#fff;">0</span></h3><div class="grow"></div>
+            <span class="accordion-icon">▼</span>
+          </div>
+          <div class="accordion-content" id="sugerencias" style="display:none;margin-top:10px;">
+            <div class="table-wrap">
+              <table id="adminSugerenciasTable"><thead>
+                <tr><th>Usuario</th><th>Fecha</th><th>Mensaje</th><th>Respuesta</th><th style="width:180px;">Acciones</th></tr>
               </thead><tbody></tbody></table>
             </div>
           </div>
@@ -114,8 +135,8 @@
           <div class="field"><label>Correo</label><input id="u_email" type="email"></div>
           <div class="field"><label>Teléfono</label><input id="u_phone" type="text"></div>
           <div class="field"><label>Institución</label><input id="u_inst" type="text"></div>
-          <div class="field"><label>Rol</label><select id="u_role"><option>user</option><option>admin</option></select></div>
-          <div class="field"><label>Estado</label><select id="u_status"><option value="pendiente">pendiente</option><option value="aprobado">APROBADO</option><option value="rechazado">RECHAZADO</option><option value="suspendido">suspendido</option></select></div>
+          <div class="field"><label>Rol</label><select id="u_role"><option value="user">USER</option><option value="admin">ADMIN</option></select></div>
+          <div class="field"><label>Estado</label><select id="u_status"><option value="pendiente">PENDIENTE</option><option value="aprobado">APROBADO</option><option value="rechazado">RECHAZADO</option><option value="suspendido">SUSPENDIDO</option></select></div>
         </div>
         <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar</button><button class="btn secondary" type="button" data-close-user>Cancelar</button></div>
       </form>
@@ -175,6 +196,38 @@
           <div class="field" style="grid-column:1 / -1"><label for="medComentarios">Comentarios y dosificación</label><textarea id="medComentarios" rows="3" required></textarea></div>
         </div>
         <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar</button><button class="btn secondary" type="button" data-close-med>Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalCropAnuncio">
+    <div class="modal glass" style="max-width:700px;">
+      <header><h3 style="margin:0;">Recortar imagen del anuncio</h3><button class="btn secondary sm" type="button" id="closeCropAnuncio">✕</button></header>
+      <div style="position:relative;width:600px;height:400px;overflow:hidden;margin:0 auto;background:#000;border-radius:12px;">
+        <canvas id="cropCanvasAnuncio" style="position:absolute;top:0;left:0;cursor:move;"></canvas>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSliderAnuncio" min="50" max="300" value="50" style="width:200px;"></label>
+      </div>
+      <div class="auth-actions" style="margin-top:14px;">
+        <button class="btn grow" type="button" id="applyCropAnuncio">Aplicar recorte</button>
+        <button class="btn secondary" type="button" id="cancelCropAnuncio">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUGERENCIA -->
+  <div class="modal-backdrop" id="modalSugerencia">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Responder sugerencia</h3><button class="btn secondary sm" type="button" data-close-sugerencia>✕</button></header>
+      <form id="sugerenciaAdminForm">
+        <input type="hidden" id="sug_id">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label>Usuario</label><input id="sug_username" type="text" disabled></div>
+          <div class="field" style="grid-column:1 / -1;"><label>Mensaje</label><textarea id="sug_mensaje" rows="3" disabled></textarea></div>
+          <div class="field" style="grid-column:1 / -1;"><label>Respuesta del administrador</label><textarea id="sug_respuesta" rows="4" placeholder="Escribe tu respuesta..."></textarea></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar respuesta</button><button class="btn secondary" type="button" data-close-sugerencia>Cancelar</button></div>
       </form>
     </div>
   </div>

@@ -771,6 +771,113 @@ app.delete('/api/medications/:id', async (req, res) => {
   }
 });
 
+app.get('/api/sugerencias', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    if (req.session.user.role === 'admin') {
+      const suggestions = await readJSON('sugerencias.json', []);
+      res.json(suggestions);
+    } else {
+      const suggestions = await readJSON('sugerencias.json', []);
+      const userSuggestions = suggestions.filter(s => s.username === req.session.user.username);
+      res.json(userSuggestions);
+    }
+  } catch (err) {
+    console.error('Error getting sugerencias:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.post('/api/sugerencias', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    const suggestions = await readJSON('sugerencias.json', []);
+    
+    const newSuggestion = {
+      id: crypto.randomUUID(),
+      username: req.session.user.username,
+      mensaje: req.body.mensaje,
+      respuesta: '',
+      fecha: new Date().toISOString(),
+      respondida: false
+    };
+    
+    suggestions.push(newSuggestion);
+    await writeJSON('sugerencias.json', suggestions);
+    
+    res.json({success: true, sugerencia: newSuggestion});
+  } catch (err) {
+    console.error('Error saving sugerencia:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.put('/api/sugerencias/:id', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const {id} = req.params;
+    const {respuesta} = req.body;
+    
+    const suggestions = await readJSON('sugerencias.json', []);
+    const index = suggestions.findIndex(s => s.id === id);
+    
+    if (index >= 0) {
+      suggestions[index].respuesta = respuesta;
+      suggestions[index].respondida = true;
+      suggestions[index].fechaRespuesta = new Date().toISOString();
+      await writeJSON('sugerencias.json', suggestions);
+      res.json({success: true, sugerencia: suggestions[index]});
+    } else {
+      res.status(404).json({error: 'Sugerencia no encontrada'});
+    }
+  } catch (err) {
+    console.error('Error updating sugerencia:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.delete('/api/sugerencias/:id', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const {id} = req.params;
+    const suggestions = await readJSON('sugerencias.json', []);
+    const filtered = suggestions.filter(s => s.id !== id);
+    
+    await writeJSON('sugerencias.json', filtered);
+    res.json({success: true});
+  } catch (err) {
+    console.error('Error deleting sugerencia:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.get('/api/sugerencias/count', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const suggestions = await readJSON('sugerencias.json', []);
+    const pendientes = suggestions.filter(s => !s.respondida).length;
+    res.json({count: pendientes});
+  } catch (err) {
+    console.error('Error counting sugerencias:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
 app.use(express.static('.', {
   setHeaders: (res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');

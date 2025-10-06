@@ -128,12 +128,53 @@
   if(layout&&collapsed)layout.classList.add('collapsed');
   if(sidebar&&collapsed)sidebar.classList.add('collapsed');
   
+  function isMobile() {
+    return window.innerWidth <= 768;
+  }
+
+  let sidebarOverlay = null;
+
+  function createSidebarOverlay() {
+    if(!sidebarOverlay) {
+      sidebarOverlay = document.createElement('div');
+      sidebarOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;display:none;';
+      document.body.appendChild(sidebarOverlay);
+      
+      sidebarOverlay.addEventListener('click', () => {
+        if(isMobile()) {
+          layout.classList.remove('sidebar-open');
+          sidebarOverlay.style.display = 'none';
+        }
+      });
+    }
+  }
+
   if(btn&&sidebar&&layout) {
+    createSidebarOverlay();
+
     btn.onclick=()=>{
-      sidebar.classList.toggle('collapsed');
-      layout.classList.toggle('collapsed');
-      localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')?'1':'0');
+      if(isMobile()) {
+        layout.classList.toggle('sidebar-open');
+        if(layout.classList.contains('sidebar-open')) {
+          sidebarOverlay.style.display = 'block';
+        } else {
+          sidebarOverlay.style.display = 'none';
+        }
+      } else {
+        sidebar.classList.toggle('collapsed');
+        layout.classList.toggle('collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')?'1':'0');
+      }
     };
+
+    sidebar.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if(isMobile()) {
+          layout.classList.remove('sidebar-open');
+          if(sidebarOverlay) sidebarOverlay.style.display = 'none';
+        }
+      });
+    });
   }
 
   async function fillTop(){
@@ -144,7 +185,22 @@
     if(info&&session){
       try {
         const profile = await api('/profile');
-        info.textContent=`${profile.name||profile.username} — ${profile.role}`;
+        const cat = profile.cat || '';
+        const displayName = profile.name||profile.username;
+        let fullText = '';
+        
+        if(cat && cat.toLowerCase() !== 'no especificar') {
+          fullText = `${cat} ${displayName}`;
+        } else {
+          fullText = displayName;
+        }
+        
+        if(profile.role === 'admin') {
+          info.textContent = `${fullText} — ADMIN`;
+        } else {
+          info.textContent = fullText;
+        }
+        
         if(av){
           av.src=profile.avatar||getDefaultAvatar();
           av.alt=(profile.name||profile.username)[0]||'';
@@ -374,17 +430,20 @@
             const containerAspect = containerW / containerH;
             
             if(imgAspect > containerAspect){
-              cropState.scale = containerH / img.height;
+              cropState.baseScale = containerW / img.width;
             } else {
-              cropState.scale = containerW / img.width;
+              cropState.baseScale = containerH / img.height;
             }
+            
+            cropState.scale = cropState.baseScale * 0.5;
             
             cropState.x = (containerW - img.width * cropState.scale) / 2;
             cropState.y = (containerH - img.height * cropState.scale) / 2;
             
             drawCropCanvas();
             modalCrop.style.display='flex';
-            zoomSlider.value = 100;
+            zoomSlider.value = 50;
+            zoomSlider.dataset.lastValue = '50';
           };
           img.src=r.result;
         };
@@ -411,12 +470,31 @@
         ctx.strokeRect(cropX, cropY, size, size);
       }
       
+      function getEventPos(e, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientX);
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+
       cropCanvas.addEventListener('mousedown', (e)=>{
         if(!cropState)return;
         cropState.dragging=true;
         cropState.lastX=e.offsetX;
         cropState.lastY=e.offsetY;
       });
+      
+      cropCanvas.addEventListener('touchstart', (e)=>{
+        if(!cropState)return;
+        e.preventDefault();
+        const pos = getEventPos(e, cropCanvas);
+        cropState.dragging=true;
+        cropState.lastX=pos.x;
+        cropState.lastY=pos.y;
+      }, {passive: false});
       
       cropCanvas.addEventListener('mousemove', (e)=>{
         if(!cropState || !cropState.dragging)return;
@@ -428,8 +506,25 @@
         cropState.lastY = e.offsetY;
         drawCropCanvas();
       });
+
+      cropCanvas.addEventListener('touchmove', (e)=>{
+        if(!cropState || !cropState.dragging)return;
+        e.preventDefault();
+        const pos = getEventPos(e, cropCanvas);
+        const dx = pos.x - cropState.lastX;
+        const dy = pos.y - cropState.lastY;
+        cropState.x += dx;
+        cropState.y += dy;
+        cropState.lastX = pos.x;
+        cropState.lastY = pos.y;
+        drawCropCanvas();
+      }, {passive: false});
       
       cropCanvas.addEventListener('mouseup', ()=>{
+        if(cropState)cropState.dragging=false;
+      });
+
+      cropCanvas.addEventListener('touchend', ()=>{
         if(cropState)cropState.dragging=false;
       });
       
@@ -439,9 +534,11 @@
       
       zoomSlider.addEventListener('input', ()=>{
         if(!cropState)return;
-        const baseScale = cropState.scale / (parseInt(zoomSlider.dataset.lastValue||'100')/100);
-        cropState.scale = baseScale * (parseInt(zoomSlider.value)/100);
-        zoomSlider.dataset.lastValue = zoomSlider.value;
+        const lastValue = parseInt(zoomSlider.dataset.lastValue||'50');
+        const newValue = parseInt(zoomSlider.value);
+        const scaleFactor = newValue / lastValue;
+        cropState.scale *= scaleFactor;
+        zoomSlider.dataset.lastValue = newValue;
         drawCropCanvas();
       });
       
@@ -586,9 +683,24 @@
       
       tb.innerHTML=users.map(u=>{
         const status = u.status||'pendiente';
-        const statusText = status === 'aprobado' ? 'APROBADO' : (status === 'rechazado' ? 'RECHAZADO' : status);
-        const statusColor = status === 'aprobado' ? 'background:#16a34a;color:#fff;' : (status === 'rechazado' ? 'background:#dc2626;color:#fff;' : '');
-        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${u.role}</td><td><span class='chip' style='${statusColor}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></div></td></tr>`;
+        const statusText = status.toUpperCase();
+        let statusClass = 'chip';
+        let statusStyle = '';
+        
+        if (status === 'aprobado') {
+          statusStyle = 'background:#16a34a;color:#fff;';
+        } else if (status === 'rechazado') {
+          statusStyle = 'background:#dc2626;color:#fff;';
+        } else if (status === 'pendiente') {
+          statusClass = 'chip status-pendiente';
+          statusStyle = 'background:#ff8c00;color:#fff;';
+        } else if (status === 'suspendido') {
+          statusStyle = 'background:#ff8c00;color:#fff;';
+        }
+        
+        const roleText = (u.role||'user').toUpperCase();
+        
+        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></div></td></tr>`;
       }).join('');
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
@@ -748,17 +860,183 @@
   if(btnNuevoAn) btnNuevoAn.addEventListener('click',()=>openAnuncio(''));
   
   if(anuncioForm){
-    document.getElementById('anuncioImg').addEventListener('change',(e)=>{
-      const f=e.target.files[0];
-      if(!f) return;
-      const r=new FileReader();
-      r.onload=()=>{
+    let cropStateAnuncio = null;
+    const modalCropAnuncio = document.getElementById('modalCropAnuncio');
+    const cropCanvasAnuncio = document.getElementById('cropCanvasAnuncio');
+    const zoomSliderAnuncio = document.getElementById('zoomSliderAnuncio');
+    
+    if(cropCanvasAnuncio) {
+      const ctxAnuncio = cropCanvasAnuncio.getContext('2d');
+      
+      document.getElementById('anuncioImg').addEventListener('change',(e)=>{
+        const f=e.target.files[0];
+        if(!f) return;
+        const r=new FileReader();
+        r.onload=()=>{
+          const img=new Image();
+          img.onload=()=>{
+            const containerW = 600;
+            const containerH = 400;
+            cropCanvasAnuncio.width = containerW;
+            cropCanvasAnuncio.height = containerH;
+            
+            cropStateAnuncio = {
+              img: img,
+              x: 0,
+              y: 0,
+              scale: 1,
+              dragging: false,
+              lastX: 0,
+              lastY: 0,
+              baseScale: 1
+            };
+            
+            const imgAspect = img.width / img.height;
+            const containerAspect = containerW / containerH;
+            
+            if(imgAspect > containerAspect){
+              cropStateAnuncio.baseScale = containerW / img.width;
+            } else {
+              cropStateAnuncio.baseScale = containerH / img.height;
+            }
+            
+            cropStateAnuncio.scale = cropStateAnuncio.baseScale * 0.5;
+            
+            cropStateAnuncio.x = (containerW - img.width * cropStateAnuncio.scale) / 2;
+            cropStateAnuncio.y = (containerH - img.height * cropStateAnuncio.scale) / 2;
+            
+            drawCropCanvasAnuncio();
+            modalCropAnuncio.style.display='flex';
+            zoomSliderAnuncio.value = 50;
+            zoomSliderAnuncio.dataset.lastValue = '50';
+          };
+          img.src=r.result;
+        };
+        r.readAsDataURL(f);
+      });
+      
+      function drawCropCanvasAnuncio(){
+        if(!cropStateAnuncio)return;
+        ctxAnuncio.fillStyle='#000';
+        ctxAnuncio.fillRect(0,0,cropCanvasAnuncio.width,cropCanvasAnuncio.height);
+        ctxAnuncio.drawImage(
+          cropStateAnuncio.img,
+          cropStateAnuncio.x,
+          cropStateAnuncio.y,
+          cropStateAnuncio.img.width * cropStateAnuncio.scale,
+          cropStateAnuncio.img.height * cropStateAnuncio.scale
+        );
+        
+        ctxAnuncio.strokeStyle='rgba(255,255,255,0.5)';
+        ctxAnuncio.lineWidth=2;
+        const size = Math.min(cropCanvasAnuncio.width, cropCanvasAnuncio.height) - 40;
+        const cropX = (cropCanvasAnuncio.width - size) / 2;
+        const cropY = (cropCanvasAnuncio.height - size) / 2;
+        ctxAnuncio.strokeRect(cropX, cropY, size, size);
+      }
+      
+      cropCanvasAnuncio.addEventListener('mousedown', (e)=>{
+        if(!cropStateAnuncio)return;
+        cropStateAnuncio.dragging=true;
+        cropStateAnuncio.lastX=e.offsetX;
+        cropStateAnuncio.lastY=e.offsetY;
+      });
+
+      cropCanvasAnuncio.addEventListener('touchstart', (e)=>{
+        if(!cropStateAnuncio)return;
+        e.preventDefault();
+        const pos = getEventPos(e, cropCanvasAnuncio);
+        cropStateAnuncio.dragging=true;
+        cropStateAnuncio.lastX=pos.x;
+        cropStateAnuncio.lastY=pos.y;
+      }, {passive: false});
+      
+      cropCanvasAnuncio.addEventListener('mousemove', (e)=>{
+        if(!cropStateAnuncio || !cropStateAnuncio.dragging)return;
+        const dx = e.offsetX - cropStateAnuncio.lastX;
+        const dy = e.offsetY - cropStateAnuncio.lastY;
+        cropStateAnuncio.x += dx;
+        cropStateAnuncio.y += dy;
+        cropStateAnuncio.lastX = e.offsetX;
+        cropStateAnuncio.lastY = e.offsetY;
+        drawCropCanvasAnuncio();
+      });
+
+      cropCanvasAnuncio.addEventListener('touchmove', (e)=>{
+        if(!cropStateAnuncio || !cropStateAnuncio.dragging)return;
+        e.preventDefault();
+        const pos = getEventPos(e, cropCanvasAnuncio);
+        const dx = pos.x - cropStateAnuncio.lastX;
+        const dy = pos.y - cropStateAnuncio.lastY;
+        cropStateAnuncio.x += dx;
+        cropStateAnuncio.y += dy;
+        cropStateAnuncio.lastX = pos.x;
+        cropStateAnuncio.lastY = pos.y;
+        drawCropCanvasAnuncio();
+      }, {passive: false});
+      
+      cropCanvasAnuncio.addEventListener('mouseup', ()=>{
+        if(cropStateAnuncio)cropStateAnuncio.dragging=false;
+      });
+
+      cropCanvasAnuncio.addEventListener('touchend', ()=>{
+        if(cropStateAnuncio)cropStateAnuncio.dragging=false;
+      });
+      
+      cropCanvasAnuncio.addEventListener('mouseleave', ()=>{
+        if(cropStateAnuncio)cropStateAnuncio.dragging=false;
+      });
+      
+      zoomSliderAnuncio.addEventListener('input', ()=>{
+        if(!cropStateAnuncio)return;
+        const lastValue = parseInt(zoomSliderAnuncio.dataset.lastValue||'50');
+        const newValue = parseInt(zoomSliderAnuncio.value);
+        const scaleFactor = newValue / lastValue;
+        cropStateAnuncio.scale *= scaleFactor;
+        zoomSliderAnuncio.dataset.lastValue = newValue;
+        drawCropCanvasAnuncio();
+      });
+      
+      document.getElementById('closeCropAnuncio').addEventListener('click', ()=>{
+        modalCropAnuncio.style.display='none';
+        cropStateAnuncio=null;
+        document.getElementById('anuncioImg').value='';
+      });
+      
+      document.getElementById('cancelCropAnuncio').addEventListener('click', ()=>{
+        modalCropAnuncio.style.display='none';
+        cropStateAnuncio=null;
+        document.getElementById('anuncioImg').value='';
+      });
+      
+      document.getElementById('applyCropAnuncio').addEventListener('click', ()=>{
+        if(!cropStateAnuncio)return;
+        
+        const size = Math.min(cropCanvasAnuncio.width, cropCanvasAnuncio.height) - 40;
+        const cropX = (cropCanvasAnuncio.width - size) / 2;
+        const cropY = (cropCanvasAnuncio.height - size) / 2;
+        
+        const outputCanvas = document.createElement('canvas');
+        outputCanvas.width = 512;
+        outputCanvas.height = 512;
+        const outCtx = outputCanvas.getContext('2d');
+        
+        outCtx.drawImage(
+          cropCanvasAnuncio,
+          cropX, cropY, size, size,
+          0, 0, 512, 512
+        );
+        
+        const d = outputCanvas.toDataURL('image/jpeg',.9);
         const preview = document.getElementById('anuncioPreview');
-        preview.src=r.result;
+        preview.src=d;
         preview.style.display='block';
-      };
-      r.readAsDataURL(f);
-    });
+        
+        modalCropAnuncio.style.display='none';
+        cropStateAnuncio=null;
+        document.getElementById('anuncioImg').value='';
+      });
+    }
     
     document.getElementById('btnAnuncioQuitarImg').addEventListener('click',()=>{
       const preview = document.getElementById('anuncioPreview');
@@ -1030,6 +1308,200 @@
   }
   
   if(adminMedsTable) await renderMedsAdmin();
+
+  const sugerenciaForm = document.getElementById('sugerenciaForm');
+  const sugerenciaTexto = document.getElementById('sugerenciaTexto');
+  const charCount = document.getElementById('charCount');
+  const misSugerenciasList = document.getElementById('misSugerenciasList');
+
+  if(sugerenciaTexto && charCount) {
+    sugerenciaTexto.addEventListener('input', () => {
+      charCount.textContent = sugerenciaTexto.value.length;
+    });
+  }
+
+  async function renderMisSugerencias() {
+    if(!misSugerenciasList) return;
+
+    try {
+      const list = await api('/sugerencias');
+      const sorted = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+      
+      if(sorted.length === 0) {
+        misSugerenciasList.innerHTML = '<p class="text-muted">No has enviado sugerencias aún.</p>';
+        return;
+      }
+
+      misSugerenciasList.innerHTML = sorted.map(s => `
+        <div class="glass" style="padding:12px;border-radius:12px;margin-bottom:12px;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <span class="chip">${new Date(s.fecha).toLocaleDateString()}</span>
+            <span class="chip" style="background:${s.respondida?'#16a34a':'#ff8c00'};color:#fff;">${s.respondida?'Respondida':'Pendiente'}</span>
+          </div>
+          <div style="margin-bottom:8px;"><strong>Tu mensaje:</strong><br>${s.mensaje}</div>
+          ${s.respondida?`<div style="padding:10px;border-left:3px solid var(--primary);background:rgba(var(--primary-rgb),0.1);border-radius:6px;"><strong>Respuesta del administrador:</strong><br>${s.respuesta}</div>`:''}
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error('Error rendering mis sugerencias:', err);
+    }
+  }
+
+  if(sugerenciaForm) {
+    sugerenciaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const mensaje = sugerenciaTexto.value.trim();
+      if(!mensaje) return;
+
+      try {
+        await api('/sugerencias', {
+          method: 'POST',
+          body: JSON.stringify({mensaje})
+        });
+
+        toast('Sugerencia enviada correctamente.', 'success');
+        sugerenciaTexto.value = '';
+        charCount.textContent = '0';
+        await renderMisSugerencias();
+      } catch (err) {
+        toast('Error al enviar sugerencia.', 'error');
+      }
+    });
+  }
+
+  if(misSugerenciasList) await renderMisSugerencias();
+
+  const adminSugerenciasTable = document.getElementById('adminSugerenciasTable');
+  const modalSugerencia = document.getElementById('modalSugerencia');
+  const sugerenciaAdminForm = document.getElementById('sugerenciaAdminForm');
+  const sugerenciasCounter = document.getElementById('sugerenciasCounter');
+
+  let lastSugerenciasCount = 0;
+
+  async function updateSugerenciasCounter() {
+    if(!sugerenciasCounter) return;
+
+    try {
+      const data = await api('/sugerencias/count');
+      const count = data.count || 0;
+
+      if(count > 0) {
+        sugerenciasCounter.textContent = count;
+        sugerenciasCounter.style.display = 'inline-block';
+
+        if(count > lastSugerenciasCount && lastSugerenciasCount > 0) {
+          playDing();
+          toast('Nueva sugerencia recibida', 'info', true);
+        }
+      } else {
+        sugerenciasCounter.style.display = 'none';
+      }
+
+      lastSugerenciasCount = count;
+    } catch (err) {
+      console.error('Error updating sugerencias counter:', err);
+    }
+  }
+
+  async function renderSugerenciasAdmin() {
+    if(!adminSugerenciasTable) return;
+    const tbody = adminSugerenciasTable.querySelector('tbody');
+
+    try {
+      const list = await api('/sugerencias');
+      const sorted = list.sort((a,b)=>{
+        if(a.respondida !== b.respondida) return a.respondida ? 1 : -1;
+        return (b.fecha||'').localeCompare(a.fecha||'');
+      });
+
+      tbody.innerHTML = sorted.map(s => {
+        const statusStyle = s.respondida ? 'background:#16a34a;color:#fff;' : 'background:#ff8c00;color:#fff;';
+        const statusText = s.respondida ? 'Respondida' : 'Pendiente';
+        return `<tr>
+          <td>${s.username}</td>
+          <td>${new Date(s.fecha).toLocaleDateString()}</td>
+          <td>${s.mensaje}</td>
+          <td>${s.respuesta||'-'}</td>
+          <td><div style='display:flex;gap:6px;white-space:nowrap'>
+            <span class='chip' style='${statusStyle}'>${statusText}</span>
+            <button class='btn sm info' data-resp-sug='${s.id}'>Responder</button>
+            <button class='btn sm danger' data-del-sug='${s.id}'>Eliminar</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('[data-resp-sug]').forEach(b => b.addEventListener('click', () => openSugerencia(b.getAttribute('data-resp-sug'))));
+      tbody.querySelectorAll('[data-del-sug]').forEach(b => b.addEventListener('click', async () => {
+        const id = b.getAttribute('data-del-sug');
+        if(!confirm('¿Eliminar esta sugerencia?')) return;
+
+        try {
+          await api(`/sugerencias/${id}`, {method: 'DELETE'});
+          await renderSugerenciasAdmin();
+          await updateSugerenciasCounter();
+          toast('Sugerencia eliminada.', 'info');
+        } catch (err) {
+          toast('Error al eliminar sugerencia.', 'error');
+        }
+      }));
+
+      await updateSugerenciasCounter();
+    } catch (err) {
+      console.error('Error rendering sugerencias admin:', err);
+    }
+  }
+
+  async function openSugerencia(id) {
+    try {
+      const list = await api('/sugerencias');
+      const s = list.find(x => x.id === id);
+      if(!s) return;
+
+      document.getElementById('sug_id').value = s.id;
+      document.getElementById('sug_username').value = s.username;
+      document.getElementById('sug_mensaje').value = s.mensaje;
+      document.getElementById('sug_respuesta').value = s.respuesta || '';
+      modalSugerencia.style.display = 'flex';
+    } catch (err) {
+      console.error('Error opening sugerencia:', err);
+    }
+  }
+
+  if(sugerenciaAdminForm) {
+    sugerenciaAdminForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('sug_id').value;
+      const respuesta = document.getElementById('sug_respuesta').value.trim();
+
+      if(!respuesta) {
+        toast('Debes escribir una respuesta.', 'error');
+        return;
+      }
+
+      try {
+        await api(`/sugerencias/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({respuesta})
+        });
+
+        modalSugerencia.style.display = 'none';
+        await renderSugerenciasAdmin();
+        await updateSugerenciasCounter();
+        toast('Respuesta guardada.', 'success');
+      } catch (err) {
+        toast('Error al guardar respuesta.', 'error');
+      }
+    });
+
+    document.querySelectorAll('[data-close-sugerencia]').forEach(x => x.addEventListener('click', () => modalSugerencia.style.display = 'none'));
+  }
+
+  if(adminSugerenciasTable) {
+    await renderSugerenciasAdmin();
+    setInterval(updateSugerenciasCounter, 10000);
+  }
 
   document.querySelectorAll('.accordion-header').forEach(header => {
     header.addEventListener('click', function() {
