@@ -1,0 +1,42 @@
+<!doctype html><html lang="es" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Principal — NBR WEB</title>
+<link rel="stylesheet" href="style.css">
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
+      <nav>
+        <a href="main.html" class="active">🏠 <span>Principal</span></a>
+        <a href="calculadora.html">💊 <span>Banco de medicamentos</span></a>
+        <a href="configuracion.html">⚙️ <span>Configuración</span></a>
+        <a href="admin.html">🛠️ <span>Administración</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <h2>Principal</h2>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()">Salir</button>
+        </div>
+      </header>
+      <main>
+        <div class="grid-2col">
+          <section class="card glass"><h3>Anuncios</h3><div id="anunciosList" class="stack"></div></section>
+          <aside class="card glass"><h3>Guías de pediatría & neonatología</h3><div id="guiasList" class="stack"></div></aside>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body></html>
