@@ -376,7 +376,12 @@
       const users = await api('/users');
       const me=session.username;
       
-      tb.innerHTML=users.map(u=>`<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${u.role}</td><td><span class='chip'>${u.status||'pendiente'}</span></td><td style='display:flex;gap:8px;flex-wrap:wrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></td></tr>`).join('');
+      tb.innerHTML=users.map(u=>{
+        const status = u.status||'pendiente';
+        const statusText = status === 'aprobado' ? 'APROBADO' : (status === 'rechazado' ? 'RECHAZADO' : status);
+        const statusColor = status === 'aprobado' ? 'background:#16a34a;color:#fff;' : (status === 'rechazado' ? 'background:#dc2626;color:#fff;' : '');
+        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${u.role}</td><td><span class='chip' style='${statusColor}'>${statusText}</span></td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></td></tr>`;
+      }).join('');
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-edit-user');
@@ -483,7 +488,7 @@
     
     try {
       const list = await api('/anuncios');
-      tb.innerHTML=list.map(a=>`<tr><td>${a.img?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:''}</td><td>${a.titulo}</td><td>${a.fecha}</td><td>${a.texto}</td><td style='display:flex;gap:8px;flex-wrap:wrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></td></tr>`).join('');
+      tb.innerHTML=list.map(a=>`<tr><td>${a.img?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:'—'}</td><td>${a.titulo}</td><td>${a.fecha}</td><td>${a.texto}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-an]').forEach(b=>b.addEventListener('click',()=>openAnuncio(b.getAttribute('data-edit-an'))));
       tb.querySelectorAll('[data-del-an]').forEach(b=>b.addEventListener('click',async()=>{
@@ -583,7 +588,7 @@
     
     try {
       const list = await api('/guias');
-      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.texto}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td style='display:flex;gap:8px;flex-wrap:wrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></td></tr>`).join('');
+      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.texto}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-g]').forEach(b=>b.addEventListener('click',()=>openGuia(b.getAttribute('data-edit-g'))));
       tb.querySelectorAll('[data-del-g]').forEach(b=>b.addEventListener('click',async()=>{
@@ -667,7 +672,7 @@
     try {
       const list = await api('/anuncios');
       const sorted = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-      cont.innerHTML=sorted.map(a=>`<article class='glass' style='padding:10px;border-radius:12px;display:flex;gap:10px;align-items:flex-start'>${a.img?`<img src='${a.img}' alt='' style='width:72px;height:72px;border-radius:10px;border:1px solid var(--border);object-fit:cover;'>`:''}<div><div style='display:flex;gap:8px;align-items:center'><strong>${a.titulo}</strong><span class='chip'>${a.fecha}</span></div><div class='text-muted'>${a.texto}</div></div></article>`).join('');
+      cont.innerHTML=sorted.map(a=>`<article class='glass' style='padding:10px;border-radius:12px;display:flex;gap:10px;align-items:flex-start'>${a.img?`<img src='${a.img}' alt='' style='width:120px;height:120px;border-radius:10px;border:1px solid var(--border);object-fit:cover;flex-shrink:0;'>`:''}<div style='flex:1'><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><strong>${a.titulo}</strong><span class='chip'>${a.fecha}</span></div><div class='text-muted'>${a.texto}</div></div></article>`).join('');
     } catch (err) {
       console.error('Error rendering anuncios main:', err);
     }
@@ -729,7 +734,7 @@
     try {
       const list = await api('/medications');
       tbody.innerHTML = list.sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(m => 
-        `<tr><td>${m.nombre}</td><td>${m.grupo}</td><td>${m.dilucion}</td><td>${m.comentarios}</td><td style='display:flex;gap:8px;flex-wrap:wrap'><button class='btn sm info' data-edit-med='${m.id}'>Editar</button><button class='btn sm danger' data-del-med='${m.id}'>Eliminar</button></td></tr>`
+        `<tr><td>${m.nombre}</td><td>${m.grupo}</td><td>${m.dilucion}</td><td>${m.comentarios}</td><td style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-med='${m.id}'>Editar</button><button class='btn sm danger' data-del-med='${m.id}'>Eliminar</button></td></tr>`
       ).join('');
       
       tbody.querySelectorAll('[data-edit-med]').forEach(b => b.addEventListener('click', () => openMedicamento(b.getAttribute('data-edit-med'))));
@@ -800,4 +805,20 @@
   }
   
   if(adminMedsTable) await renderMedsAdmin();
+
+  document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-toggle');
+      const content = document.getElementById(targetId);
+      const icon = this.querySelector('.accordion-icon');
+      
+      if(content) {
+        const isVisible = content.style.display !== 'none';
+        content.style.display = isVisible ? 'none' : 'block';
+        if(icon) {
+          icon.textContent = isVisible ? '▼' : '▲';
+        }
+      }
+    });
+  });
 })();

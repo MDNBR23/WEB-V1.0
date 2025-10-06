@@ -317,6 +317,17 @@ html[data-theme="dark"] .field textarea{
   white-space:nowrap;
   font-weight:600;
   font-size:15px;
+  line-height:1;
+}
+
+.sidebar a .icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  font-size:20px;
+  line-height:1;
 }
 
 .sidebar.collapsed a{
@@ -337,7 +348,7 @@ html[data-theme="dark"] .field textarea{
   text-shadow:0 1px 4px rgba(0,0,0,.2);
 }
 
-.sidebar.collapsed a span{
+.sidebar.collapsed a span:not(.icon){
   opacity:0;
   width:0;
   overflow:hidden;
@@ -633,6 +644,17 @@ textarea{
   font-family:inherit;
   resize:vertical;
   min-height:80px;
+}
+
+.accordion-icon{
+  font-size:14px;
+  transition:transform .3s ease;
+  user-select:none;
+}
+
+.accordion-content{
+  overflow:hidden;
+  transition:all .3s ease;
 }
 
 @media(max-width: 768px){

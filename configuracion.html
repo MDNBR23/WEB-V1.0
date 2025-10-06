@@ -14,10 +14,10 @@
     <aside class="sidebar">
       <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
       <nav>
-        <a href="main.html">🏠 <span>Principal</span></a>
-        <a href="calculadora.html">💊 <span>Banco de medicamentos</span></a>
-        <a href="configuracion.html" class="active">⚙️ <span>Configuración</span></a>
-        <a href="admin.html">🛠️ <span>Administración</span></a>
+        <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
+        <a href="calculadora.html"><span class="icon">💊</span><span>Banco de medicamentos</span></a>
+        <a href="configuracion.html" class="active"><span class="icon">⚙️</span><span>Configuración</span></a>
+        <a href="admin.html"><span class="icon">🛠️</span><span>Administración</span></a>
       </nav>
     </aside>
     <div class="content">
@@ -36,8 +36,12 @@
           <form id="cfgForm">
             <div class="grid-2col" style="grid-template-columns:320px 1fr;">
               <div>
-                <div class="field"><label>Avatar</label><img id="avatarTopPreview" src="" alt="" style="width:140px;height:140px;border-radius:16px;border:1px solid var(--border);object-fit:cover;"></div>
-                <div class="field"><input id="cfgAvatarFile" type="file" accept="image/*"><button class="btn secondary sm mt12" type="button" id="cfgAvatarClear">Quitar avatar</button></div>
+                <div class="field"><label>Imagen de Perfil</label><img id="avatarTopPreview" src="" alt="" style="width:140px;height:140px;border-radius:16px;border:1px solid var(--border);object-fit:cover;background:linear-gradient(135deg,var(--g1),var(--g2));"></div>
+                <div class="field" style="display:flex;gap:8px;flex-direction:column;">
+                  <button class="btn sm" type="button" onclick="document.getElementById('cfgAvatarFile').click()">Añadir imagen de perfil</button>
+                  <button class="btn secondary sm" type="button" id="cfgAvatarClear">Quitar imagen de perfil</button>
+                  <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
+                </div>
               </div>
               <div>
                 <div class="field"><label>Usuario</label><input id="cfgUser" type="text" disabled></div>
