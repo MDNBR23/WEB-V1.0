@@ -1,0 +1,114 @@
+[
+  {
+    "id": "4d6c619c-3fd2-4d1b-a397-c4975e77d260",
+    "nombre": "Adrenalina",
+    "grupo": "Vasopresores",
+    "dilucion": "1 ampolla (1mg/1ml) en 9ml SF = 0.1mg/ml",
+    "comentarios": "Dosis: 0.01-0.03 mg/kg IV. RCP: 0.01-0.03 mg/kg cada 3-5 min"
+  },
+  {
+    "id": "3f1d43ad-0161-4f62-b5ac-6a528b50cb78",
+    "nombre": "Amikacina",
+    "grupo": "Antibióticos",
+    "dilucion": "Diluir en SF o SG 5% para infusión",
+    "comentarios": "Neonatos: 15-20 mg/kg/día c/24h. Niños: 15-22.5 mg/kg/día dividido c/8-12h"
+  },
+  {
+    "id": "3e7e91a2-f327-4c49-9ffa-296f450d8dc8",
+    "nombre": "Ampicilina",
+    "grupo": "Antibióticos",
+    "dilucion": "Reconstituir con agua estéril, diluir en SF o SG 5%",
+    "comentarios": "Neonatos <7 días: 50-100 mg/kg c/12h. >7 días: 50-100 mg/kg c/8h. Meningitis: dosis más altas"
+  },
+  {
+    "id": "c0e16ac6-e628-46b7-a72d-0c2f17e12c42",
+    "nombre": "Cafeína",
+    "grupo": "Estimulantes SNC",
+    "dilucion": "Citrato de cafeína 20mg/ml (oral o IV)",
+    "comentarios": "Carga: 20mg/kg. Mantenimiento: 5-10mg/kg/día. Para apnea del prematuro"
+  },
+  {
+    "id": "d1cd596d-185f-4965-99bc-ef309f5989a2",
+    "nombre": "Cefotaxima",
+    "grupo": "Antibióticos",
+    "dilucion": "Reconstituir y diluir en SF o SG 5%",
+    "comentarios": "Neonatos: 50mg/kg c/8-12h. Niños: 50-100mg/kg/día dividido c/6-8h. Meningitis: hasta 200mg/kg/día"
+  },
+  {
+    "id": "f5d9f2ee-f558-4dae-8601-b4e9060cce4f",
+    "nombre": "Dexametasona",
+    "grupo": "Corticoides",
+    "dilucion": "Puede diluirse en SF o SG 5%",
+    "comentarios": "Antiinflamatorio: 0.15-0.6 mg/kg/día. Edema cerebral: 0.5-1 mg/kg dosis inicial"
+  },
+  {
+    "id": "db054f0b-95d3-4929-9c0c-053c512ecf29",
+    "nombre": "Dobutamina",
+    "grupo": "Inotrópicos",
+    "dilucion": "1 ampolla (250mg/20ml) + SF hasta 50ml = 5mg/ml",
+    "comentarios": "Dosis: 2-20 mcg/kg/min en infusión continua. Ajustar según respuesta hemodinámica"
+  },
+  {
+    "id": "1f7d8374-ecf7-46de-93ef-4cc6acee8e98",
+    "nombre": "Dopamina",
+    "grupo": "Vasopresores",
+    "dilucion": "1 ampolla (200mg/5ml) + SF hasta 50ml = 4mg/ml",
+    "comentarios": "Dosis baja (2-5 mcg/kg/min): renal. Media (5-10): inotrópico. Alta (>10): vasopresor"
+  },
+  {
+    "id": "6d59bbc9-a6d8-474a-bbe0-417574dca8cb",
+    "nombre": "Fentanilo",
+    "grupo": "Analgésicos",
+    "dilucion": "Diluir en SF, concentración típica 10-50 mcg/ml",
+    "comentarios": "Analgesia: 1-2 mcg/kg IV. Sedación: 1-5 mcg/kg/h en infusión continua"
+  },
+  {
+    "id": "0d5bf362-56a0-4e87-b3a3-7de6b200c2b0",
+    "nombre": "Furosemida",
+    "grupo": "Diuréticos",
+    "dilucion": "Puede administrarse directo IV o diluido en SF",
+    "comentarios": "Neonatos: 1-2 mg/kg/dosis c/12-24h. Niños: 1-2 mg/kg/dosis c/6-12h"
+  },
+  {
+    "id": "2ccf813b-7b68-4c7f-97ca-19d0565353df",
+    "nombre": "Gentamicina",
+    "grupo": "Antibióticos",
+    "dilucion": "Diluir en SF o SG 5% para infusión 30-60 min",
+    "comentarios": "Neonatos: 4-5 mg/kg/día c/24-48h según edad. Niños: 5-7.5 mg/kg/día c/8h"
+  },
+  {
+    "id": "346a4ccf-9915-407b-93c6-51171c9d4a77",
+    "nombre": "Hidrocortisona",
+    "grupo": "Corticoides",
+    "dilucion": "Reconstituir con agua estéril, puede diluirse en SF",
+    "comentarios": "Insuficiencia suprarrenal: 1-2 mg/kg c/6-8h. Shock: 50-100 mg/m²/día"
+  },
+  {
+    "id": "35b3547d-ac22-490d-be88-c42eebfd1ae0",
+    "nombre": "Midazolam",
+    "grupo": "Sedantes",
+    "dilucion": "Puede diluirse en SF o SG 5%",
+    "comentarios": "Sedación: 0.05-0.15 mg/kg IV. Infusión continua: 1-6 mcg/kg/min"
+  },
+  {
+    "id": "7c06a73b-52b4-449a-965b-48eab667e9db",
+    "nombre": "Morfina",
+    "grupo": "Analgésicos",
+    "dilucion": "Diluir en SF, concentración típica 0.1-1 mg/ml",
+    "comentarios": "Analgesia: 0.05-0.2 mg/kg c/2-4h IV. Infusión: 10-40 mcg/kg/h"
+  },
+  {
+    "id": "9f58634b-6355-4669-9581-dde26e0d5f07",
+    "nombre": "Surfactante",
+    "grupo": "Pulmonares",
+    "dilucion": "Listo para usar intratraqueal",
+    "comentarios": "Dosis: 100-200 mg/kg intratraqueal. Puede repetirse según protocolo"
+  },
+  {
+    "id": "5567a90a-9c6a-4ce8-a797-51048666f661",
+    "nombre": "Vancomicina",
+    "grupo": "Antibióticos",
+    "dilucion": "Reconstituir y diluir en SF o SG 5%, infusión ≥60 min",
+    "comentarios": "Neonatos: 10-15 mg/kg c/8-24h según edad. Niños: 10-15 mg/kg c/6-8h. Monitorear niveles"
+  }
+]

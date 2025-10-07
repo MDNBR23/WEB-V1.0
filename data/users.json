@@ -1,0 +1,15 @@
+[
+  {
+    "username": "admin",
+    "password": "$2b$10$AqyxiMJ9OT3bwmBc7BgrG.inDHhA8FM8w.w51Uk.Zof2oBOR9aGl2",
+    "name": "Neil Briñez",
+    "email": "admin@nbrweb.local",
+    "phone": "",
+    "institucion": "NBR WEB",
+    "role": "admin",
+    "status": "aprobado",
+    "cat": "",
+    "avatar": "",
+    "createdAt": "2025-10-06T23:20:31.601Z"
+  }
+]

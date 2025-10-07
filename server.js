@@ -414,6 +414,9 @@ app.put('/api/users/:username', async (req, res) => {
     
     Object.keys(updates).forEach(key => {
       if (key !== 'username' && key !== 'password') {
+        if (username === 'admin' && (key === 'status' || key === 'role')) {
+          return;
+        }
         user[key] = updates[key];
       }
     });

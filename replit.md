@@ -22,7 +22,8 @@ NBR WEB is a Spanish-language medical web platform designed for pediatric and ne
 ├── register.html       - User registration page
 ├── reset-password.html - Password reset page
 ├── main.html          - Main dashboard (announcements & guides)
-├── calculadora.html   - Medicine database/calculator
+├── vademecum.html     - Medicine database/calculator
+├── herramientas.html  - Medical tools (text formatter, ABG analyzer, document storage)
 ├── admin.html         - Admin panel for user/content management
 ├── configuracion.html - User profile settings
 ├── script.js          - All application JavaScript logic (API-based)
@@ -145,6 +146,52 @@ Configured for Replit's autoscale deployment:
 
 ## Recent Changes
 
+### 2025-10-07: Template System & Notification Badges
+- **Template Storage System:**
+  - Renamed "Almacenamiento de Documentos" to "Plantillas" for better clarity
+  - Implemented global/predefined templates system for administrators
+  - Admin can create templates visible to all users
+  - Users can create their own personal templates
+  - Templates stored separately in localStorage (global and user-specific keys)
+  - Maximum 10MB file size per template
+  - Category filtering and full-text search functionality
+  
+- **Admin Notification System:**
+  - Added notification badge to "Administración" link in sidebar
+  - Badge shows total count of pending actions (users + unanswered suggestions)
+  - Badge visible only to admin users
+  - Subtle pulse animation for better visibility
+  - Separate counters in admin panel for users and suggestions
+  - Real-time updates when approving/rejecting users or answering suggestions
+  - Auto-refreshes on page load for admin users
+
+### 2025-10-06: Medical Tools Section & File Reorganization
+- **New Medical Tools Page:**
+  - Text Space Corrector: Normalizes and removes extra spaces in medical texts
+  - Arterial Blood Gas Analyzer: Interprets ABG results (pH, PaCO₂, PaO₂, HCO₃, SatO₂, BE)
+    - Based on standard clinical interpretation algorithms
+    - Shows diagnostic classification (acidosis/alkalosis, respiratory/metabolic)
+    - Indicates acute, partially compensated, or compensated states
+    - Evaluates oxygenation status
+  - Document Storage System: Store and edit clinical evolution templates by pathology and age group
+    - Maximum 10MB per document
+    - Category filtering (Pediatrics, Adults, Geriatrics, Neonatology, Others)
+    - Full-text search functionality
+    - In-browser editing with modal interface
+    - Download documents as plain text files
+    - Uses browser localStorage for data persistence
+  
+- **File Reorganization:**
+  - Renamed `calculadora.html` to `vademecum.html` (medicine database)
+  - Updated all navigation references across all HTML files
+  - Improved semantic naming for better clarity
+
+- **Security Enhancement:**
+  - Protected admin user against status/role changes
+  - Backend API prevents modification of admin status and role
+  - Frontend UI disables status/role fields when editing admin user
+  - Disabled approve/reject/delete buttons for admin user in management table
+
 ### 2025-10-06: UI Refresh & Email Integration
 - **Color Palette Update:**
   - Changed from purple/indigo to modern teal/cyan theme (#008B8B → #008080)
@@ -223,6 +270,7 @@ Configured for Replit's autoscale deployment:
 - API endpoints validate authentication for protected routes
 - Admin-only endpoints check role before allowing access
 - Data files are excluded from git via .gitignore
+- **Admin user protection:** The main admin account cannot have its status or role modified through the UI or API, preventing accidental lockout
 
 ## User Preferences
 None recorded yet.

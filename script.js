@@ -197,6 +197,7 @@
         
         if(profile.role === 'admin') {
           info.textContent = `${fullText} — ADMIN`;
+          updateAdminNotifications();
         } else {
           info.textContent = fullText;
         }
@@ -700,8 +701,12 @@
         
         const roleText = (u.role||'user').toUpperCase();
         
-        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}'>Aprobar</button><button class='btn sm warning' data-reject='${u.username}'>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me?'disabled':''}>Eliminar</button></div></td></tr>`;
+        const isAdmin = u.username === 'admin';
+        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}' ${isAdmin?'disabled':''}>Aprobar</button><button class='btn sm warning' data-reject='${u.username}' ${isAdmin?'disabled':''}>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me||isAdmin?'disabled':''}>Eliminar</button></div></td></tr>`;
       }).join('');
+      
+      await updateUsuariosPendientesCounter();
+      await updateAdminNotifications();
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-edit-user');
@@ -717,6 +722,15 @@
         document.getElementById('u_cat').value=u.cat||'';
         document.getElementById('u_role').value=u.role||'user';
         document.getElementById('u_status').value=u.status||'pendiente';
+        
+        if(username === 'admin'){
+          document.getElementById('u_role').disabled = true;
+          document.getElementById('u_status').disabled = true;
+        } else {
+          document.getElementById('u_role').disabled = false;
+          document.getElementById('u_status').disabled = false;
+        }
+        
         openModal('modalUser',true);
       }));
       
@@ -1399,8 +1413,65 @@
       }
 
       lastSugerenciasCount = count;
+      await updateAdminNotifications();
     } catch (err) {
       console.error('Error updating sugerencias counter:', err);
+    }
+  }
+
+  async function updateUsuariosPendientesCounter() {
+    const usuariosPendientesCounter = document.getElementById('usuariosPendientesCounter');
+    if(!usuariosPendientesCounter) return 0;
+
+    try {
+      const users = await api('/users');
+      const pendientes = users.filter(u => u.status === 'pendiente').length;
+
+      if(pendientes > 0) {
+        usuariosPendientesCounter.textContent = pendientes;
+        usuariosPendientesCounter.style.display = 'inline-block';
+      } else {
+        usuariosPendientesCounter.style.display = 'none';
+      }
+
+      return pendientes;
+    } catch (err) {
+      console.error('Error updating usuarios pendientes counter:', err);
+      return 0;
+    }
+  }
+
+  async function updateAdminNotifications() {
+    const adminBadge = document.getElementById('adminBadge');
+    const adminNavLink = document.getElementById('adminNavLink');
+    if(!adminBadge || !adminNavLink) return;
+
+    try {
+      const session = await checkSession();
+      if(session.role !== 'admin') {
+        adminBadge.style.display = 'none';
+        adminNavLink.classList.remove('has-notifications');
+        return;
+      }
+
+      const sugerenciasData = await api('/sugerencias/count');
+      const sugerenciasPendientes = sugerenciasData.count || 0;
+
+      const users = await api('/users');
+      const usuariosPendientes = users.filter(u => u.status === 'pendiente').length;
+
+      const totalNotificaciones = sugerenciasPendientes + usuariosPendientes;
+
+      if(totalNotificaciones > 0) {
+        adminBadge.textContent = totalNotificaciones;
+        adminBadge.style.display = 'inline-block';
+        adminNavLink.classList.add('has-notifications');
+      } else {
+        adminBadge.style.display = 'none';
+        adminNavLink.classList.remove('has-notifications');
+      }
+    } catch (err) {
+      console.error('Error updating admin notifications:', err);
     }
   }
 

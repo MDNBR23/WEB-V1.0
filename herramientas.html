@@ -7,11 +7,77 @@
 <meta name="theme-color" content="#008B8B">
 <title>Herramientas — NBR WEB</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.tool-section {
+  margin-bottom: 24px;
+}
+.tool-result {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.gsa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.gsa-result {
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 6px;
+  border-left: 4px solid var(--primary);
+}
+.gsa-result h4 {
+  margin: 0 0 8px 0;
+  color: var(--primary);
+}
+.gsa-result p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+.doc-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.doc-item .doc-name {
+  flex: 1;
+  font-weight: 500;
+}
+.doc-item .doc-meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+.text-editor {
+  width: 100%;
+  min-height: 300px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 14px;
+  margin-top: 12px;
+}
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
     document.body.classList.add('loaded');
     document.documentElement.classList.remove('preload');
+    initHerramientas();
   });
 </script>
 </head><body>
@@ -20,11 +86,11 @@
       <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
       <nav>
         <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
-        <a href="calculadora.html"><span class="icon">💊</span><span>Vademecum</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span>Vademecum</span></a>
         <a href="herramientas.html" class="active"><span class="icon">🔧</span><span>Herramientas</span></a>
         <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span></a>
         <a href="configuracion.html"><span class="icon">⚙️</span><span>Configuración</span></a>
-        <a href="admin.html"><span class="icon">🛠️</span><span>Administración</span></a>
+        <a href="admin.html" id="adminNavLink"><span class="icon">🛠️</span><span>Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
       </nav>
     </aside>
     <div class="content">
@@ -38,12 +104,544 @@
         </div>
       </header>
       <main>
-        <section class="card glass">
-          <h3>Herramientas disponibles</h3>
-          <p style="color:var(--muted);">Próximamente se agregarán herramientas útiles para la práctica médica.</p>
+        
+        <section class="card glass tool-section">
+          <h3>1. Corrector de Espacios de Texto</h3>
+          <p class="text-muted">Elimina espacios múltiples y normaliza el texto.</p>
+          <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a corregir..."></textarea>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button class="btn primary" onclick="corregirEspacios()">Corregir Espacios</button>
+            <button class="btn" onclick="limpiarTexto()">Limpiar</button>
+            <button class="btn" onclick="copiarTexto()">Copiar Resultado</button>
+          </div>
+          <div id="textResult" class="tool-result" style="display:none;">
+            <strong>Resultado:</strong>
+            <pre id="textResultContent" style="white-space: pre-wrap; margin-top: 8px;"></pre>
+          </div>
         </section>
+
+        <section class="card glass tool-section">
+          <h3>2. Lector de Gases Arteriales</h3>
+          <p class="text-muted">Interpreta resultados de gasometría arterial.</p>
+          <div class="gsa-grid">
+            <div>
+              <label>pH <small>(7.35-7.45)</small></label>
+              <input type="number" id="gsaPH" step="0.01" placeholder="7.40">
+            </div>
+            <div>
+              <label>PaCO₂ <small>(35-45 mmHg)</small></label>
+              <input type="number" id="gsaPaCO2" step="0.1" placeholder="40">
+            </div>
+            <div>
+              <label>PaO₂ <small>(80-95 mmHg)</small></label>
+              <input type="number" id="gsaPaO2" step="0.1" placeholder="90">
+            </div>
+            <div>
+              <label>HCO₃ <small>(22-26 mEq/L)</small></label>
+              <input type="number" id="gsaHCO3" step="0.1" placeholder="24">
+            </div>
+            <div>
+              <label>SatO₂ <small>(95-99%)</small></label>
+              <input type="number" id="gsaSatO2" step="0.1" placeholder="97">
+            </div>
+            <div>
+              <label>BE <small>(±1)</small></label>
+              <input type="number" id="gsaBE" step="0.1" placeholder="0">
+            </div>
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button class="btn primary" onclick="interpretarGSA()">Interpretar</button>
+            <button class="btn" onclick="limpiarGSA()">Limpiar</button>
+          </div>
+          <div id="gsaResult" style="display:none; margin-top: 16px;"></div>
+        </section>
+
+        <section class="card glass tool-section">
+          <h3>3. Plantillas</h3>
+          <p class="text-muted">Guarda plantillas de evolución por patología y grupo etario (máx. 10MB por archivo).</p>
+          
+          <div style="margin-top: 16px;">
+            <label style="display: block; margin-bottom: 8px;">
+              <strong>Subir nueva plantilla:</strong>
+            </label>
+            <div style="display: flex; gap: 8px; align-items: end;">
+              <div style="flex: 1;">
+                <label>Nombre de la plantilla</label>
+                <input type="text" id="docName" placeholder="Ej: Evolución Neumonía Pediatría">
+              </div>
+              <div style="flex: 1;">
+                <label>Categoría</label>
+                <select id="docCategory">
+                  <option value="">Seleccionar categoría</option>
+                  <option value="pediatria">Pediatría</option>
+                  <option value="adultos">Adultos</option>
+                  <option value="geriatria">Geriatría</option>
+                  <option value="neonatologia">Neonatología</option>
+                  <option value="otras">Otras</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top: 12px;">
+              <textarea id="docContent" class="text-editor" placeholder="Escribe o pega el contenido de la plantilla aquí..."></textarea>
+            </div>
+            <div id="adminPlantillaOption" style="margin-top: 12px; display: none;">
+              <label class="switch">
+                <input id="plantillaGlobal" type="checkbox">
+                <span class="slider"></span>
+                <span>Plantilla predefinida (visible para todos los usuarios)</span>
+              </label>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button class="btn primary" onclick="guardarDocumento()">Guardar Plantilla</button>
+              <button class="btn" onclick="limpiarFormDoc()">Limpiar Formulario</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <strong>Plantillas guardadas:</strong>
+              <select id="filterCategory" onchange="filtrarDocumentos()" style="margin-left: auto;">
+                <option value="">Todas las categorías</option>
+                <option value="pediatria">Pediatría</option>
+                <option value="adultos">Adultos</option>
+                <option value="geriatria">Geriatría</option>
+                <option value="neonatologia">Neonatología</option>
+                <option value="otras">Otras</option>
+              </select>
+              <input type="search" id="searchDoc" placeholder="Buscar..." onkeyup="filtrarDocumentos()">
+            </div>
+            <div id="docList" class="doc-list"></div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
+
+  <div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; padding:20px;">
+    <div style="max-width: 900px; margin: 40px auto; background: white; border-radius: 8px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+      <h3 id="editDocTitle" style="margin-top: 0;">Editar Plantilla</h3>
+      <div style="margin-bottom: 12px;">
+        <label>Nombre de la plantilla</label>
+        <input type="text" id="editDocName" style="width: 100%;">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label>Categoría</label>
+        <select id="editDocCategory" style="width: 100%;">
+          <option value="">Seleccionar categoría</option>
+          <option value="pediatria">Pediatría</option>
+          <option value="adultos">Adultos</option>
+          <option value="geriatria">Geriatría</option>
+          <option value="neonatologia">Neonatología</option>
+          <option value="otras">Otras</option>
+        </select>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label>Contenido</label>
+        <textarea id="editDocContent" class="text-editor"></textarea>
+      </div>
+      <div id="editAdminPlantillaOption" style="margin-bottom: 12px; display: none;">
+        <label class="switch">
+          <input id="editPlantillaGlobal" type="checkbox">
+          <span class="slider"></span>
+          <span>Plantilla predefinida (visible para todos los usuarios)</span>
+        </label>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn" onclick="cerrarEditor()">Cancelar</button>
+        <button class="btn primary" onclick="guardarEdicion()">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
+  <script>
+    let documentos = [];
+    let editandoDocId = null;
+    let currentUser = null;
+
+    async function initHerramientas() {
+      const session = await checkSession();
+      currentUser = session;
+      
+      if (session.role === 'admin') {
+        document.getElementById('adminPlantillaOption').style.display = 'block';
+        document.getElementById('editAdminPlantillaOption').style.display = 'block';
+      }
+      
+      cargarDocumentos();
+    }
+
+    function corregirEspacios() {
+      const input = document.getElementById('textInput').value;
+      const corregido = input
+        .replace(/\s+/g, ' ')
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/\s+([.,;:!?])/g, '$1')
+        .replace(/([.,;:!?])(\w)/g, '$1 $2');
+      
+      document.getElementById('textResultContent').textContent = corregido;
+      document.getElementById('textResult').style.display = 'block';
+      document.getElementById('textInput').value = corregido;
+    }
+
+    function limpiarTexto() {
+      document.getElementById('textInput').value = '';
+      document.getElementById('textResult').style.display = 'none';
+    }
+
+    function copiarTexto() {
+      const texto = document.getElementById('textResultContent').textContent;
+      navigator.clipboard.writeText(texto).then(() => {
+        alert('Texto copiado al portapapeles');
+      });
+    }
+
+    function interpretarGSA() {
+      const pH = parseFloat(document.getElementById('gsaPH').value);
+      const paCO2 = parseFloat(document.getElementById('gsaPaCO2').value);
+      const paO2 = parseFloat(document.getElementById('gsaPaO2').value);
+      const hco3 = parseFloat(document.getElementById('gsaHCO3').value);
+      const satO2 = parseFloat(document.getElementById('gsaSatO2').value);
+      const be = parseFloat(document.getElementById('gsaBE').value);
+
+      if (isNaN(pH) || isNaN(paCO2) || isNaN(hco3)) {
+        alert('Por favor, completa al menos pH, PaCO₂ y HCO₃');
+        return;
+      }
+
+      let diagnostico = '';
+      let estado = '';
+      let oxigenacion = '';
+
+      if (pH >= 7.35 && pH <= 7.45) {
+        if (paCO2 >= 35 && paCO2 <= 45 && hco3 >= 22 && hco3 <= 26) {
+          diagnostico = 'Normal';
+          estado = 'Sin alteraciones';
+        } else if (paCO2 > 45 && hco3 > 26) {
+          diagnostico = 'Acidosis Respiratoria';
+          estado = 'Compensada';
+        } else if (paCO2 < 35 && hco3 < 22) {
+          diagnostico = 'Alcalosis Respiratoria';
+          estado = 'Compensada';
+        } else if (paCO2 < 35 && hco3 > 26) {
+          diagnostico = 'Alcalosis Metabólica';
+          estado = 'Compensada';
+        } else if (paCO2 > 45 && hco3 < 22) {
+          diagnostico = 'Acidosis Metabólica';
+          estado = 'Compensada';
+        }
+      } else if (pH < 7.35) {
+        if (paCO2 > 45 && hco3 >= 22 && hco3 <= 26) {
+          diagnostico = 'Acidosis Respiratoria';
+          estado = 'Aguda';
+        } else if (paCO2 > 45 && hco3 > 26) {
+          diagnostico = 'Acidosis Respiratoria';
+          estado = 'Parcialmente Compensada';
+        } else if (hco3 < 22 && paCO2 >= 35 && paCO2 <= 45) {
+          diagnostico = 'Acidosis Metabólica';
+          estado = 'Aguda';
+        } else if (hco3 < 22 && paCO2 < 35) {
+          diagnostico = 'Acidosis Metabólica';
+          estado = 'Parcialmente Compensada';
+        }
+      } else if (pH > 7.45) {
+        if (paCO2 < 35 && hco3 >= 22 && hco3 <= 26) {
+          diagnostico = 'Alcalosis Respiratoria';
+          estado = 'Aguda';
+        } else if (paCO2 < 35 && hco3 < 22) {
+          diagnostico = 'Alcalosis Respiratoria';
+          estado = 'Parcialmente Compensada';
+        } else if (hco3 > 26 && paCO2 >= 35 && paCO2 <= 45) {
+          diagnostico = 'Alcalosis Metabólica';
+          estado = 'Aguda';
+        } else if (hco3 > 26 && paCO2 > 45) {
+          diagnostico = 'Alcalosis Metabólica';
+          estado = 'Parcialmente Compensada';
+        }
+      }
+
+      if (!isNaN(paO2)) {
+        if (paO2 < 60) {
+          oxigenacion = 'Hipoxemia severa';
+        } else if (paO2 < 80) {
+          oxigenacion = 'Hipoxemia moderada';
+        } else if (paO2 >= 80 && paO2 <= 95) {
+          oxigenacion = 'Normal';
+        } else {
+          oxigenacion = 'Hiperoxia';
+        }
+      }
+
+      let html = '<div class="gsa-result">';
+      html += '<h4>Interpretación de Gasometría</h4>';
+      html += `<p><strong>Diagnóstico:</strong> ${diagnostico || 'No determinado'}</p>`;
+      if (estado) html += `<p><strong>Estado:</strong> ${estado}</p>`;
+      if (oxigenacion) html += `<p><strong>Oxigenación:</strong> ${oxigenacion}</p>`;
+      html += '<hr style="margin: 12px 0; border: none; border-top: 1px solid var(--border);">';
+      html += '<p style="font-size: 13px;"><strong>Valores ingresados:</strong></p>';
+      html += `<p style="font-size: 13px;">pH: ${pH.toFixed(2)} ${pH < 7.35 ? '↓' : pH > 7.45 ? '↑' : '✓'}</p>`;
+      html += `<p style="font-size: 13px;">PaCO₂: ${paCO2.toFixed(1)} mmHg ${paCO2 < 35 ? '↓' : paCO2 > 45 ? '↑' : '✓'}</p>`;
+      if (!isNaN(paO2)) html += `<p style="font-size: 13px;">PaO₂: ${paO2.toFixed(1)} mmHg ${paO2 < 80 ? '↓' : paO2 > 95 ? '↑' : '✓'}</p>`;
+      html += `<p style="font-size: 13px;">HCO₃: ${hco3.toFixed(1)} mEq/L ${hco3 < 22 ? '↓' : hco3 > 26 ? '↑' : '✓'}</p>`;
+      if (!isNaN(satO2)) html += `<p style="font-size: 13px;">SatO₂: ${satO2.toFixed(1)}% ${satO2 < 95 ? '↓' : '✓'}</p>`;
+      if (!isNaN(be)) html += `<p style="font-size: 13px;">BE: ${be.toFixed(1)} ${Math.abs(be) > 2 ? (be < 0 ? '↓' : '↑') : '✓'}</p>`;
+      html += '</div>';
+
+      document.getElementById('gsaResult').innerHTML = html;
+      document.getElementById('gsaResult').style.display = 'block';
+    }
+
+    function limpiarGSA() {
+      document.getElementById('gsaPH').value = '';
+      document.getElementById('gsaPaCO2').value = '';
+      document.getElementById('gsaPaO2').value = '';
+      document.getElementById('gsaHCO3').value = '';
+      document.getElementById('gsaSatO2').value = '';
+      document.getElementById('gsaBE').value = '';
+      document.getElementById('gsaResult').style.display = 'none';
+    }
+
+    function guardarDocumento() {
+      const nombre = document.getElementById('docName').value.trim();
+      const categoria = document.getElementById('docCategory').value;
+      const contenido = document.getElementById('docContent').value.trim();
+      const isGlobal = document.getElementById('plantillaGlobal')?.checked || false;
+
+      if (!nombre) {
+        alert('Por favor, ingresa un nombre para la plantilla');
+        return;
+      }
+      if (!categoria) {
+        alert('Por favor, selecciona una categoría');
+        return;
+      }
+      if (!contenido) {
+        alert('Por favor, ingresa el contenido de la plantilla');
+        return;
+      }
+
+      const tamanio = new Blob([contenido]).size;
+      if (tamanio > 10 * 1024 * 1024) {
+        alert('La plantilla excede el tamaño máximo de 10MB');
+        return;
+      }
+
+      const doc = {
+        id: Date.now(),
+        nombre: nombre,
+        categoria: categoria,
+        contenido: contenido,
+        fecha: new Date().toISOString(),
+        tamanio: tamanio,
+        global: currentUser?.role === 'admin' && isGlobal,
+        creador: currentUser?.username || 'unknown'
+      };
+
+      documentos.push(doc);
+      
+      const storageKey = isGlobal && currentUser?.role === 'admin' 
+        ? 'plantillas_globales' 
+        : 'plantillas_' + (currentUser?.username || 'local');
+      
+      const existingDocs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      existingDocs.push(doc);
+      localStorage.setItem(storageKey, JSON.stringify(existingDocs));
+      
+      limpiarFormDoc();
+      cargarDocumentos();
+      alert('Plantilla guardada exitosamente');
+    }
+
+    function limpiarFormDoc() {
+      document.getElementById('docName').value = '';
+      document.getElementById('docCategory').value = '';
+      document.getElementById('docContent').value = '';
+      if (document.getElementById('plantillaGlobal')) {
+        document.getElementById('plantillaGlobal').checked = false;
+      }
+    }
+
+    function cargarDocumentos() {
+      documentos = [];
+      
+      const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
+      documentos = [...globales];
+      
+      if (currentUser?.username) {
+        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
+        documentos = [...documentos, ...locales];
+      }
+      
+      mostrarDocumentos();
+    }
+
+    function mostrarDocumentos(filtrados = null) {
+      const lista = filtrados || documentos;
+      const container = document.getElementById('docList');
+      
+      if (lista.length === 0) {
+        container.innerHTML = '<p class="text-muted">No hay plantillas guardadas</p>';
+        return;
+      }
+
+      container.innerHTML = lista.map(doc => {
+        const fecha = new Date(doc.fecha).toLocaleDateString('es-ES');
+        const tamanioKB = (doc.tamanio / 1024).toFixed(1);
+        const esPropia = doc.creador === currentUser?.username;
+        const esAdmin = currentUser?.role === 'admin';
+        const puedeEditar = esPropia || esAdmin;
+        const badge = doc.global ? '<span style="background:#008080;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:8px;">PREDEFINIDA</span>' : '';
+        
+        return `
+          <div class="doc-item">
+            <div class="doc-name">${doc.nombre}${badge}</div>
+            <div class="doc-meta">
+              ${doc.categoria.charAt(0).toUpperCase() + doc.categoria.slice(1)} • 
+              ${tamanioKB} KB • 
+              ${fecha}
+            </div>
+            ${puedeEditar ? `<button class="btn sm" onclick="editarDocumento(${doc.id})">Editar</button>` : ''}
+            <button class="btn sm" onclick="descargarDocumento(${doc.id})">Descargar</button>
+            ${puedeEditar ? `<button class="btn danger sm" onclick="eliminarDocumento(${doc.id})">Eliminar</button>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filtrarDocumentos() {
+      const categoria = document.getElementById('filterCategory').value;
+      const busqueda = document.getElementById('searchDoc').value.toLowerCase();
+      
+      let filtrados = documentos;
+      
+      if (categoria) {
+        filtrados = filtrados.filter(doc => doc.categoria === categoria);
+      }
+      
+      if (busqueda) {
+        filtrados = filtrados.filter(doc => 
+          doc.nombre.toLowerCase().includes(busqueda) ||
+          doc.contenido.toLowerCase().includes(busqueda)
+        );
+      }
+      
+      mostrarDocumentos(filtrados);
+    }
+
+    function editarDocumento(id) {
+      const doc = documentos.find(d => d.id === id);
+      if (!doc) return;
+      
+      editandoDocId = id;
+      document.getElementById('editDocName').value = doc.nombre;
+      document.getElementById('editDocCategory').value = doc.categoria;
+      document.getElementById('editDocContent').value = doc.contenido;
+      
+      if (currentUser?.role === 'admin' && doc.global) {
+        document.getElementById('editPlantillaGlobal').checked = true;
+      } else {
+        document.getElementById('editPlantillaGlobal').checked = false;
+      }
+      
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    function cerrarEditor() {
+      editandoDocId = null;
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function guardarEdicion() {
+      if (!editandoDocId) return;
+      
+      const nombre = document.getElementById('editDocName').value.trim();
+      const categoria = document.getElementById('editDocCategory').value;
+      const contenido = document.getElementById('editDocContent').value.trim();
+      const isGlobal = document.getElementById('editPlantillaGlobal')?.checked || false;
+      
+      if (!nombre || !categoria || !contenido) {
+        alert('Por favor, completa todos los campos');
+        return;
+      }
+      
+      const tamanio = new Blob([contenido]).size;
+      if (tamanio > 10 * 1024 * 1024) {
+        alert('La plantilla excede el tamaño máximo de 10MB');
+        return;
+      }
+      
+      const doc = documentos.find(d => d.id === editandoDocId);
+      if (!doc) return;
+      
+      const wasGlobal = doc.global;
+      const nowGlobal = currentUser?.role === 'admin' && isGlobal;
+      
+      doc.nombre = nombre;
+      doc.categoria = categoria;
+      doc.contenido = contenido;
+      doc.tamanio = tamanio;
+      doc.fecha = new Date().toISOString();
+      doc.global = nowGlobal;
+      
+      if (wasGlobal && !nowGlobal) {
+        let globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
+        globales = globales.filter(d => d.id !== editandoDocId);
+        localStorage.setItem('plantillas_globales', JSON.stringify(globales));
+        
+        let locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
+        locales.push(doc);
+        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(locales));
+      } else if (!wasGlobal && nowGlobal) {
+        let locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
+        locales = locales.filter(d => d.id !== editandoDocId);
+        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(locales));
+        
+        let globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
+        globales.push(doc);
+        localStorage.setItem('plantillas_globales', JSON.stringify(globales));
+      } else {
+        const storageKey = nowGlobal ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
+        let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const index = items.findIndex(d => d.id === editandoDocId);
+        if (index !== -1) {
+          items[index] = doc;
+          localStorage.setItem(storageKey, JSON.stringify(items));
+        }
+      }
+      
+      cargarDocumentos();
+      cerrarEditor();
+      alert('Plantilla actualizada exitosamente');
+    }
+
+    function eliminarDocumento(id) {
+      if (!confirm('¿Estás seguro de que deseas eliminar esta plantilla?')) return;
+      
+      const doc = documentos.find(d => d.id === id);
+      if (!doc) return;
+      
+      const storageKey = doc.global ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
+      let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      items = items.filter(d => d.id !== id);
+      localStorage.setItem(storageKey, JSON.stringify(items));
+      
+      cargarDocumentos();
+    }
+
+    function descargarDocumento(id) {
+      const doc = documentos.find(d => d.id === id);
+      if (!doc) return;
+      
+      const blob = new Blob([doc.contenido], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.nombre}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
 </body></html>

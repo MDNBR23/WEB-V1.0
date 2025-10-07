@@ -880,3 +880,60 @@ textarea{
     font-size:13px;
   }
 }
+
+/* Notificaciones en sidebar */
+.sidebar-notification-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff8c00;
+  color: #fff;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 18px;
+  text-align: center;
+}
+
+.sidebar a {
+  position: relative;
+}
+
+.sidebar a.has-notifications {
+  animation: pulse-notification 2s ease-in-out infinite;
+}
+
+@keyframes pulse-notification {
+  0%, 100% {
+    background-color: rgba(255, 140, 0, 0);
+  }
+  50% {
+    background-color: rgba(255, 140, 0, 0.1);
+  }
+}
+
+@keyframes subtle-badge-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+.sidebar a.has-notifications .sidebar-notification-badge {
+  animation: subtle-badge-pulse 2s ease-in-out infinite;
+}
+
+.sidebar.collapsed .sidebar-notification-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  padding: 1px 4px;
+  min-width: 14px;
+}
+
