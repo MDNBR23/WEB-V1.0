@@ -105,6 +105,21 @@
         </section>
 
         <section class="card glass accordion">
+          <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="infusiones">
+            <h3 style="margin:0;">Medicamentos de Infusiones</h3><div class="grow"></div>
+            <button id="btnNuevaInfusion" class="btn sm" type="button" onclick="event.stopPropagation()">+ Nuevo medicamento</button>
+            <span class="accordion-icon">▼</span>
+          </div>
+          <div class="accordion-content" id="infusiones" style="display:none;margin-top:10px;">
+            <div class="table-wrap">
+              <table id="adminInfusionesTable"><thead>
+                <tr><th>Medicamento</th><th>Presentación</th><th>Dosis</th><th>Diluciones</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card glass accordion">
           <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="sugerencias">
             <h3 style="margin:0;">Sugerencias <span id="sugerenciasCounter" class="chip" style="display:none;margin-left:8px;background:#ff8c00;color:#fff;">0</span></h3><div class="grow"></div>
             <span class="accordion-icon">▼</span>
@@ -225,9 +240,40 @@
         <div class="grid">
           <div class="field" style="grid-column:1 / -1;"><label>Usuario</label><input id="sug_username" type="text" disabled></div>
           <div class="field" style="grid-column:1 / -1;"><label>Mensaje</label><textarea id="sug_mensaje" rows="3" disabled></textarea></div>
-          <div class="field" style="grid-column:1 / -1;"><label>Respuesta del administrador</label><textarea id="sug_respuesta" rows="4" placeholder="Escribe tu respuesta..."></textarea></div>
+          <div class="field" style="grid-column:1 / -1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <label style="margin:0;">Respuesta del administrador</label>
+              <button type="button" class="btn sm" onclick="usarRespuestaPredeterminada()" style="font-size:12px;">Usar respuesta predeterminada</button>
+            </div>
+            <textarea id="sug_respuesta" rows="4" placeholder="Escribe tu respuesta..."></textarea>
+          </div>
         </div>
         <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar respuesta</button><button class="btn secondary" type="button" data-close-sugerencia>Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL INFUSION -->
+  <div class="modal-backdrop" id="modalInfusion">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Editar medicamento de infusión</h3><button class="btn secondary sm" type="button" data-close-infusion>✕</button></header>
+      <form id="infusionForm"><input type="hidden" id="infId">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label for="infNombre">Nombre del medicamento</label><input id="infNombre" type="text" required></div>
+          <div class="field" style="grid-column:1 / -1;"><label for="infPresentacion">Presentación (ej: 500MCG/10ML = 50MCG/ML)</label><input id="infPresentacion" type="text" required></div>
+          <div class="field"><label for="infDosis">Dosis</label><input id="infDosis" type="text" placeholder="1MCG/KG/HORA" required></div>
+          <div class="field"><label for="infUnidad">Unidad</label>
+            <select id="infUnidad" required>
+              <option value="mcg/kg/h">mcg/kg/h</option>
+              <option value="mg/kg/h">mg/kg/h</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1 / -1;"><label for="infDiluciones">Diluciones disponibles (separadas por coma)</label><textarea id="infDiluciones" rows="2" placeholder="12CC, 24CC, 50CC, 100CC" required></textarea></div>
+          <div class="field" style="grid-column:1 / -1;"><label for="infConcentraciones">Concentraciones (separadas por coma, mismo orden que diluciones)</label><input id="infConcentraciones" type="text" placeholder="0.88, 0.44, 0.21, 0.11" required></div>
+          <div class="field"><label for="infSSN">SSN (CC)</label><input id="infSSN" type="text" placeholder="39,4" required></div>
+          <div class="field"><label for="infSSNPercentage">Porcentaje SSN</label><input id="infSSNPercentage" type="text" placeholder="0.9%" value="0.9%"></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar</button><button class="btn secondary" type="button" data-close-infusion>Cancelar</button></div>
       </form>
     </div>
   </div>

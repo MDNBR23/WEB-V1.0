@@ -1,0 +1,28 @@
+[
+  {
+    "username": "admin",
+    "password": "$2b$10$AqyxiMJ9OT3bwmBc7BgrG.inDHhA8FM8w.w51Uk.Zof2oBOR9aGl2",
+    "name": "Neil Briñez",
+    "email": "admin@nbrweb.local",
+    "phone": "",
+    "institucion": "NBR WEB",
+    "role": "admin",
+    "status": "aprobado",
+    "cat": "",
+    "avatar": "",
+    "createdAt": "2025-10-06T23:20:31.601Z"
+  },
+  {
+    "username": "nbrinezr",
+    "name": "nbrinezr",
+    "password": "$2b$10$8ZN742pEXQM0M/Ub6.l5junr/A//NHmX6bbqPK/hI6DoGYhwvI48W",
+    "email": "neileduard10@icloud.com",
+    "phone": "3015287786",
+    "institucion": "LMCI",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Médico General",
+    "avatar": "",
+    "createdAt": "2025-10-08T04:17:04.481Z"
+  }
+]

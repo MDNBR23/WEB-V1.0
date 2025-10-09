@@ -1350,7 +1350,7 @@
         <div class="glass" style="padding:12px;border-radius:12px;margin-bottom:12px;">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
             <span class="chip">${new Date(s.fecha).toLocaleDateString()}</span>
-            <span class="chip" style="background:${s.respondida?'#16a34a':'#ff8c00'};color:#fff;">${s.respondida?'Respondida':'Pendiente'}</span>
+            <span class="chip" style="background:${s.respondida?'#16a34a':'#ff8c00'};color:#fff;">${s.respondida?'CONTESTADA':'PENDIENTE'}</span>
           </div>
           <div style="margin-bottom:8px;"><strong>Tu mensaje:</strong><br>${s.mensaje}</div>
           ${s.respondida?`<div style="padding:10px;border-left:3px solid var(--primary);background:rgba(var(--primary-rgb),0.1);border-radius:6px;"><strong>Respuesta del administrador:</strong><br>${s.respuesta}</div>`:''}
@@ -1488,7 +1488,7 @@
 
       tbody.innerHTML = sorted.map(s => {
         const statusStyle = s.respondida ? 'background:#16a34a;color:#fff;' : 'background:#ff8c00;color:#fff;';
-        const statusText = s.respondida ? 'Respondida' : 'Pendiente';
+        const statusText = s.respondida ? 'CONTESTADA' : 'PENDIENTE';
         return `<tr>
           <td>${s.username}</td>
           <td>${new Date(s.fecha).toLocaleDateString()}</td>
@@ -1539,6 +1539,13 @@
     }
   }
 
+  window.usarRespuestaPredeterminada = function() {
+    const respuestaTextarea = document.getElementById('sug_respuesta');
+    const respuestaPredeterminada = 'Muchas gracias por tu sugerencia. Hemos tomado nota de tus comentarios y trabajaremos para implementar las mejoras necesarias. Tu retroalimentación es muy valiosa para nosotros.';
+    respuestaTextarea.value = respuestaPredeterminada;
+    respuestaTextarea.focus();
+  }
+
   if(sugerenciaAdminForm) {
     sugerenciaAdminForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1574,6 +1581,179 @@
     setInterval(updateSugerenciasCounter, 10000);
   }
 
+  const adminInfusionesTable = document.getElementById('adminInfusionesTable');
+  const modalInfusion = document.getElementById('modalInfusion');
+  const infusionForm = document.getElementById('infusionForm');
+  const btnNuevaInfusion = document.getElementById('btnNuevaInfusion');
+
+  function initDefaultInfusions() {
+    const existing = localStorage.getItem('infusion_medications_global');
+    if (!existing) {
+      const defaultMeds = [
+        {
+          id: 1,
+          nombre: 'FENTANILO',
+          presentacion: '500MCG/10ML = 50MCG/ML = 0.5MG/10ML',
+          dosis: '1MCG/KG/HORA',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0.88, 0.44, 0.21, 0.11],
+          ssn: '39,4',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 2,
+          nombre: 'MIDAZOLAM',
+          presentacion: '15MG/3ML = 5MG/1ML',
+          dosis: '0,1MG/KG/HORA',
+          unidad: 'mg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0.42, 0.21, 0.10, 0.05],
+          ssn: '38,5',
+          ssn_percentage: '0.9%'
+        }
+      ];
+      localStorage.setItem('infusion_medications_global', JSON.stringify(defaultMeds));
+    }
+  }
+
+  async function renderInfusionesAdmin() {
+    if(!adminInfusionesTable) return;
+    const tbody = adminInfusionesTable.querySelector('tbody');
+    
+    initDefaultInfusions();
+    const list = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+    
+    tbody.innerHTML = list.map(m => 
+      `<tr>
+        <td>${m.nombre}</td>
+        <td>${m.presentacion}</td>
+        <td>${m.dosis}</td>
+        <td>${m.diluciones.join(', ')}</td>
+        <td>
+          <div style='display:flex;gap:6px;white-space:nowrap'>
+            <button class='btn sm info' data-edit-inf='${m.id}'>Editar</button>
+            <button class='btn sm danger' data-del-inf='${m.id}'>Eliminar</button>
+          </div>
+        </td>
+      </tr>`
+    ).join('');
+
+    tbody.querySelectorAll('[data-edit-inf]').forEach(b => b.addEventListener('click', () => openInfusion(b.getAttribute('data-edit-inf'))));
+    tbody.querySelectorAll('[data-del-inf]').forEach(b => b.addEventListener('click', async () => {
+      const id = parseInt(b.getAttribute('data-del-inf'));
+      if(!confirm('¿Eliminar este medicamento de infusión?')) return;
+
+      const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+      const filtered = meds.filter(m => m.id !== id);
+      localStorage.setItem('infusion_medications_global', JSON.stringify(filtered));
+      await renderInfusionesAdmin();
+      toast('Medicamento eliminado.', 'info');
+    }));
+  }
+
+  function openInfusion(id) {
+    const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+    const m = meds.find(x => x.id === parseInt(id));
+    
+    if(m) {
+      document.getElementById('infId').value = m.id;
+      document.getElementById('infNombre').value = m.nombre;
+      document.getElementById('infPresentacion').value = m.presentacion;
+      document.getElementById('infDosis').value = m.dosis;
+      document.getElementById('infUnidad').value = m.unidad || 'mcg/kg/h';
+      document.getElementById('infDiluciones').value = m.diluciones.join(', ');
+      document.getElementById('infConcentraciones').value = m.concentraciones.join(', ');
+      document.getElementById('infSSN').value = m.ssn;
+      document.getElementById('infSSNPercentage').value = m.ssn_percentage || '0.9%';
+    } else {
+      document.getElementById('infId').value = '';
+      document.getElementById('infNombre').value = '';
+      document.getElementById('infPresentacion').value = '';
+      document.getElementById('infDosis').value = '';
+      document.getElementById('infUnidad').value = 'mcg/kg/h';
+      document.getElementById('infDiluciones').value = '';
+      document.getElementById('infConcentraciones').value = '';
+      document.getElementById('infSSN').value = '';
+      document.getElementById('infSSNPercentage').value = '0.9%';
+    }
+    
+    modalInfusion.style.display = 'flex';
+  }
+
+  if(btnNuevaInfusion) {
+    btnNuevaInfusion.addEventListener('click', () => openInfusion(''));
+  }
+
+  if(infusionForm) {
+    infusionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('infId').value;
+      const nombre = document.getElementById('infNombre').value.trim();
+      const presentacion = document.getElementById('infPresentacion').value.trim();
+      const dosis = document.getElementById('infDosis').value.trim();
+      const unidad = document.getElementById('infUnidad').value;
+      const diluciones = document.getElementById('infDiluciones').value.split(',').map(d => d.trim());
+      const concentraciones = document.getElementById('infConcentraciones').value.split(',').map(c => parseFloat(c.trim()));
+      const ssn = document.getElementById('infSSN').value.trim();
+      const ssn_percentage = document.getElementById('infSSNPercentage').value.trim();
+
+      if(!nombre || !presentacion || !dosis || diluciones.length === 0 || concentraciones.length === 0) {
+        toast('Por favor completa todos los campos.', 'error');
+        return;
+      }
+
+      if(diluciones.length !== concentraciones.length) {
+        toast('El número de diluciones debe coincidir con el número de concentraciones.', 'error');
+        return;
+      }
+
+      const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+      
+      if(id) {
+        const index = meds.findIndex(m => m.id === parseInt(id));
+        if(index !== -1) {
+          meds[index] = {
+            id: parseInt(id),
+            nombre,
+            presentacion,
+            dosis,
+            unidad,
+            diluciones,
+            concentraciones,
+            ssn,
+            ssn_percentage
+          };
+        }
+      } else {
+        const newId = meds.length > 0 ? Math.max(...meds.map(m => m.id)) + 1 : 1;
+        meds.push({
+          id: newId,
+          nombre,
+          presentacion,
+          dosis,
+          unidad,
+          diluciones,
+          concentraciones,
+          ssn,
+          ssn_percentage
+        });
+      }
+
+      localStorage.setItem('infusion_medications_global', JSON.stringify(meds));
+      modalInfusion.style.display = 'none';
+      await renderInfusionesAdmin();
+      toast('Medicamento guardado.', 'success');
+    });
+
+    document.querySelectorAll('[data-close-infusion]').forEach(x => x.addEventListener('click', () => modalInfusion.style.display = 'none'));
+  }
+
+  if(adminInfusionesTable) {
+    await renderInfusionesAdmin();
+  }
+
   document.querySelectorAll('.accordion-header').forEach(header => {
     header.addEventListener('click', function() {
       const targetId = this.getAttribute('data-toggle');
@@ -1589,4 +1769,8 @@
       }
     });
   });
+
+  if (typeof window.initHerramientas === 'function') {
+    window.initHerramientas();
+  }
 })();

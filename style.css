@@ -883,17 +883,19 @@ textarea{
 
 /* Notificaciones en sidebar */
 .sidebar-notification-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   background: #ff8c00;
   color: #fff;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 11px;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 13px;
   font-weight: bold;
-  min-width: 18px;
+  min-width: 22px;
   text-align: center;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar a {
@@ -933,7 +935,8 @@ textarea{
   top: 6px;
   right: 6px;
   font-size: 9px;
-  padding: 1px 4px;
-  min-width: 14px;
+  padding: 2px 5px;
+  min-width: 16px;
+  margin-left: 0;
 }
 

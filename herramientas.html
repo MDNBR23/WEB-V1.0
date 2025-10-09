@@ -8,6 +8,38 @@
 <title>Herramientas — NBR WEB</title>
 <link rel="stylesheet" href="style.css">
 <style>
+.tool-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+.tool-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+}
+.tool-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 70px rgba(0,0,0,.4);
+}
+.tool-card-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+.tool-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--text);
+}
+.tool-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
 .tool-section {
   margin-bottom: 24px;
 }
@@ -71,13 +103,91 @@
   font-size: 14px;
   margin-top: 12px;
 }
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 10px 18px;
+  background: rgba(71,85,105,.85);
+  color: #fff;
+  border-radius: 12px;
+  text-decoration: none !important;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.back-btn:hover {
+  background: rgba(51,65,85,.95);
+  transform: translateX(-4px);
+  text-decoration: none !important;
+}
+.infusion-calculator {
+  display: grid;
+  gap: 20px;
+}
+.infusion-section {
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.infusion-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+.infusion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.infusion-result {
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+.infusion-result h5 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: white;
+}
+.infusion-result p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+.medication-select {
+  margin-bottom: 16px;
+}
+.infusion-table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+}
+.infusion-table th,
+.infusion-table td {
+  padding: 8px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.infusion-table th {
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+}
+.infusion-table td {
+  background: var(--bg);
+  font-size: 14px;
+}
 </style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
     document.body.classList.add('loaded');
     document.documentElement.classList.remove('preload');
-    initHerramientas();
   });
 </script>
 </head><body>
@@ -105,114 +215,228 @@
       </header>
       <main>
         
-        <section class="card glass tool-section">
-          <h3>1. Corrector de Espacios de Texto</h3>
-          <p class="text-muted">Elimina espacios múltiples y normaliza el texto.</p>
-          <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a corregir..."></textarea>
-          <div style="margin-top: 12px; display: flex; gap: 8px;">
-            <button class="btn primary" onclick="corregirEspacios()">Corregir Espacios</button>
-            <button class="btn" onclick="limpiarTexto()">Limpiar</button>
-            <button class="btn" onclick="copiarTexto()">Copiar Resultado</button>
+        <div id="toolMenu" class="tool-menu">
+          <div class="card glass tool-card" onclick="showTool('corrector')">
+            <span class="tool-card-icon">📝</span>
+            <h3>Corrector de Espacios</h3>
+            <p>Elimina espacios múltiples y normaliza el texto</p>
           </div>
-          <div id="textResult" class="tool-result" style="display:none;">
-            <strong>Resultado:</strong>
-            <pre id="textResultContent" style="white-space: pre-wrap; margin-top: 8px;"></pre>
-          </div>
-        </section>
-
-        <section class="card glass tool-section">
-          <h3>2. Lector de Gases Arteriales</h3>
-          <p class="text-muted">Interpreta resultados de gasometría arterial.</p>
-          <div class="gsa-grid">
-            <div>
-              <label>pH <small>(7.35-7.45)</small></label>
-              <input type="number" id="gsaPH" step="0.01" placeholder="7.40">
-            </div>
-            <div>
-              <label>PaCO₂ <small>(35-45 mmHg)</small></label>
-              <input type="number" id="gsaPaCO2" step="0.1" placeholder="40">
-            </div>
-            <div>
-              <label>PaO₂ <small>(80-95 mmHg)</small></label>
-              <input type="number" id="gsaPaO2" step="0.1" placeholder="90">
-            </div>
-            <div>
-              <label>HCO₃ <small>(22-26 mEq/L)</small></label>
-              <input type="number" id="gsaHCO3" step="0.1" placeholder="24">
-            </div>
-            <div>
-              <label>SatO₂ <small>(95-99%)</small></label>
-              <input type="number" id="gsaSatO2" step="0.1" placeholder="97">
-            </div>
-            <div>
-              <label>BE <small>(±1)</small></label>
-              <input type="number" id="gsaBE" step="0.1" placeholder="0">
-            </div>
-          </div>
-          <div style="margin-top: 12px; display: flex; gap: 8px;">
-            <button class="btn primary" onclick="interpretarGSA()">Interpretar</button>
-            <button class="btn" onclick="limpiarGSA()">Limpiar</button>
-          </div>
-          <div id="gsaResult" style="display:none; margin-top: 16px;"></div>
-        </section>
-
-        <section class="card glass tool-section">
-          <h3>3. Plantillas</h3>
-          <p class="text-muted">Guarda plantillas de evolución por patología y grupo etario (máx. 10MB por archivo).</p>
           
-          <div style="margin-top: 16px;">
-            <label style="display: block; margin-bottom: 8px;">
-              <strong>Subir nueva plantilla:</strong>
-            </label>
-            <div style="display: flex; gap: 8px; align-items: end;">
-              <div style="flex: 1;">
-                <label>Nombre de la plantilla</label>
-                <input type="text" id="docName" placeholder="Ej: Evolución Neumonía Pediatría">
+          <div class="card glass tool-card" onclick="showTool('gases')">
+            <span class="tool-card-icon">🩺</span>
+            <h3>Gases Arteriales</h3>
+            <p>Interpreta resultados de gasometría arterial</p>
+          </div>
+          
+          <div class="card glass tool-card" onclick="showTool('infusiones')">
+            <span class="tool-card-icon">💉</span>
+            <h3>Infusiones</h3>
+            <p>Calculadora de sedoanalgesia y diluciones</p>
+          </div>
+          
+          <div class="card glass tool-card" onclick="showTool('plantillas')">
+            <span class="tool-card-icon">📋</span>
+            <h3>Plantillas</h3>
+            <p>Gestiona plantillas de evolución por patología</p>
+          </div>
+        </div>
+
+        <div id="correctorTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>Corrector de Espacios de Texto</h3>
+            <p class="text-muted">Elimina espacios múltiples y normaliza el texto.</p>
+            <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a corregir..."></textarea>
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button class="btn primary" onclick="corregirEspacios()">Corregir Espacios</button>
+              <button class="btn" onclick="limpiarTexto()">Limpiar</button>
+              <button class="btn" onclick="copiarTexto()">Copiar Resultado</button>
+            </div>
+            <div id="textResult" class="tool-result" style="display:none;">
+              <strong>Resultado:</strong>
+              <pre id="textResultContent" style="white-space: pre-wrap; margin-top: 8px;"></pre>
+            </div>
+          </section>
+        </div>
+
+        <div id="gasesTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>Lector de Gases Arteriales</h3>
+            <p class="text-muted">Interpreta resultados de gasometría arterial.</p>
+            <div class="gsa-grid">
+              <div>
+                <label>pH <small>(7.35-7.45)</small></label>
+                <input type="number" id="gsaPH" step="0.01" placeholder="7.40">
               </div>
-              <div style="flex: 1;">
-                <label>Categoría</label>
-                <select id="docCategory">
-                  <option value="">Seleccionar categoría</option>
+              <div>
+                <label>PaCO₂ <small>(35-45 mmHg)</small></label>
+                <input type="number" id="gsaPaCO2" step="0.1" placeholder="40">
+              </div>
+              <div>
+                <label>PaO₂ <small>(80-95 mmHg)</small></label>
+                <input type="number" id="gsaPaO2" step="0.1" placeholder="90">
+              </div>
+              <div>
+                <label>HCO₃ <small>(22-26 mEq/L)</small></label>
+                <input type="number" id="gsaHCO3" step="0.1" placeholder="24">
+              </div>
+              <div>
+                <label>SatO₂ <small>(95-99%)</small></label>
+                <input type="number" id="gsaSatO2" step="0.1" placeholder="97">
+              </div>
+              <div>
+                <label>BE <small>(±1)</small></label>
+                <input type="number" id="gsaBE" step="0.1" placeholder="0">
+              </div>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button class="btn primary" onclick="interpretarGSA()">Interpretar</button>
+              <button class="btn" onclick="limpiarGSA()">Limpiar</button>
+            </div>
+            <div id="gsaResult" style="display:none; margin-top: 16px;"></div>
+          </section>
+        </div>
+
+        <div id="infusionesTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">Calculadora de Infusiones</h3>
+                <p class="text-muted" style="margin:4px 0 0 0;">Calcula dosis de sedoanalgesia y diluciones.</p>
+              </div>
+              <a href="admin.html" id="adminInfusionesLink" class="btn sm" style="display:none;text-decoration:none;">Gestionar medicamentos</a>
+            </div>
+            
+            <div class="infusion-calculator">
+              <div class="medication-select">
+                <label><strong>Seleccionar medicamento:</strong></label>
+                <select id="medicationSelect" onchange="loadMedication()">
+                  <option value="">Seleccionar medicamento</option>
+                </select>
+              </div>
+
+              <div id="medicationInfo" style="display:none;">
+                <div class="infusion-section">
+                  <h4>Presentación</h4>
+                  <p id="presentacion"></p>
+                </div>
+
+                <div class="infusion-section">
+                  <h4>Modificar solo Dosis y Peso</h4>
+                  <div class="infusion-grid">
+                    <div>
+                      <label>Dosis (mcg/kg/h o mg/kg/h)</label>
+                      <input type="number" id="dosis" step="0.01" oninput="calculateInfusion()">
+                    </div>
+                    <div>
+                      <label>Peso (kg)</label>
+                      <input type="number" id="peso" step="0.1" oninput="calculateInfusion()">
+                    </div>
+                  </div>
+                  <div id="dosisCalculada" style="margin-top:12px;"></div>
+                </div>
+
+                <div class="infusion-section">
+                  <h4>Selección de Dilución</h4>
+                  <div id="dilucionOptions"></div>
+                  <div id="dosisInfusion" style="margin-top:12px;"></div>
+                </div>
+
+                <div id="ordenMedica" class="infusion-result" style="display:none;">
+                  <h5>ORDEN MÉDICA</h5>
+                  <div id="ordenMedicaContent"></div>
+                </div>
+
+                <div style="margin-top:16px; display:flex; gap:8px;">
+                  <button class="btn primary" onclick="calculateInfusion()">Calcular</button>
+                  <button class="btn" onclick="clearInfusion()">Limpiar</button>
+                  <button class="btn success" onclick="saveInfusionTemplate()">Guardar como Plantilla</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div id="plantillasTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>Plantillas</h3>
+            <p class="text-muted">Guarda plantillas de evolución por patología y grupo etario (máx. 10MB por archivo).</p>
+            
+            <div style="margin-top: 16px;">
+              <label style="display: block; margin-bottom: 8px;">
+                <strong>Subir nueva plantilla:</strong>
+              </label>
+              <div style="display: flex; gap: 8px; align-items: end;">
+                <div style="flex: 1;">
+                  <label>Nombre de la plantilla</label>
+                  <input type="text" id="docName" placeholder="Ej: Evolución Neumonía Pediatría">
+                </div>
+                <div style="flex: 1;">
+                  <label>Categoría</label>
+                  <select id="docCategory">
+                    <option value="">Seleccionar categoría</option>
+                    <option value="pediatria">Pediatría</option>
+                    <option value="adultos">Adultos</option>
+                    <option value="geriatria">Geriatría</option>
+                    <option value="neonatologia">Neonatología</option>
+                    <option value="infusiones">Infusiones</option>
+                    <option value="otras">Otras</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-top: 12px;">
+                <textarea id="docContent" class="text-editor" placeholder="Escribe o pega el contenido de la plantilla aquí..."></textarea>
+              </div>
+              <div id="adminPlantillaOption" style="margin-top: 12px; display: none;">
+                <label class="switch">
+                  <input id="plantillaGlobal" type="checkbox">
+                  <span class="slider"></span>
+                  <span>Plantilla predefinida (visible para todos los usuarios)</span>
+                </label>
+              </div>
+              <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <button class="btn primary" onclick="guardarDocumento()">Guardar Plantilla</button>
+                <button class="btn" onclick="limpiarFormDoc()">Limpiar Formulario</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <strong>Plantillas guardadas:</strong>
+                <select id="filterCategory" onchange="filtrarDocumentos()" style="margin-left: auto;">
+                  <option value="">Todas las categorías</option>
                   <option value="pediatria">Pediatría</option>
                   <option value="adultos">Adultos</option>
                   <option value="geriatria">Geriatría</option>
                   <option value="neonatologia">Neonatología</option>
+                  <option value="infusiones">Infusiones</option>
                   <option value="otras">Otras</option>
                 </select>
+                <input type="search" id="searchDoc" placeholder="Buscar..." onkeyup="filtrarDocumentos()">
               </div>
+              <div id="docList" class="doc-list"></div>
             </div>
-            <div style="margin-top: 12px;">
-              <textarea id="docContent" class="text-editor" placeholder="Escribe o pega el contenido de la plantilla aquí..."></textarea>
-            </div>
-            <div id="adminPlantillaOption" style="margin-top: 12px; display: none;">
-              <label class="switch">
-                <input id="plantillaGlobal" type="checkbox">
-                <span class="slider"></span>
-                <span>Plantilla predefinida (visible para todos los usuarios)</span>
-              </label>
-            </div>
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button class="btn primary" onclick="guardarDocumento()">Guardar Plantilla</button>
-              <button class="btn" onclick="limpiarFormDoc()">Limpiar Formulario</button>
-            </div>
-          </div>
-
-          <div style="margin-top: 24px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-              <strong>Plantillas guardadas:</strong>
-              <select id="filterCategory" onchange="filtrarDocumentos()" style="margin-left: auto;">
-                <option value="">Todas las categorías</option>
-                <option value="pediatria">Pediatría</option>
-                <option value="adultos">Adultos</option>
-                <option value="geriatria">Geriatría</option>
-                <option value="neonatologia">Neonatología</option>
-                <option value="otras">Otras</option>
-              </select>
-              <input type="search" id="searchDoc" placeholder="Buscar..." onkeyup="filtrarDocumentos()">
-            </div>
-            <div id="docList" class="doc-list"></div>
-          </div>
-        </section>
+          </section>
+        </div>
 
       </main>
     </div>
@@ -233,6 +457,7 @@
           <option value="adultos">Adultos</option>
           <option value="geriatria">Geriatría</option>
           <option value="neonatologia">Neonatología</option>
+          <option value="infusiones">Infusiones</option>
           <option value="otras">Otras</option>
         </select>
       </div>
@@ -259,17 +484,47 @@
     let documentos = [];
     let editandoDocId = null;
     let currentUser = null;
+    let infusionMedications = [];
 
-    async function initHerramientas() {
+    window.initHerramientas = async function() {
       const session = await checkSession();
       currentUser = session;
       
       if (session.role === 'admin') {
         document.getElementById('adminPlantillaOption').style.display = 'block';
         document.getElementById('editAdminPlantillaOption').style.display = 'block';
+        document.getElementById('adminInfusionesLink').style.display = 'inline-block';
       }
       
-      cargarDocumentos();
+      loadInfusionMedications();
+      showMenu();
+    }
+
+    function showMenu() {
+      document.getElementById('toolMenu').style.display = 'grid';
+      document.getElementById('correctorTool').style.display = 'none';
+      document.getElementById('gasesTool').style.display = 'none';
+      document.getElementById('infusionesTool').style.display = 'none';
+      document.getElementById('plantillasTool').style.display = 'none';
+    }
+
+    function showTool(tool) {
+      document.getElementById('toolMenu').style.display = 'none';
+      document.getElementById('correctorTool').style.display = 'none';
+      document.getElementById('gasesTool').style.display = 'none';
+      document.getElementById('infusionesTool').style.display = 'none';
+      document.getElementById('plantillasTool').style.display = 'none';
+      
+      if (tool === 'corrector') {
+        document.getElementById('correctorTool').style.display = 'block';
+      } else if (tool === 'gases') {
+        document.getElementById('gasesTool').style.display = 'block';
+      } else if (tool === 'infusiones') {
+        document.getElementById('infusionesTool').style.display = 'block';
+      } else if (tool === 'plantillas') {
+        document.getElementById('plantillasTool').style.display = 'block';
+        cargarDocumentos();
+      }
     }
 
     function corregirEspacios() {
@@ -400,6 +655,140 @@
       document.getElementById('gsaSatO2').value = '';
       document.getElementById('gsaBE').value = '';
       document.getElementById('gsaResult').style.display = 'none';
+    }
+
+    function loadInfusionMedications() {
+      const globalMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+      infusionMedications = globalMeds;
+      
+      const select = document.getElementById('medicationSelect');
+      select.innerHTML = '<option value="">Seleccionar medicamento</option>';
+      infusionMedications.forEach((med, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = med.nombre;
+        select.appendChild(option);
+      });
+    }
+
+    function loadMedication() {
+      const select = document.getElementById('medicationSelect');
+      const index = parseInt(select.value);
+      
+      if (isNaN(index)) {
+        document.getElementById('medicationInfo').style.display = 'none';
+        return;
+      }
+      
+      const med = infusionMedications[index];
+      document.getElementById('medicationInfo').style.display = 'block';
+      document.getElementById('presentacion').innerHTML = `<strong>${med.presentacion}</strong><br>Dosis: ${med.dosis}`;
+      
+      document.getElementById('dosis').value = '';
+      document.getElementById('peso').value = '';
+      
+      const dilucionOptions = document.getElementById('dilucionOptions');
+      dilucionOptions.innerHTML = '<label><strong>Opciones de dilución disponibles:</strong></label><br>';
+      med.diluciones.forEach((dil, i) => {
+        dilucionOptions.innerHTML += `
+          <label style="display:block;margin:8px 0;">
+            <input type="radio" name="dilucion" value="${i}" onchange="calculateInfusion()">
+            ${dil}
+          </label>
+        `;
+      });
+    }
+
+    function calculateInfusion() {
+      const select = document.getElementById('medicationSelect');
+      const index = parseInt(select.value);
+      
+      if (isNaN(index)) return;
+      
+      const med = infusionMedications[index];
+      const dosis = parseFloat(document.getElementById('dosis').value);
+      const peso = parseFloat(document.getElementById('peso').value);
+      
+      if (isNaN(dosis) || isNaN(peso)) {
+        document.getElementById('dosisCalculada').innerHTML = '';
+        document.getElementById('dosisInfusion').innerHTML = '';
+        document.getElementById('ordenMedica').style.display = 'none';
+        return;
+      }
+      
+      const unidadDosis = med.unidad || 'mcg/kg/h';
+      let dosisTotal;
+      
+      if (unidadDosis.includes('mcg')) {
+        dosisTotal = (dosis * peso).toFixed(2);
+        document.getElementById('dosisCalculada').innerHTML = `
+          <p><strong>MCG/DIA:</strong> ${(dosisTotal * 24).toFixed(1)} MCG</p>
+          <p><strong>Dosis total:</strong> ${dosisTotal} mcg/h</p>
+        `;
+      } else {
+        dosisTotal = (dosis * peso).toFixed(2);
+        document.getElementById('dosisCalculada').innerHTML = `
+          <p><strong>MG/DIA:</strong> ${(dosisTotal * 24).toFixed(1)} MG</p>
+          <p><strong>Dosis total:</strong> ${dosisTotal} mg/h</p>
+        `;
+      }
+      
+      const selectedDilucion = document.querySelector('input[name="dilucion"]:checked');
+      if (selectedDilucion) {
+        const dilIndex = parseInt(selectedDilucion.value);
+        const concentracion = med.concentraciones[dilIndex];
+        const velocidad = (dosisTotal / concentracion).toFixed(1);
+        
+        document.getElementById('dosisInfusion').innerHTML = `
+          <p><strong>DOSIS DE INFUSIÓN:</strong> ${velocidad} CC</p>
+          <p><strong>SSN 0.9%:</strong> ${med.ssn || 'N/A'} CC</p>
+        `;
+        
+        const razonDe = (1 / concentracion * 1000).toFixed(1);
+        document.getElementById('ordenMedicaContent').innerHTML = `
+          <p><strong>${med.nombre.toUpperCase()}</strong></p>
+          <p>${med.presentacion.split('=')[0].trim()} + ${selectedDilucion.parentElement.textContent.trim().split('-')[1]?.trim() || selectedDilucion.parentElement.textContent.trim()}</p>
+          <p>SSN ${med.ssn_percentage || '0.9%'}</p>
+          <p><strong>PASAR A RAZÓN DE:</strong> ${razonDe} CC/HORA</p>
+        `;
+        document.getElementById('ordenMedica').style.display = 'block';
+      }
+    }
+
+    function clearInfusion() {
+      document.getElementById('medicationSelect').value = '';
+      document.getElementById('dosis').value = '';
+      document.getElementById('peso').value = '';
+      document.getElementById('medicationInfo').style.display = 'none';
+      document.getElementById('ordenMedica').style.display = 'none';
+    }
+
+    function saveInfusionTemplate() {
+      const select = document.getElementById('medicationSelect');
+      const index = parseInt(select.value);
+      
+      if (isNaN(index)) {
+        alert('Por favor selecciona un medicamento primero');
+        return;
+      }
+      
+      const med = infusionMedications[index];
+      const dosis = document.getElementById('dosis').value;
+      const peso = document.getElementById('peso').value;
+      const ordenContent = document.getElementById('ordenMedicaContent').innerHTML;
+      
+      if (!dosis || !peso || !ordenContent) {
+        alert('Por favor completa todos los campos antes de guardar');
+        return;
+      }
+      
+      showTool('plantillas');
+      
+      setTimeout(() => {
+        document.getElementById('docName').value = `Infusión ${med.nombre} - ${peso}kg`;
+        document.getElementById('docCategory').value = 'infusiones';
+        document.getElementById('docContent').value = `MEDICAMENTO: ${med.nombre}\n${med.presentacion}\n\nDOSIS: ${dosis}\nPESO: ${peso} kg\n\n${document.getElementById('dosisCalculada').textContent}\n${document.getElementById('dosisInfusion').textContent}\n\nORDEN MÉDICA:\n${document.getElementById('ordenMedicaContent').textContent}`;
+      }, 100);
     }
 
     function guardarDocumento() {
@@ -585,48 +974,34 @@
       doc.global = nowGlobal;
       
       if (wasGlobal && !nowGlobal) {
-        let globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
-        globales = globales.filter(d => d.id !== editandoDocId);
-        localStorage.setItem('plantillas_globales', JSON.stringify(globales));
+        const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
+        const filtered = globales.filter(d => d.id !== editandoDocId);
+        localStorage.setItem('plantillas_globales', JSON.stringify(filtered));
         
-        let locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
+        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
         locales.push(doc);
         localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(locales));
       } else if (!wasGlobal && nowGlobal) {
-        let locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
-        locales = locales.filter(d => d.id !== editandoDocId);
-        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(locales));
+        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
+        const filtered = locales.filter(d => d.id !== editandoDocId);
+        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(filtered));
         
-        let globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
+        const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
         globales.push(doc);
         localStorage.setItem('plantillas_globales', JSON.stringify(globales));
       } else {
         const storageKey = nowGlobal ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
-        let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const index = items.findIndex(d => d.id === editandoDocId);
+        const docs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const index = docs.findIndex(d => d.id === editandoDocId);
         if (index !== -1) {
-          items[index] = doc;
-          localStorage.setItem(storageKey, JSON.stringify(items));
+          docs[index] = doc;
+          localStorage.setItem(storageKey, JSON.stringify(docs));
         }
       }
       
-      cargarDocumentos();
       cerrarEditor();
-      alert('Plantilla actualizada exitosamente');
-    }
-
-    function eliminarDocumento(id) {
-      if (!confirm('¿Estás seguro de que deseas eliminar esta plantilla?')) return;
-      
-      const doc = documentos.find(d => d.id === id);
-      if (!doc) return;
-      
-      const storageKey = doc.global ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
-      let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      items = items.filter(d => d.id !== id);
-      localStorage.setItem(storageKey, JSON.stringify(items));
-      
       cargarDocumentos();
+      alert('Plantilla actualizada exitosamente');
     }
 
     function descargarDocumento(id) {
@@ -638,10 +1013,23 @@
       const a = document.createElement('a');
       a.href = url;
       a.download = `${doc.nombre}.txt`;
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    function eliminarDocumento(id) {
+      const doc = documentos.find(d => d.id === id);
+      if (!doc) return;
+      
+      if (!confirm(`¿Estás seguro de eliminar la plantilla "${doc.nombre}"?`)) return;
+      
+      const storageKey = doc.global ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
+      const docs = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const filtered = docs.filter(d => d.id !== id);
+      localStorage.setItem(storageKey, JSON.stringify(filtered));
+      
+      cargarDocumentos();
+      alert('Plantilla eliminada');
     }
   </script>
 </body></html>
