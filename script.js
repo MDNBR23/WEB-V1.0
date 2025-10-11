@@ -106,6 +106,7 @@
       return null;
     }
   }
+  window.checkSession = checkSession;
 
   const path=location.pathname;
   const isAuth=/(^|\/)index\.html$/.test(path)||path.endsWith('/');

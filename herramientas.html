@@ -364,7 +364,7 @@
                 <div style="margin-top:16px; display:flex; gap:8px;">
                   <button class="btn primary" onclick="calculateInfusion()">Calcular</button>
                   <button class="btn" onclick="clearInfusion()">Limpiar</button>
-                  <button class="btn success" onclick="saveInfusionTemplate()">Guardar como Plantilla</button>
+                  <button class="btn success" onclick="copyInfusionOrder()">Copiar Orden Médica</button>
                 </div>
               </div>
             </div>
@@ -657,7 +657,40 @@
       document.getElementById('gsaResult').style.display = 'none';
     }
 
+    function initDefaultInfusions() {
+      const existing = localStorage.getItem('infusion_medications_global');
+      if (!existing) {
+        const defaultMeds = [
+          {
+            id: 1,
+            nombre: 'FENTANILO',
+            presentacion: '500MCG/10ML = 50MCG/ML = 0.5MG/10ML',
+            dosis: '1MCG/KG/HORA',
+            unidad: 'mcg/kg/h',
+            diluciones: ['12CC', '24CC', '50CC', '100CC'],
+            concentraciones: [0.88, 0.44, 0.21, 0.11],
+            ssn: '39,4',
+            ssn_percentage: '0.9%'
+          },
+          {
+            id: 2,
+            nombre: 'MIDAZOLAM',
+            presentacion: '15MG/3ML = 5MG/1ML',
+            dosis: '0,1MG/KG/HORA',
+            unidad: 'mg/kg/h',
+            diluciones: ['12CC', '24CC', '50CC', '100CC'],
+            concentraciones: [0.42, 0.21, 0.10, 0.05],
+            ssn: '38,5',
+            ssn_percentage: '0.9%'
+          }
+        ];
+        localStorage.setItem('infusion_medications_global', JSON.stringify(defaultMeds));
+      }
+    }
+
     function loadInfusionMedications() {
+      initDefaultInfusions();
+      
       const globalMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
       infusionMedications = globalMeds;
       
@@ -717,39 +750,63 @@
       }
       
       const unidadDosis = med.unidad || 'mcg/kg/h';
-      let dosisTotal;
+      const esMcg = unidadDosis.includes('mcg');
       
-      if (unidadDosis.includes('mcg')) {
-        dosisTotal = (dosis * peso).toFixed(2);
+      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG)\/ML/i);
+      if (!concentracionMatch) {
+        alert('Error: No se pudo extraer la concentración del medicamento');
+        return;
+      }
+      
+      const concentracionMedicamento = parseFloat(concentracionMatch[1]);
+      const unidadConcentracion = concentracionMatch[2].toUpperCase();
+      
+      let dosisPorHora = dosis * peso;
+      let dosisPorDia = dosisPorHora * 24;
+      
+      let concentracionEnUnidadDosis;
+      if (esMcg && unidadConcentracion === 'MCG') {
+        concentracionEnUnidadDosis = concentracionMedicamento;
+      } else if (esMcg && unidadConcentracion === 'MG') {
+        concentracionEnUnidadDosis = concentracionMedicamento * 1000;
+      } else if (!esMcg && unidadConcentracion === 'MG') {
+        concentracionEnUnidadDosis = concentracionMedicamento;
+      } else if (!esMcg && unidadConcentracion === 'MCG') {
+        concentracionEnUnidadDosis = concentracionMedicamento / 1000;
+      }
+      
+      if (esMcg) {
         document.getElementById('dosisCalculada').innerHTML = `
-          <p><strong>MCG/DIA:</strong> ${(dosisTotal * 24).toFixed(1)} MCG</p>
-          <p><strong>Dosis total:</strong> ${dosisTotal} mcg/h</p>
+          <p><strong>MCG/DIA:</strong> ${dosisPorDia.toFixed(1)} MCG</p>
+          <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} mcg/hora</p>
         `;
       } else {
-        dosisTotal = (dosis * peso).toFixed(2);
         document.getElementById('dosisCalculada').innerHTML = `
-          <p><strong>MG/DIA:</strong> ${(dosisTotal * 24).toFixed(1)} MG</p>
-          <p><strong>Dosis total:</strong> ${dosisTotal} mg/h</p>
+          <p><strong>MG/DIA:</strong> ${dosisPorDia.toFixed(1)} MG</p>
+          <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} mg/hora</p>
         `;
       }
       
       const selectedDilucion = document.querySelector('input[name="dilucion"]:checked');
       if (selectedDilucion) {
-        const dilIndex = parseInt(selectedDilucion.value);
-        const concentracion = med.concentraciones[dilIndex];
-        const velocidad = (dosisTotal / concentracion).toFixed(1);
+        const dilucionText = med.diluciones[parseInt(selectedDilucion.value)];
+        const dilucionTotal = parseFloat(dilucionText.replace(/[^0-9.]/g, ''));
+        
+        const ccMedicamento = dosisPorDia / concentracionEnUnidadDosis;
+        const ccDiluyente = dilucionTotal - ccMedicamento;
+        
+        const concentracionFinal = dosisPorDia / dilucionTotal;
+        const razonCcHora = dosisPorHora / concentracionFinal;
         
         document.getElementById('dosisInfusion').innerHTML = `
-          <p><strong>DOSIS DE INFUSIÓN:</strong> ${velocidad} CC</p>
-          <p><strong>SSN 0.9%:</strong> ${med.ssn || 'N/A'} CC</p>
+          <p><strong>CC de ${med.nombre}:</strong> ${ccMedicamento.toFixed(1)} CC</p>
+          <p><strong>CC de diluyente (SS 0.9%):</strong> ${ccDiluyente.toFixed(1)} CC</p>
         `;
         
-        const razonDe = (1 / concentracion * 1000).toFixed(1);
         document.getElementById('ordenMedicaContent').innerHTML = `
-          <p><strong>${med.nombre.toUpperCase()}</strong></p>
-          <p>${med.presentacion.split('=')[0].trim()} + ${selectedDilucion.parentElement.textContent.trim().split('-')[1]?.trim() || selectedDilucion.parentElement.textContent.trim()}</p>
-          <p>SSN ${med.ssn_percentage || '0.9%'}</p>
-          <p><strong>PASAR A RAZÓN DE:</strong> ${razonDe} CC/HORA</p>
+          <p><strong>ORDEN MÉDICA:</strong></p>
+          <p>${med.nombre} ${ccMedicamento.toFixed(1)}cc + ${ccDiluyente.toFixed(1)}cc de SS 0.9%</p>
+          <p><strong>Pasar a razón de ${razonCcHora.toFixed(1)}cc/hora</strong></p>
         `;
         document.getElementById('ordenMedica').style.display = 'block';
       }
@@ -763,32 +820,42 @@
       document.getElementById('ordenMedica').style.display = 'none';
     }
 
-    function saveInfusionTemplate() {
-      const select = document.getElementById('medicationSelect');
-      const index = parseInt(select.value);
+    function copyInfusionOrder() {
+      const ordenContent = document.getElementById('ordenMedicaContent');
       
-      if (isNaN(index)) {
-        alert('Por favor selecciona un medicamento primero');
+      if (!ordenContent || ordenContent.innerHTML === '') {
+        alert('Por favor calcula primero la infusión');
         return;
       }
       
+      const select = document.getElementById('medicationSelect');
+      const index = parseInt(select.value);
       const med = infusionMedications[index];
       const dosis = document.getElementById('dosis').value;
       const peso = document.getElementById('peso').value;
-      const ordenContent = document.getElementById('ordenMedicaContent').innerHTML;
       
-      if (!dosis || !peso || !ordenContent) {
-        alert('Por favor completa todos los campos antes de guardar');
-        return;
-      }
+      const dosisCalc = document.getElementById('dosisCalculada').textContent;
+      const infusionInfo = document.getElementById('dosisInfusion').textContent;
+      const ordenText = ordenContent.textContent;
       
-      showTool('plantillas');
+      const textoCompleto = `CALCULADORA DE INFUSIONES
       
-      setTimeout(() => {
-        document.getElementById('docName').value = `Infusión ${med.nombre} - ${peso}kg`;
-        document.getElementById('docCategory').value = 'infusiones';
-        document.getElementById('docContent').value = `MEDICAMENTO: ${med.nombre}\n${med.presentacion}\n\nDOSIS: ${dosis}\nPESO: ${peso} kg\n\n${document.getElementById('dosisCalculada').textContent}\n${document.getElementById('dosisInfusion').textContent}\n\nORDEN MÉDICA:\n${document.getElementById('ordenMedicaContent').textContent}`;
-      }, 100);
+MEDICAMENTO: ${med.nombre}
+Presentación: ${med.presentacion}
+Dosis: ${dosis} ${med.unidad}
+Peso: ${peso} kg
+
+${dosisCalc}
+
+${infusionInfo}
+
+${ordenText}`;
+      
+      navigator.clipboard.writeText(textoCompleto).then(() => {
+        alert('Orden médica copiada al portapapeles');
+      }).catch(() => {
+        alert('No se pudo copiar al portapapeles');
+      });
     }
 
     function guardarDocumento() {
