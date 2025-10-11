@@ -1588,9 +1588,7 @@
   const btnNuevaInfusion = document.getElementById('btnNuevaInfusion');
 
   function initDefaultInfusions() {
-    const existing = localStorage.getItem('infusion_medications_global');
-    if (!existing) {
-      const defaultMeds = [
+    const defaultMeds = [
         {
           id: 1,
           nombre: 'FENTANILO',
@@ -1612,9 +1610,87 @@
           concentraciones: [0.42, 0.21, 0.10, 0.05],
           ssn: '38,5',
           ssn_percentage: '0.9%'
+        },
+        {
+          id: 3,
+          nombre: 'ADRENALINA',
+          presentacion: '1MG/1ML = 1:1000',
+          dosis: '0.1-0.3MCG/KG/MIN',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 4,
+          nombre: 'NOREPINEFRINA',
+          presentacion: '4MG/4ML = 1MG/1ML',
+          dosis: '0.1-0.3MCG/KG/MIN',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 5,
+          nombre: 'MILRINONE',
+          presentacion: '250MG/5ML = 50MG/1ML = 50000MCG/1ML',
+          dosis: '0.3-0.5MCG/KG/MIN',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 6,
+          nombre: 'DOBUTAMINA',
+          presentacion: '250MG/5ML = 50MG/1ML = 50000MCG/1ML',
+          dosis: '5-10MCG/KG/MIN',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 7,
+          nombre: 'DOPAMINA',
+          presentacion: '200MG/5ML = 40MG/1ML',
+          dosis: '5-10MCG/KG/MIN',
+          unidad: 'mcg/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
+        },
+        {
+          id: 8,
+          nombre: 'VASOPRESINA',
+          presentacion: '20UI/ML',
+          dosis: '0.0003-0.002UI/KG/MIN',
+          unidad: 'UI/kg/h',
+          diluciones: ['12CC', '24CC', '50CC', '100CC'],
+          concentraciones: [0, 0, 0, 0],
+          ssn: '0',
+          ssn_percentage: '0.9%'
         }
-      ];
+    ];
+    
+    const existing = localStorage.getItem('infusion_medications_global');
+    if (!existing) {
       localStorage.setItem('infusion_medications_global', JSON.stringify(defaultMeds));
+    } else {
+      const existingMeds = JSON.parse(existing);
+      const existingIds = new Set(existingMeds.map(m => m.id));
+      
+      const newMeds = defaultMeds.filter(m => !existingIds.has(m.id));
+      if (newMeds.length > 0) {
+        const mergedMeds = [...existingMeds, ...newMeds];
+        localStorage.setItem('infusion_medications_global', JSON.stringify(mergedMeds));
+      }
     }
   }
 
@@ -1664,9 +1740,6 @@
       document.getElementById('infDosis').value = m.dosis;
       document.getElementById('infUnidad').value = m.unidad || 'mcg/kg/h';
       document.getElementById('infDiluciones').value = m.diluciones.join(', ');
-      document.getElementById('infConcentraciones').value = m.concentraciones.join(', ');
-      document.getElementById('infSSN').value = m.ssn;
-      document.getElementById('infSSNPercentage').value = m.ssn_percentage || '0.9%';
     } else {
       document.getElementById('infId').value = '';
       document.getElementById('infNombre').value = '';
@@ -1674,9 +1747,6 @@
       document.getElementById('infDosis').value = '';
       document.getElementById('infUnidad').value = 'mcg/kg/h';
       document.getElementById('infDiluciones').value = '';
-      document.getElementById('infConcentraciones').value = '';
-      document.getElementById('infSSN').value = '';
-      document.getElementById('infSSNPercentage').value = '0.9%';
     }
     
     modalInfusion.style.display = 'flex';
@@ -1696,17 +1766,13 @@
       const dosis = document.getElementById('infDosis').value.trim();
       const unidad = document.getElementById('infUnidad').value;
       const diluciones = document.getElementById('infDiluciones').value.split(',').map(d => d.trim());
-      const concentraciones = document.getElementById('infConcentraciones').value.split(',').map(c => parseFloat(c.trim()));
-      const ssn = document.getElementById('infSSN').value.trim();
-      const ssn_percentage = document.getElementById('infSSNPercentage').value.trim();
+      
+      const concentraciones = diluciones.map(() => 0);
+      const ssn = '0';
+      const ssn_percentage = '0.9%';
 
-      if(!nombre || !presentacion || !dosis || diluciones.length === 0 || concentraciones.length === 0) {
+      if(!nombre || !presentacion || !dosis || diluciones.length === 0) {
         toast('Por favor completa todos los campos.', 'error');
-        return;
-      }
-
-      if(diluciones.length !== concentraciones.length) {
-        toast('El número de diluciones debe coincidir con el número de concentraciones.', 'error');
         return;
       }
 

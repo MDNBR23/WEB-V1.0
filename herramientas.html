@@ -316,7 +316,7 @@
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div>
                 <h3 style="margin:0;">Calculadora de Infusiones</h3>
-                <p class="text-muted" style="margin:4px 0 0 0;">Calcula dosis de sedoanalgesia y diluciones.</p>
+                <p class="text-muted" style="margin:4px 0 0 0;">Calcula dosis de sedoanalgesia, vasopresores, inotrópicos</p>
               </div>
               <a href="admin.html" id="adminInfusionesLink" class="btn sm" style="display:none;text-decoration:none;">Gestionar medicamentos</a>
             </div>
@@ -324,7 +324,7 @@
             <div class="infusion-calculator">
               <div class="medication-select">
                 <label><strong>Seleccionar medicamento:</strong></label>
-                <select id="medicationSelect" onchange="loadMedication()">
+                <select id="medicationSelect" onchange="loadMedication()" style="font-size: 15px; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card-bg); color: var(--text); font-weight: 500; cursor: pointer; transition: all 0.2s;">
                   <option value="">Seleccionar medicamento</option>
                 </select>
               </div>
@@ -336,7 +336,7 @@
                 </div>
 
                 <div class="infusion-section">
-                  <h4>Modificar solo Dosis y Peso</h4>
+                  <h4>Ingresa dosis del medicamento y peso del paciente</h4>
                   <div class="infusion-grid">
                     <div>
                       <label>Dosis (mcg/kg/h o mg/kg/h)</label>
@@ -752,7 +752,7 @@
       const unidadDosis = med.unidad || 'mcg/kg/h';
       const esMcg = unidadDosis.includes('mcg');
       
-      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG)\/ML/i);
+      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG)\/\d*ML/i);
       if (!concentracionMatch) {
         alert('Error: No se pudo extraer la concentración del medicamento');
         return;
@@ -796,17 +796,25 @@
         const ccDiluyente = dilucionTotal - ccMedicamento;
         
         const concentracionFinal = dosisPorDia / dilucionTotal;
-        const razonCcHora = dosisPorHora / concentracionFinal;
+        let razonCcHora = dosisPorHora / concentracionFinal;
+        
+        const valoresPermitidos = [0.5, 1.0, 2.0, 4.0];
+        const razonAproximada = valoresPermitidos.reduce((prev, curr) => 
+          Math.abs(curr - razonCcHora) < Math.abs(prev - razonCcHora) ? curr : prev
+        );
         
         document.getElementById('dosisInfusion').innerHTML = `
           <p><strong>CC de ${med.nombre}:</strong> ${ccMedicamento.toFixed(1)} CC</p>
           <p><strong>CC de diluyente (SS 0.9%):</strong> ${ccDiluyente.toFixed(1)} CC</p>
+          <p><strong>Razón calculada:</strong> ${razonCcHora.toFixed(2)} cc/hora <button class="btn sm" onclick="usarRazonAproximada(${razonAproximada})" style="margin-left:8px;">Usar ${razonAproximada} cc/h</button></p>
         `;
+        
+        window.razonActual = razonCcHora;
+        window.razonSeleccionada = razonCcHora;
         
         document.getElementById('ordenMedicaContent').innerHTML = `
           <p><strong>ORDEN MÉDICA:</strong></p>
-          <p>${med.nombre} ${ccMedicamento.toFixed(1)}cc + ${ccDiluyente.toFixed(1)}cc de SS 0.9%</p>
-          <p><strong>Pasar a razón de ${razonCcHora.toFixed(1)}cc/hora</strong></p>
+          <p id="ordenTexto">${med.nombre.toUpperCase()} ${ccMedicamento.toFixed(1)}CC + ${ccDiluyente.toFixed(1)}CC DE SS 0.9% PASAR A RAZÓN DE ${razonCcHora.toFixed(2)}CC/HORA</p>
         `;
         document.getElementById('ordenMedica').style.display = 'block';
       }
@@ -820,6 +828,22 @@
       document.getElementById('ordenMedica').style.display = 'none';
     }
 
+    function usarRazonAproximada(razon) {
+      window.razonSeleccionada = razon;
+      const select = document.getElementById('medicationSelect');
+      const index = parseInt(select.value);
+      const med = infusionMedications[index];
+      
+      const dosisInfusion = document.getElementById('dosisInfusion').innerHTML;
+      const ccMatch = dosisInfusion.match(/CC de [^:]+:\s*([0-9.]+)\s*CC/);
+      const diluyenteMatch = dosisInfusion.match(/diluyente[^:]+:\s*([0-9.]+)\s*CC/);
+      
+      if (ccMatch && diluyenteMatch) {
+        const ordenTexto = document.getElementById('ordenTexto');
+        ordenTexto.textContent = `${med.nombre.toUpperCase()} ${ccMatch[1]}CC + ${diluyenteMatch[1]}CC DE SS 0.9% PASAR A RAZÓN DE ${razon.toFixed(1)}CC/HORA`;
+      }
+    }
+
     function copyInfusionOrder() {
       const ordenContent = document.getElementById('ordenMedicaContent');
       
@@ -828,30 +852,9 @@
         return;
       }
       
-      const select = document.getElementById('medicationSelect');
-      const index = parseInt(select.value);
-      const med = infusionMedications[index];
-      const dosis = document.getElementById('dosis').value;
-      const peso = document.getElementById('peso').value;
+      const ordenText = ordenContent.querySelector('p:last-child').textContent;
       
-      const dosisCalc = document.getElementById('dosisCalculada').textContent;
-      const infusionInfo = document.getElementById('dosisInfusion').textContent;
-      const ordenText = ordenContent.textContent;
-      
-      const textoCompleto = `CALCULADORA DE INFUSIONES
-      
-MEDICAMENTO: ${med.nombre}
-Presentación: ${med.presentacion}
-Dosis: ${dosis} ${med.unidad}
-Peso: ${peso} kg
-
-${dosisCalc}
-
-${infusionInfo}
-
-${ordenText}`;
-      
-      navigator.clipboard.writeText(textoCompleto).then(() => {
+      navigator.clipboard.writeText(ordenText).then(() => {
         alert('Orden médica copiada al portapapeles');
       }).catch(() => {
         alert('No se pudo copiar al portapapeles');
