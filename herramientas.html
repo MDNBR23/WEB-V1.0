@@ -51,8 +51,8 @@
   border: 1px solid var(--border);
 }
 .gsa-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -182,6 +182,23 @@
   background: var(--bg);
   font-size: 14px;
 }
+#medicationSelect {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: 15px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: rgba(255,255,255,.95);
+  color: #1a202c;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+html[data-theme="dark"] #medicationSelect {
+  background: rgba(20,25,42,.85);
+  color: #f7fafc;
+}
 </style>
 <script>
   document.documentElement.classList.add('preload');
@@ -238,6 +255,18 @@
             <span class="tool-card-icon">📋</span>
             <h3>Plantillas</h3>
             <p>Gestiona plantillas de evolución por patología</p>
+          </div>
+          
+          <div class="card glass tool-card" onclick="showTool('turnos')">
+            <span class="tool-card-icon">📅</span>
+            <h3>Turnos Médicos</h3>
+            <p>Organiza turnos con horarios, valores y recordatorios</p>
+          </div>
+          
+          <div class="card glass tool-card" onclick="showTool('ia')">
+            <span class="tool-card-icon">🤖</span>
+            <h3>IA Médica</h3>
+            <p>Consulta evidencia médica con IA especializada</p>
           </div>
         </div>
 
@@ -324,7 +353,7 @@
             <div class="infusion-calculator">
               <div class="medication-select">
                 <label><strong>Seleccionar medicamento:</strong></label>
-                <select id="medicationSelect" onchange="loadMedication()" style="font-size: 15px; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card-bg); color: var(--text); font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                <select id="medicationSelect" onchange="loadMedication()">
                   <option value="">Seleccionar medicamento</option>
                 </select>
               </div>
@@ -339,7 +368,7 @@
                   <h4>Ingresa dosis del medicamento y peso del paciente</h4>
                   <div class="infusion-grid">
                     <div>
-                      <label>Dosis (mcg/kg/h o mg/kg/h)</label>
+                      <label id="dosisLabel">Dosis</label>
                       <input type="number" id="dosis" step="0.01" oninput="calculateInfusion()">
                     </div>
                     <div>
@@ -367,6 +396,105 @@
                   <button class="btn success" onclick="copyInfusionOrder()">Copiar Orden Médica</button>
                 </div>
               </div>
+            </div>
+          </section>
+        </div>
+
+        <div id="turnosTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>Gestión de Turnos Médicos</h3>
+            <p class="text-muted">Organiza tus turnos médicos con horarios, valor del turno y recordatorios.</p>
+            
+            <div style="margin-top: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                <div class="field">
+                  <label>Fecha del Turno</label>
+                  <input type="date" id="turnoFecha">
+                </div>
+                <div class="field">
+                  <label>Hora de Inicio</label>
+                  <input type="time" id="turnoHoraInicio">
+                </div>
+                <div class="field">
+                  <label>Hora de Fin</label>
+                  <input type="time" id="turnoHoraFin">
+                </div>
+                <div class="field">
+                  <label>Valor del Turno ($)</label>
+                  <input type="number" id="turnoValor" step="0.01" placeholder="0.00">
+                </div>
+                <div class="field">
+                  <label>Lugar</label>
+                  <input type="text" id="turnoLugar" placeholder="Hospital, Clínica...">
+                </div>
+                <div class="field">
+                  <label>Tipo de Turno</label>
+                  <select id="turnoTipo">
+                    <option value="guardia">Guardia</option>
+                    <option value="consulta">Consulta</option>
+                    <option value="cirugia">Cirugía</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="margin-top: 12px;">
+                <label>Notas</label>
+                <textarea id="turnoNotas" rows="2" placeholder="Notas adicionales..."></textarea>
+              </div>
+              <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <button class="btn primary" onclick="guardarTurno()">Guardar Turno</button>
+                <button class="btn" onclick="limpiarFormTurno()">Limpiar</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <strong>Turnos Programados:</strong>
+                <select id="filterMes" onchange="filtrarTurnos()" style="margin-left: auto;">
+                  <option value="">Todos los meses</option>
+                </select>
+                <input type="search" id="searchTurno" placeholder="Buscar..." onkeyup="filtrarTurnos()">
+              </div>
+              <div id="turnosList" class="doc-list"></div>
+            </div>
+            
+            <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
+              <h4 style="margin: 0 0 8px 0; color: var(--primary);">Resumen Mensual</h4>
+              <p id="resumenTurnos" style="margin: 0; font-size: 14px;">Total de turnos: 0 | Valor total: $0.00</p>
+            </div>
+          </section>
+        </div>
+
+        <div id="iaTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>IA Médica - Consulta Evidencia</h3>
+            <p class="text-muted">Busca información médica basada en evidencia científica.</p>
+            
+            <div style="margin-top: 16px;">
+              <div class="field">
+                <label>Pregunta o búsqueda</label>
+                <textarea id="iaQuery" rows="3" placeholder="Ej: ¿Cuál es el tratamiento de primera línea para neumonía adquirida en la comunidad en pediatría?"></textarea>
+              </div>
+              <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                <button class="btn primary" onclick="buscarIA()">Buscar</button>
+                <button class="btn" onclick="limpiarIA()">Limpiar</button>
+                <a href="https://www.openevidence.com/" target="_blank" class="btn secondary" style="text-decoration: none;">Ir a Open Evidence</a>
+              </div>
+            </div>
+
+            <div id="iaResult" style="display:none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
+              <h4 style="margin: 0 0 12px 0; color: var(--primary);">Información</h4>
+              <div id="iaResultContent"></div>
             </div>
           </section>
         </div>
@@ -506,6 +634,8 @@
       document.getElementById('gasesTool').style.display = 'none';
       document.getElementById('infusionesTool').style.display = 'none';
       document.getElementById('plantillasTool').style.display = 'none';
+      document.getElementById('turnosTool').style.display = 'none';
+      document.getElementById('iaTool').style.display = 'none';
     }
 
     function showTool(tool) {
@@ -514,6 +644,8 @@
       document.getElementById('gasesTool').style.display = 'none';
       document.getElementById('infusionesTool').style.display = 'none';
       document.getElementById('plantillasTool').style.display = 'none';
+      document.getElementById('turnosTool').style.display = 'none';
+      document.getElementById('iaTool').style.display = 'none';
       
       if (tool === 'corrector') {
         document.getElementById('correctorTool').style.display = 'block';
@@ -524,6 +656,12 @@
       } else if (tool === 'plantillas') {
         document.getElementById('plantillasTool').style.display = 'block';
         cargarDocumentos();
+      } else if (tool === 'turnos') {
+        document.getElementById('turnosTool').style.display = 'block';
+        cargarTurnos();
+        inicializarFiltroMes();
+      } else if (tool === 'ia') {
+        document.getElementById('iaTool').style.display = 'block';
       }
     }
 
@@ -717,6 +855,9 @@
       document.getElementById('medicationInfo').style.display = 'block';
       document.getElementById('presentacion').innerHTML = `<strong>${med.presentacion}</strong><br>Dosis: ${med.dosis}`;
       
+      const unidad = med.unidad || 'mcg/kg/h';
+      document.getElementById('dosisLabel').textContent = `Dosis (${unidad})`;
+      
       document.getElementById('dosis').value = '';
       document.getElementById('peso').value = '';
       
@@ -750,9 +891,11 @@
       }
       
       const unidadDosis = med.unidad || 'mcg/kg/h';
+      const esPorMinuto = unidadDosis.includes('/min');
       const esMcg = unidadDosis.includes('mcg');
+      const esUI = unidadDosis.includes('UI');
       
-      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG)\/\d*ML/i);
+      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG|UI)\/\d*ML/i);
       if (!concentracionMatch) {
         alert('Error: No se pudo extraer la concentración del medicamento');
         return;
@@ -762,30 +905,33 @@
       const unidadConcentracion = concentracionMatch[2].toUpperCase();
       
       let dosisPorHora = dosis * peso;
+      if (esPorMinuto) {
+        dosisPorHora = dosisPorHora * 60;
+      }
       let dosisPorDia = dosisPorHora * 24;
       
       let concentracionEnUnidadDosis;
-      if (esMcg && unidadConcentracion === 'MCG') {
+      if (esUI && unidadConcentracion === 'UI') {
+        concentracionEnUnidadDosis = concentracionMedicamento;
+      } else if (esMcg && unidadConcentracion === 'MCG') {
         concentracionEnUnidadDosis = concentracionMedicamento;
       } else if (esMcg && unidadConcentracion === 'MG') {
         concentracionEnUnidadDosis = concentracionMedicamento * 1000;
-      } else if (!esMcg && unidadConcentracion === 'MG') {
+      } else if (!esMcg && !esUI && unidadConcentracion === 'MG') {
         concentracionEnUnidadDosis = concentracionMedicamento;
-      } else if (!esMcg && unidadConcentracion === 'MCG') {
+      } else if (!esMcg && !esUI && unidadConcentracion === 'MCG') {
         concentracionEnUnidadDosis = concentracionMedicamento / 1000;
+      } else {
+        concentracionEnUnidadDosis = concentracionMedicamento;
       }
       
-      if (esMcg) {
-        document.getElementById('dosisCalculada').innerHTML = `
-          <p><strong>MCG/DIA:</strong> ${dosisPorDia.toFixed(1)} MCG</p>
-          <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} mcg/hora</p>
-        `;
-      } else {
-        document.getElementById('dosisCalculada').innerHTML = `
-          <p><strong>MG/DIA:</strong> ${dosisPorDia.toFixed(1)} MG</p>
-          <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} mg/hora</p>
-        `;
-      }
+      let unidadMostrar = esUI ? 'UI' : (esMcg ? 'MCG' : 'MG');
+      let unidadHora = esUI ? 'UI/hora' : (esMcg ? 'mcg/hora' : 'mg/hora');
+      
+      document.getElementById('dosisCalculada').innerHTML = `
+        <p><strong>${unidadMostrar}/DIA:</strong> ${dosisPorDia.toFixed(1)} ${unidadMostrar}</p>
+        <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} ${unidadHora}</p>
+      `;
       
       const selectedDilucion = document.querySelector('input[name="dilucion"]:checked');
       if (selectedDilucion) {
@@ -798,23 +944,16 @@
         const concentracionFinal = dosisPorDia / dilucionTotal;
         let razonCcHora = dosisPorHora / concentracionFinal;
         
-        const valoresPermitidos = [0.5, 1.0, 2.0, 4.0];
-        const razonAproximada = valoresPermitidos.reduce((prev, curr) => 
-          Math.abs(curr - razonCcHora) < Math.abs(prev - razonCcHora) ? curr : prev
-        );
-        
         document.getElementById('dosisInfusion').innerHTML = `
           <p><strong>CC de ${med.nombre}:</strong> ${ccMedicamento.toFixed(1)} CC</p>
           <p><strong>CC de diluyente (SS 0.9%):</strong> ${ccDiluyente.toFixed(1)} CC</p>
-          <p><strong>Razón calculada:</strong> ${razonCcHora.toFixed(2)} cc/hora <button class="btn sm" onclick="usarRazonAproximada(${razonAproximada})" style="margin-left:8px;">Usar ${razonAproximada} cc/h</button></p>
         `;
         
-        window.razonActual = razonCcHora;
         window.razonSeleccionada = razonCcHora;
         
         document.getElementById('ordenMedicaContent').innerHTML = `
           <p><strong>ORDEN MÉDICA:</strong></p>
-          <p id="ordenTexto">${med.nombre.toUpperCase()} ${ccMedicamento.toFixed(1)}CC + ${ccDiluyente.toFixed(1)}CC DE SS 0.9% PASAR A RAZÓN DE ${razonCcHora.toFixed(2)}CC/HORA</p>
+          <p id="ordenTexto">${med.nombre.toUpperCase()} ${ccMedicamento.toFixed(1)}CC + ${ccDiluyente.toFixed(1)}CC DE SS 0.9% PASAR A RAZÓN DE ${razonCcHora.toFixed(1)}CC/HORA</p>
         `;
         document.getElementById('ordenMedica').style.display = 'block';
       }
@@ -828,21 +967,6 @@
       document.getElementById('ordenMedica').style.display = 'none';
     }
 
-    function usarRazonAproximada(razon) {
-      window.razonSeleccionada = razon;
-      const select = document.getElementById('medicationSelect');
-      const index = parseInt(select.value);
-      const med = infusionMedications[index];
-      
-      const dosisInfusion = document.getElementById('dosisInfusion').innerHTML;
-      const ccMatch = dosisInfusion.match(/CC de [^:]+:\s*([0-9.]+)\s*CC/);
-      const diluyenteMatch = dosisInfusion.match(/diluyente[^:]+:\s*([0-9.]+)\s*CC/);
-      
-      if (ccMatch && diluyenteMatch) {
-        const ordenTexto = document.getElementById('ordenTexto');
-        ordenTexto.textContent = `${med.nombre.toUpperCase()} ${ccMatch[1]}CC + ${diluyenteMatch[1]}CC DE SS 0.9% PASAR A RAZÓN DE ${razon.toFixed(1)}CC/HORA`;
-      }
-    }
 
     function copyInfusionOrder() {
       const ordenContent = document.getElementById('ordenMedicaContent');
@@ -1100,6 +1224,184 @@
       
       cargarDocumentos();
       alert('Plantilla eliminada');
+    }
+
+    let turnos = [];
+
+    function inicializarFiltroMes() {
+      const filterMes = document.getElementById('filterMes');
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      
+      filterMes.innerHTML = '<option value="">Todos los meses</option>';
+      for (let i = 0; i < 12; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = meses[i];
+        filterMes.appendChild(option);
+      }
+    }
+
+    function guardarTurno() {
+      const fecha = document.getElementById('turnoFecha').value;
+      const horaInicio = document.getElementById('turnoHoraInicio').value;
+      const horaFin = document.getElementById('turnoHoraFin').value;
+      const valor = parseFloat(document.getElementById('turnoValor').value) || 0;
+      const lugar = document.getElementById('turnoLugar').value.trim();
+      const tipo = document.getElementById('turnoTipo').value;
+      const notas = document.getElementById('turnoNotas').value.trim();
+
+      if (!fecha || !horaInicio || !horaFin) {
+        alert('Por favor completa fecha, hora de inicio y hora de fin');
+        return;
+      }
+
+      const turno = {
+        id: Date.now(),
+        fecha,
+        horaInicio,
+        horaFin,
+        valor,
+        lugar,
+        tipo,
+        notas,
+        creador: currentUser?.username || 'unknown'
+      };
+
+      const storageKey = 'turnos_' + (currentUser?.username || 'local');
+      const turnosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      turnosExistentes.push(turno);
+      localStorage.setItem(storageKey, JSON.stringify(turnosExistentes));
+
+      limpiarFormTurno();
+      cargarTurnos();
+      alert('Turno guardado exitosamente');
+    }
+
+    function limpiarFormTurno() {
+      document.getElementById('turnoFecha').value = '';
+      document.getElementById('turnoHoraInicio').value = '';
+      document.getElementById('turnoHoraFin').value = '';
+      document.getElementById('turnoValor').value = '';
+      document.getElementById('turnoLugar').value = '';
+      document.getElementById('turnoTipo').value = 'guardia';
+      document.getElementById('turnoNotas').value = '';
+    }
+
+    function cargarTurnos() {
+      const storageKey = 'turnos_' + (currentUser?.username || 'local');
+      turnos = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      filtrarTurnos();
+    }
+
+    function filtrarTurnos() {
+      const busqueda = document.getElementById('searchTurno').value.toLowerCase();
+      const mes = document.getElementById('filterMes').value;
+
+      let filtrados = [...turnos];
+
+      if (mes !== '') {
+        filtrados = filtrados.filter(turno => {
+          const fechaTurno = new Date(turno.fecha);
+          return fechaTurno.getMonth() === parseInt(mes);
+        });
+      }
+
+      if (busqueda) {
+        filtrados = filtrados.filter(turno =>
+          turno.lugar.toLowerCase().includes(busqueda) ||
+          turno.tipo.toLowerCase().includes(busqueda) ||
+          turno.notas.toLowerCase().includes(busqueda)
+        );
+      }
+
+      mostrarTurnos(filtrados);
+      actualizarResumen(filtrados);
+    }
+
+    function mostrarTurnos(lista) {
+      const turnosList = document.getElementById('turnosList');
+      
+      if (lista.length === 0) {
+        turnosList.innerHTML = '<p class="text-muted">No hay turnos programados</p>';
+        return;
+      }
+
+      lista.sort((a, b) => new Date(a.fecha + ' ' + a.horaInicio) - new Date(b.fecha + ' ' + b.horaInicio));
+
+      turnosList.innerHTML = lista.map(turno => {
+        const fecha = new Date(turno.fecha);
+        const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+
+        return `
+          <div class="doc-item">
+            <div style="flex: 1;">
+              <div class="doc-name">${fechaFormateada} - ${turno.horaInicio} a ${turno.horaFin}</div>
+              <div class="doc-meta">${turno.tipo.toUpperCase()} | ${turno.lugar} | $${turno.valor.toFixed(2)}</div>
+              ${turno.notas ? `<div class="doc-meta" style="margin-top: 4px;">${turno.notas}</div>` : ''}
+            </div>
+            <button class="btn sm danger" onclick="eliminarTurno(${turno.id})">Eliminar</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function actualizarResumen(lista) {
+      const total = lista.length;
+      const valorTotal = lista.reduce((sum, turno) => sum + turno.valor, 0);
+      document.getElementById('resumenTurnos').textContent = `Total de turnos: ${total} | Valor total: $${valorTotal.toFixed(2)}`;
+    }
+
+    function eliminarTurno(id) {
+      if (!confirm('¿Estás seguro de eliminar este turno?')) return;
+
+      const storageKey = 'turnos_' + (currentUser?.username || 'local');
+      const turnosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const filtered = turnosExistentes.filter(t => t.id !== id);
+      localStorage.setItem(storageKey, JSON.stringify(filtered));
+
+      cargarTurnos();
+      alert('Turno eliminado');
+    }
+
+    function buscarIA() {
+      const query = document.getElementById('iaQuery').value.trim();
+      
+      if (!query) {
+        alert('Por favor, ingresa una pregunta o búsqueda');
+        return;
+      }
+
+      document.getElementById('iaResultContent').innerHTML = `
+        <p>Para obtener información médica basada en evidencia sobre "${query}", por favor visita:</p>
+        <ul style="margin-top: 12px;">
+          <li style="margin: 8px 0;">
+            <a href="https://www.openevidence.com/" target="_blank" style="color: var(--primary); font-weight: 600;">
+              Open Evidence - IA médica especializada
+            </a>
+          </li>
+          <li style="margin: 8px 0;">
+            <a href="https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(query)}" target="_blank" style="color: var(--primary); font-weight: 600;">
+              PubMed - Búsqueda: "${query}"
+            </a>
+          </li>
+          <li style="margin: 8px 0;">
+            <a href="https://www.uptodate.com/contents/search?search=${encodeURIComponent(query)}" target="_blank" style="color: var(--primary); font-weight: 600;">
+              UpToDate - Búsqueda: "${query}"
+            </a>
+          </li>
+        </ul>
+        <p style="margin-top: 16px; font-size: 13px; color: var(--muted);">
+          <strong>Nota:</strong> Estas son plataformas confiables para información médica. Open Evidence utiliza IA para resumir evidencia científica de manera precisa.
+        </p>
+      `;
+      
+      document.getElementById('iaResult').style.display = 'block';
+    }
+
+    function limpiarIA() {
+      document.getElementById('iaQuery').value = '';
+      document.getElementById('iaResult').style.display = 'none';
     }
   </script>
 </body></html>

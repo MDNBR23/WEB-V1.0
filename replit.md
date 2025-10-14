@@ -21,8 +21,10 @@ NBR WEB is built with a focus on simplicity, security, and performance using a p
 - **Authentication:** Session-based authentication using `express-session`, secure password hashing with `bcrypt` (10 rounds), and role-based access control (admin/user).
 - **Data Isolation:** User-specific data (announcements, guides) is isolated, while global content (medications, admin-created guides/announcements) is shared.
 - **Email Service:** Integrated for password recovery using Replit Mail.
-- **Medical Tools:** Includes a text space corrector, an arterial blood gas analyzer, and a template system for clinical evolution notes.
-- **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations.
+- **Medical Tools:** Includes a text space corrector, an arterial blood gas analyzer (vertical layout), and a template system for clinical evolution notes.
+- **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units including mg/kg/h, mcg/kg/h, mcg/kg/min, and UI/kg/min with automatic unit conversion and precise medical orders (1 decimal place).
+- **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence for personal organization.
+- **AI Medical Integration:** Open Evidence integration for accessing medical research and evidence-based medicine resources.
 
 ### Feature Specifications
 - **Authentication:** User registration, login, logout, password reset via email, and session management.
