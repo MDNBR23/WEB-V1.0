@@ -22,7 +22,7 @@
         <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
         <a href="vademecum.html"><span class="icon">💊</span><span>Vademecum</span></a>
         <a href="herramientas.html"><span class="icon">🔧</span><span>Herramientas</span></a>
-        <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
         <a href="configuracion.html"><span class="icon">⚙️</span><span>Configuración</span></a>
         <a href="admin.html" class="active" id="adminNavLink"><span class="icon">🛠️</span><span>Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
       </nav>
@@ -129,6 +129,33 @@
               <table id="adminSugerenciasTable"><thead>
                 <tr><th>Usuario</th><th>Fecha</th><th>Mensaje</th><th>Respuesta</th><th style="width:180px;">Acciones</th></tr>
               </thead><tbody></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card glass accordion">
+          <div class="toolbar accordion-header" style="display:flex;align-items:center;gap:10px;cursor:pointer;" data-toggle="mantenimiento">
+            <h3 style="margin:0;">⚙️ Modo Mantenimiento</h3><div class="grow"></div>
+            <span id="mantenimientoStatus" class="chip" style="display:inline-block;background:#10b981;color:#fff;">INACTIVO</span>
+            <span class="accordion-icon">▼</span>
+          </div>
+          <div class="accordion-content" id="mantenimiento" style="display:none;margin-top:10px;">
+            <div style="padding:16px;background:rgba(255,193,7,0.1);border-left:4px solid #ffc107;border-radius:6px;margin-bottom:16px;">
+              <p style="margin:0;"><strong>⚠️ Importante:</strong> Cuando el modo mantenimiento esté activo, los usuarios normales verán una página de mantenimiento después de iniciar sesión. Solo los administradores podrán acceder al sistema completo.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <label class="switch" style="margin:0;">
+                <input id="toggleMantenimiento" type="checkbox">
+                <span class="slider"></span>
+                <span>Activar modo mantenimiento</span>
+              </label>
+            </div>
+            <div id="mantenimientoMensajeSection" style="margin-top:16px;display:none;">
+              <div class="field">
+                <label>Mensaje personalizado para los usuarios</label>
+                <textarea id="mantenimientoMensaje" rows="3" placeholder="Ej: Estamos realizando mejoras en el sistema. Estaremos de vuelta pronto.">Estamos realizando mejoras en el sistema para brindarte una mejor experiencia. Por favor, vuelve en unos minutos.</textarea>
+              </div>
+              <button class="btn primary" onclick="guardarMantenimiento()">Guardar mensaje</button>
             </div>
           </div>
         </section>

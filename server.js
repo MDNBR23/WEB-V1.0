@@ -881,6 +881,38 @@ app.get('/api/sugerencias/count', async (req, res) => {
   }
 });
 
+app.get('/api/maintenance', async (req, res) => {
+  try {
+    const maintenance = await readJSON('maintenance.json', {
+      active: false,
+      message: 'Estamos realizando mejoras en el sistema para brindarte una mejor experiencia. Por favor, vuelve en unos minutos.'
+    });
+    res.json(maintenance);
+  } catch (err) {
+    console.error('Error getting maintenance status:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.put('/api/maintenance', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const {active, message} = req.body;
+    const maintenance = {
+      active: active || false,
+      message: message || 'Estamos realizando mejoras en el sistema para brindarte una mejor experiencia. Por favor, vuelve en unos minutos.'
+    };
+    await writeJSON('maintenance.json', maintenance);
+    res.json({success: true, maintenance});
+  } catch (err) {
+    console.error('Error updating maintenance status:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
 app.use(express.static('.', {
   setHeaders: (res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');

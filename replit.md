@@ -3,6 +3,13 @@
 ## Overview
 NBR WEB is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
 
+## Recent Changes (October 14, 2025)
+1. **Tools Section Enhancement:** Changed "Infusiones" to "Calculadora" with description "Calculadora de sedoanalgesia e infusiones" for better clarity.
+2. **Arterial Blood Gas Analyzer Improvement:** Removed SatO₂ and BE fields, added interactive visual feedback with real-time validation and color-coded status indicators (normal/low/high).
+3. **Infusion Calculator Formula Fix:** Corrected medication cc volume calculation to use proper concentration formulas.
+4. **Notification Sound System:** Implemented ding-dong sound for login, admin notifications (new users/suggestions), and user suggestion responses with sidebar badges.
+5. **Maintenance Mode:** Created admin-controlled maintenance mode with backend persistence (maintenance.json), allowing admins to access the platform while regular users see a customizable maintenance message.
+
 ## User Preferences
 None recorded yet.
 
@@ -21,7 +28,7 @@ NBR WEB is built with a focus on simplicity, security, and performance using a p
 - **Authentication:** Session-based authentication using `express-session`, secure password hashing with `bcrypt` (10 rounds), and role-based access control (admin/user).
 - **Data Isolation:** User-specific data (announcements, guides) is isolated, while global content (medications, admin-created guides/announcements) is shared.
 - **Email Service:** Integrated for password recovery using Replit Mail.
-- **Medical Tools:** Includes a text space corrector, an arterial blood gas analyzer (vertical layout), and a template system for clinical evolution notes.
+- **Medical Tools:** Includes a text space corrector, an interactive arterial blood gas analyzer with real-time validation and visual feedback, and a template system for clinical evolution notes.
 - **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units including mg/kg/h, mcg/kg/h, mcg/kg/min, and UI/kg/min with automatic unit conversion and precise medical orders (1 decimal place).
 - **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence for personal organization.
 - **AI Medical Integration:** Open Evidence integration for accessing medical research and evidence-based medicine resources.
@@ -33,7 +40,8 @@ NBR WEB is built with a focus on simplicity, security, and performance using a p
 - **Medication Database:** Shared database with real-time search, editable by administrators.
 - **Profile Customization:** User profile updates with avatar upload.
 - **Template System:** Global and personal templates for clinical notes, with category filtering and full-text search.
-- **Admin Notifications:** Badges for pending actions (user approvals, suggestions) with real-time updates.
+- **Admin Notifications:** Badges for pending actions (user approvals, suggestions) with real-time updates and sound notifications.
+- **Maintenance Mode:** Admin-controlled system-wide maintenance mode with backend persistence, custom messages, and admin-only access during maintenance periods.
 
 ### System Design Choices
 - **Data Storage:** File-based JSON storage (`data/` directory) for simplicity and rapid prototyping, designed to be scalable to a PostgreSQL database if needed.

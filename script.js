@@ -119,6 +119,27 @@
       location.replace('index.html');
       return;
     }
+    
+    if(session.role !== 'admin') {
+      try {
+        const maintenance = await api('/maintenance');
+        if(maintenance.active) {
+          document.body.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--g1),var(--g2));padding:20px;">
+              <div style="background:rgba(255,255,255,0.95);border-radius:20px;padding:48px;max-width:600px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                <div style="font-size:80px;margin-bottom:24px;">🔧</div>
+                <h1 style="margin:0 0 16px 0;color:#1a202c;font-size:32px;">Modo Mantenimiento</h1>
+                <p style="color:#4a5568;font-size:18px;line-height:1.6;margin:0 0 32px 0;">${maintenance.message}</p>
+                <button onclick="location.replace('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking maintenance mode:', err);
+      }
+    }
   }
 
   const layout=document.querySelector('.layout');
@@ -220,6 +241,12 @@
   
   if(!isAuth && !isReg && !isReset) {
     await fillTop();
+    
+    const session = await checkSession();
+    if(session && session.role !== 'admin') {
+      await updateUserSugerenciasNotifications();
+      setInterval(updateUserSugerenciasNotifications, 30000);
+    }
   }
 
   window.logout=async ()=>{
@@ -1335,6 +1362,43 @@
     });
   }
 
+  let lastUserSugerenciasCount = 0;
+
+  async function updateUserSugerenciasNotifications() {
+    const sugerenciasBadge = document.getElementById('sugerenciasBadge');
+    const sugerenciasNavLink = document.querySelector('a[href="sugerencias.html"]');
+    if(!sugerenciasBadge || !sugerenciasNavLink) return;
+
+    try {
+      const session = await checkSession();
+      if(session.role === 'admin') {
+        sugerenciasBadge.style.display = 'none';
+        sugerenciasNavLink.classList.remove('has-notifications');
+        return;
+      }
+
+      const list = await api('/sugerencias');
+      const respuestasNuevas = list.filter(s => s.respondida && !s.vista).length;
+
+      if(respuestasNuevas > 0) {
+        if(respuestasNuevas > lastUserSugerenciasCount && lastUserSugerenciasCount >= 0) {
+          playDing();
+          toast('¡Tienes una nueva respuesta a tu sugerencia!', 'success', true);
+        }
+        sugerenciasBadge.textContent = respuestasNuevas;
+        sugerenciasBadge.style.display = 'inline-block';
+        sugerenciasNavLink.classList.add('has-notifications');
+      } else {
+        sugerenciasBadge.style.display = 'none';
+        sugerenciasNavLink.classList.remove('has-notifications');
+      }
+
+      lastUserSugerenciasCount = respuestasNuevas;
+    } catch (err) {
+      console.error('Error updating user sugerencias notifications:', err);
+    }
+  }
+
   async function renderMisSugerencias() {
     if(!misSugerenciasList) return;
 
@@ -1357,6 +1421,8 @@
           ${s.respondida?`<div style="padding:10px;border-left:3px solid var(--primary);background:rgba(var(--primary-rgb),0.1);border-radius:6px;"><strong>Respuesta del administrador:</strong><br>${s.respuesta}</div>`:''}
         </div>
       `).join('');
+      
+      await updateUserSugerenciasNotifications();
     } catch (err) {
       console.error('Error rendering mis sugerencias:', err);
     }
@@ -1442,19 +1508,21 @@
     }
   }
 
+  let lastAdminNotifications = 0;
+
   async function updateAdminNotifications() {
     const adminBadge = document.getElementById('adminBadge');
     const adminNavLink = document.getElementById('adminNavLink');
     if(!adminBadge || !adminNavLink) return;
 
-    try {
-      const session = await checkSession();
-      if(session.role !== 'admin') {
-        adminBadge.style.display = 'none';
-        adminNavLink.classList.remove('has-notifications');
-        return;
-      }
+    const session = await checkSession();
+    if(!session || session.role !== 'admin') {
+      adminBadge.style.display = 'none';
+      if(adminNavLink) adminNavLink.classList.remove('has-notifications');
+      return;
+    }
 
+    try {
       const sugerenciasData = await api('/sugerencias/count');
       const sugerenciasPendientes = sugerenciasData.count || 0;
 
@@ -1464,6 +1532,9 @@
       const totalNotificaciones = sugerenciasPendientes + usuariosPendientes;
 
       if(totalNotificaciones > 0) {
+        if(totalNotificaciones > lastAdminNotifications && lastAdminNotifications > 0) {
+          playDing();
+        }
         adminBadge.textContent = totalNotificaciones;
         adminBadge.style.display = 'inline-block';
         adminNavLink.classList.add('has-notifications');
@@ -1471,8 +1542,10 @@
         adminBadge.style.display = 'none';
         adminNavLink.classList.remove('has-notifications');
       }
+      
+      lastAdminNotifications = totalNotificaciones;
     } catch (err) {
-      console.error('Error updating admin notifications:', err);
+      console.error('Error fetching admin notifications:', err);
     }
   }
 
@@ -1581,6 +1654,85 @@
     await renderSugerenciasAdmin();
     setInterval(updateSugerenciasCounter, 10000);
   }
+
+  const toggleMantenimiento = document.getElementById('toggleMantenimiento');
+  const mantenimientoStatus = document.getElementById('mantenimientoStatus');
+  const mantenimientoMensajeSection = document.getElementById('mantenimientoMensajeSection');
+
+  async function loadMantenimientoStatus() {
+    if(!toggleMantenimiento) return;
+    
+    try {
+      const maintenance = await api('/maintenance');
+      
+      toggleMantenimiento.checked = maintenance.active;
+      document.getElementById('mantenimientoMensaje').value = maintenance.message;
+      
+      if(maintenance.active) {
+        mantenimientoStatus.textContent = 'ACTIVO';
+        mantenimientoStatus.style.background = '#ef4444';
+        mantenimientoMensajeSection.style.display = 'block';
+      } else {
+        mantenimientoStatus.textContent = 'INACTIVO';
+        mantenimientoStatus.style.background = '#10b981';
+        mantenimientoMensajeSection.style.display = 'none';
+      }
+    } catch (err) {
+      console.error('Error loading maintenance status:', err);
+    }
+  }
+
+  if(toggleMantenimiento) {
+    toggleMantenimiento.addEventListener('change', async () => {
+      const isActive = toggleMantenimiento.checked;
+      const mensaje = document.getElementById('mantenimientoMensaje').value.trim();
+      
+      try {
+        await api('/maintenance', {
+          method: 'PUT',
+          body: JSON.stringify({active: isActive, message: mensaje})
+        });
+        
+        if(isActive) {
+          mantenimientoStatus.textContent = 'ACTIVO';
+          mantenimientoStatus.style.background = '#ef4444';
+          mantenimientoMensajeSection.style.display = 'block';
+          toast('Modo mantenimiento activado', 'warning');
+        } else {
+          mantenimientoStatus.textContent = 'INACTIVO';
+          mantenimientoStatus.style.background = '#10b981';
+          mantenimientoMensajeSection.style.display = 'none';
+          toast('Modo mantenimiento desactivado', 'success');
+        }
+      } catch (err) {
+        console.error('Error updating maintenance status:', err);
+        toast('Error al actualizar modo mantenimiento', 'error');
+        toggleMantenimiento.checked = !isActive;
+      }
+    });
+    
+    loadMantenimientoStatus();
+  }
+
+  window.guardarMantenimiento = async function() {
+    const mensaje = document.getElementById('mantenimientoMensaje').value.trim();
+    if(!mensaje) {
+      toast('Por favor ingresa un mensaje', 'error');
+      return;
+    }
+    
+    try {
+      const isActive = toggleMantenimiento.checked;
+      await api('/maintenance', {
+        method: 'PUT',
+        body: JSON.stringify({active: isActive, message: mensaje})
+      });
+      toast('Mensaje de mantenimiento guardado', 'success');
+    } catch (err) {
+      console.error('Error saving maintenance message:', err);
+      toast('Error al guardar mensaje', 'error');
+    }
+  };
 
   const adminInfusionesTable = document.getElementById('adminInfusionesTable');
   const modalInfusion = document.getElementById('modalInfusion');
