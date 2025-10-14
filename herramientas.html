@@ -265,7 +265,7 @@ html[data-theme="dark"] #medicationSelect {
         <a href="herramientas.html" class="active"><span class="icon">🔧</span><span>Herramientas</span></a>
         <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
         <a href="configuracion.html"><span class="icon">⚙️</span><span>Configuración</span></a>
-        <a href="admin.html" id="adminNavLink"><span class="icon">🛠️</span><span>Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="admin.html" id="adminNavLink" style="display:none;"><span class="icon">🛠️</span><span>Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
       </nav>
     </aside>
     <div class="content">
@@ -452,9 +452,32 @@ html[data-theme="dark"] #medicationSelect {
           
           <section class="card glass tool-section">
             <h3>Gestión de Turnos Médicos</h3>
-            <p class="text-muted">Organiza tus turnos médicos con horarios, valor del turno y recordatorios.</p>
+            <p class="text-muted">Organiza tus turnos médicos con calendario interactivo.</p>
             
-            <div style="margin-top: 16px;">
+            <div style="display: flex; gap: 8px; margin-top: 16px; margin-bottom: 12px;">
+              <button class="btn sm" id="btnVistaCalendario" onclick="mostrarVistaCalendario()" style="background: var(--primary); color: white;">📅 Calendario</button>
+              <button class="btn sm secondary" id="btnVistaCambios" onclick="mostrarVistaCambios()">🔄 Cambios de Turno</button>
+            </div>
+            
+            <div id="vistaCalendario">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <button class="btn sm" onclick="cambiarMesCalendario(-1)">← Mes Anterior</button>
+                <h4 id="calendarioMesAnio" style="margin: 0; font-size: 18px;"></h4>
+                <button class="btn sm" onclick="cambiarMesCalendario(1)">Mes Siguiente →</button>
+              </div>
+            
+            <div id="calendarioTurnos" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 20px;"></div>
+            
+            <div id="formTurnoContainer" style="display:none; margin-top: 20px; padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid var(--primary);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0;" id="tituloFormTurno">Agregar Turno</h4>
+                <button class="btn secondary sm" onclick="cerrarFormTurno()">✕</button>
+              </div>
+              
+              <div id="turnosDiaActual" style="display:none; margin-bottom: 16px; padding: 12px; background: rgba(0,139,139,0.08); border-radius: 6px;">
+                <h5 style="margin: 0 0 8px 0; color: var(--primary);">Turnos programados este día:</h5>
+                <div id="listaTurnosDia"></div>
+              </div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
                 <div class="field">
                   <label>Fecha del Turno</label>
@@ -492,24 +515,54 @@ html[data-theme="dark"] #medicationSelect {
               </div>
               <div style="margin-top: 12px; display: flex; gap: 8px;">
                 <button class="btn primary" onclick="guardarTurno()">Guardar Turno</button>
-                <button class="btn" onclick="limpiarFormTurno()">Limpiar</button>
+                <button class="btn secondary" onclick="cerrarFormTurno()">Cancelar</button>
               </div>
-            </div>
-
-            <div style="margin-top: 24px;">
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <strong>Turnos Programados:</strong>
-                <select id="filterMes" onchange="filtrarTurnos()" style="margin-left: auto;">
-                  <option value="">Todos los meses</option>
-                </select>
-                <input type="search" id="searchTurno" placeholder="Buscar..." onkeyup="filtrarTurnos()">
-              </div>
-              <div id="turnosList" class="doc-list"></div>
             </div>
             
-            <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
-              <h4 style="margin: 0 0 8px 0; color: var(--primary);">Resumen Mensual</h4>
-              <p id="resumenTurnos" style="margin: 0; font-size: 14px;">Total de turnos: 0 | Valor total: $0.00</p>
+              <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
+                <h4 style="margin: 0 0 8px 0; color: var(--primary);">Resumen del Mes</h4>
+                <p id="resumenTurnos" style="margin: 0; font-size: 14px;">Total de turnos: 0 | Valor total: $0.00</p>
+              </div>
+            </div>
+            
+            <div id="vistaCambios" style="display:none;">
+              <h4 style="margin-bottom: 12px;">Registrar Cambio de Turno</h4>
+              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid var(--primary); margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                  <div class="field">
+                    <label>Médico con quien cambio</label>
+                    <input type="text" id="cambioMedico" placeholder="Dr. Juan Pérez">
+                  </div>
+                  <div class="field">
+                    <label>Mi turno original (fecha)</label>
+                    <input type="date" id="cambioMiTurno">
+                  </div>
+                  <div class="field">
+                    <label>Turno que asumo (fecha)</label>
+                    <input type="date" id="cambioTurnoAsumido">
+                  </div>
+                  <div class="field">
+                    <label>Tipo de turno</label>
+                    <select id="cambioTipo">
+                      <option value="guardia">Guardia</option>
+                      <option value="consulta">Consulta</option>
+                      <option value="cirugia">Cirugía</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field" style="margin-top: 12px;">
+                  <label>Notas del cambio</label>
+                  <textarea id="cambioNotas" rows="2" placeholder="Motivo del cambio, acuerdos, etc."></textarea>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                  <button class="btn primary" onclick="guardarCambioTurno()">Registrar Cambio</button>
+                  <button class="btn secondary" onclick="limpiarFormCambio()">Limpiar</button>
+                </div>
+              </div>
+              
+              <h4 style="margin-bottom: 12px;">Historial de Cambios</h4>
+              <div id="listaCambios"></div>
             </div>
           </section>
         </div>
@@ -703,7 +756,6 @@ html[data-theme="dark"] #medicationSelect {
       } else if (tool === 'turnos') {
         document.getElementById('turnosTool').style.display = 'block';
         cargarTurnos();
-        inicializarFiltroMes();
       } else if (tool === 'ia') {
         document.getElementById('iaTool').style.display = 'block';
       }
@@ -904,20 +956,60 @@ html[data-theme="dark"] #medicationSelect {
       }
     }
 
-    function loadInfusionMedications() {
+    async function loadInfusionMedications() {
       initDefaultInfusions();
       
-      const globalMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-      infusionMedications = globalMeds;
-      
-      const select = document.getElementById('medicationSelect');
-      select.innerHTML = '<option value="">Seleccionar medicamento</option>';
-      infusionMedications.forEach((med, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = med.nombre;
-        select.appendChild(option);
-      });
+      try {
+        const serverMeds = await api('/medications');
+        
+        const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+        
+        const allMeds = [...localMeds];
+        
+        serverMeds.forEach(serverMed => {
+          const presentacion = serverMed.dilucion || '';
+          const concentracionMatch = presentacion.match(/=\s*([\d.]+)\s*(MCG|MG|UI)\/(\d*)ML/i);
+          
+          if (concentracionMatch && !allMeds.find(m => m.nombre.toLowerCase() === serverMed.nombre.toLowerCase())) {
+            const medData = {
+              id: allMeds.length + 1,
+              nombre: serverMed.nombre,
+              presentacion: serverMed.dilucion,
+              dosis: '1MG/KG/HORA',
+              unidad: 'mg/kg/h',
+              diluciones: ['12CC', '24CC', '50CC', '100CC'],
+              concentraciones: [0.42, 0.21, 0.10, 0.05],
+              ssn: '0.9',
+              ssn_percentage: '0.9%'
+            };
+            allMeds.push(medData);
+          }
+        });
+        
+        infusionMedications = allMeds;
+        
+        const select = document.getElementById('medicationSelect');
+        select.innerHTML = '<option value="">Seleccionar medicamento</option>';
+        infusionMedications.forEach((med, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = med.nombre;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Error loading medications:', err);
+        const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+        infusionMedications = localMeds;
+        
+        const select = document.getElementById('medicationSelect');
+        select.innerHTML = '<option value="">Seleccionar medicamento</option>';
+        infusionMedications.forEach((med, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = med.nombre;
+          select.appendChild(option);
+        });
+      }
     }
 
     function loadMedication() {
@@ -973,9 +1065,9 @@ html[data-theme="dark"] #medicationSelect {
       const esMcg = unidadDosis.includes('mcg');
       const esUI = unidadDosis.includes('UI');
       
-      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG|UI)\/\d*ML/i);
+      const concentracionMatch = med.presentacion.match(/=\s*([\d.]+)\s*(MCG|MG|UI)\/(\d*)ML/i);
       if (!concentracionMatch) {
-        alert('Error: No se pudo extraer la concentración del medicamento');
+        alert('Error: No se pudo extraer la concentración del medicamento. La presentación debe tener el formato: CANTIDAD = XX MCG/ML o XX MG/50ML o XX UI/ML');
         return;
       }
       
@@ -1016,11 +1108,10 @@ html[data-theme="dark"] #medicationSelect {
         const dilucionText = med.diluciones[parseInt(selectedDilucion.value)];
         const dilucionTotal = parseFloat(dilucionText.replace(/[^0-9.]/g, ''));
         
-        const mlPorCc = 1;
         const concentracionPorMl = concentracionEnUnidadDosis;
         
         const ccMedicamento = dosisPorDia / concentracionPorMl;
-        const ccDiluyente = dilucionTotal - ccMedicamento;
+        const ccDiluyente = Math.max(0, dilucionTotal - ccMedicamento);
         
         const concentracionFinal = dosisPorDia / dilucionTotal;
         let razonCcHora = dosisPorHora / concentracionFinal;
@@ -1309,19 +1400,8 @@ html[data-theme="dark"] #medicationSelect {
     }
 
     let turnos = [];
-
-    function inicializarFiltroMes() {
-      const filterMes = document.getElementById('filterMes');
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      
-      filterMes.innerHTML = '<option value="">Todos los meses</option>';
-      for (let i = 0; i < 12; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = meses[i];
-        filterMes.appendChild(option);
-      }
-    }
+    let calendarioMesActual = new Date().getMonth();
+    let calendarioAnioActual = new Date().getFullYear();
 
     function guardarTurno() {
       const fecha = document.getElementById('turnoFecha').value;
@@ -1354,7 +1434,7 @@ html[data-theme="dark"] #medicationSelect {
       turnosExistentes.push(turno);
       localStorage.setItem(storageKey, JSON.stringify(turnosExistentes));
 
-      limpiarFormTurno();
+      cerrarFormTurno();
       cargarTurnos();
       alert('Turno guardado exitosamente');
     }
@@ -1369,68 +1449,123 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('turnoNotas').value = '';
     }
 
+    function cerrarFormTurno() {
+      document.getElementById('formTurnoContainer').style.display = 'none';
+      limpiarFormTurno();
+    }
+
+    function abrirFormTurno(fecha = null) {
+      if (fecha) {
+        document.getElementById('turnoFecha').value = fecha;
+        
+        const turnosDia = turnos.filter(t => t.fecha === fecha);
+        const turnosDiaActual = document.getElementById('turnosDiaActual');
+        const listaTurnosDia = document.getElementById('listaTurnosDia');
+        
+        if (turnosDia.length > 0) {
+          turnosDiaActual.style.display = 'block';
+          const fechaObj = new Date(fecha);
+          const opciones = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+          const fechaFormateada = fechaObj.toLocaleDateString('es-ES', opciones);
+          document.getElementById('tituloFormTurno').textContent = `Agregar turno - ${fechaFormateada}`;
+          
+          listaTurnosDia.innerHTML = turnosDia.map(t => {
+            const colorTipo = {
+              'guardia': '#ff8c00',
+              'consulta': '#10b981',
+              'cirugia': '#ef4444',
+              'otro': '#6366f1'
+            }[t.tipo] || '#6366f1';
+            
+            return `
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+                <div style="width: 4px; height: 40px; background: ${colorTipo}; border-radius: 2px;"></div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; font-size: 13px;">${t.horaInicio} - ${t.horaFin} | ${t.tipo.toUpperCase()}</div>
+                  <div style="font-size: 12px; color: var(--muted);">${t.lugar}${t.valor > 0 ? ' | $' + t.valor.toFixed(2) : ''}</div>
+                </div>
+                <button class="btn danger sm" onclick="eliminarTurno(${t.id})">Eliminar</button>
+              </div>
+            `;
+          }).join('');
+        } else {
+          turnosDiaActual.style.display = 'none';
+          document.getElementById('tituloFormTurno').textContent = 'Agregar Turno';
+        }
+      }
+      document.getElementById('formTurnoContainer').style.display = 'block';
+    }
+
     function cargarTurnos() {
       const storageKey = 'turnos_' + (currentUser?.username || 'local');
       turnos = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      filtrarTurnos();
+      renderizarCalendario();
     }
 
-    function filtrarTurnos() {
-      const busqueda = document.getElementById('searchTurno').value.toLowerCase();
-      const mes = document.getElementById('filterMes').value;
-
-      let filtrados = [...turnos];
-
-      if (mes !== '') {
-        filtrados = filtrados.filter(turno => {
-          const fechaTurno = new Date(turno.fecha);
-          return fechaTurno.getMonth() === parseInt(mes);
-        });
+    function cambiarMesCalendario(delta) {
+      calendarioMesActual += delta;
+      if (calendarioMesActual > 11) {
+        calendarioMesActual = 0;
+        calendarioAnioActual++;
+      } else if (calendarioMesActual < 0) {
+        calendarioMesActual = 11;
+        calendarioAnioActual--;
       }
-
-      if (busqueda) {
-        filtrados = filtrados.filter(turno =>
-          turno.lugar.toLowerCase().includes(busqueda) ||
-          turno.tipo.toLowerCase().includes(busqueda) ||
-          turno.notas.toLowerCase().includes(busqueda)
-        );
-      }
-
-      mostrarTurnos(filtrados);
-      actualizarResumen(filtrados);
+      renderizarCalendario();
     }
 
-    function mostrarTurnos(lista) {
-      const turnosList = document.getElementById('turnosList');
+    function renderizarCalendario() {
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
       
-      if (lista.length === 0) {
-        turnosList.innerHTML = '<p class="text-muted">No hay turnos programados</p>';
-        return;
+      document.getElementById('calendarioMesAnio').textContent = `${meses[calendarioMesActual]} ${calendarioAnioActual}`;
+      
+      const primerDia = new Date(calendarioAnioActual, calendarioMesActual, 1).getDay();
+      const ultimoDia = new Date(calendarioAnioActual, calendarioMesActual + 1, 0).getDate();
+      
+      const calendarioHTML = [];
+      
+      diasSemana.forEach(dia => {
+        calendarioHTML.push(`<div style="text-align:center;font-weight:700;padding:8px;background:var(--primary);color:white;border-radius:6px;font-size:12px;">${dia}</div>`);
+      });
+      
+      for (let i = 0; i < primerDia; i++) {
+        calendarioHTML.push('<div style="min-height:80px;background:rgba(128,128,128,0.1);border-radius:6px;"></div>');
       }
-
-      lista.sort((a, b) => new Date(a.fecha + ' ' + a.horaInicio) - new Date(b.fecha + ' ' + b.horaInicio));
-
-      turnosList.innerHTML = lista.map(turno => {
-        const fecha = new Date(turno.fecha);
-        const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
-        const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
-
-        return `
-          <div class="doc-item">
-            <div style="flex: 1;">
-              <div class="doc-name">${fechaFormateada} - ${turno.horaInicio} a ${turno.horaFin}</div>
-              <div class="doc-meta">${turno.tipo.toUpperCase()} | ${turno.lugar} | $${turno.valor.toFixed(2)}</div>
-              ${turno.notas ? `<div class="doc-meta" style="margin-top: 4px;">${turno.notas}</div>` : ''}
-            </div>
-            <button class="btn sm danger" onclick="eliminarTurno(${turno.id})">Eliminar</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function actualizarResumen(lista) {
-      const total = lista.length;
-      const valorTotal = lista.reduce((sum, turno) => sum + turno.valor, 0);
+      
+      const turnosDelMes = turnos.filter(t => {
+        const fechaTurno = new Date(t.fecha);
+        return fechaTurno.getMonth() === calendarioMesActual && fechaTurno.getFullYear() === calendarioAnioActual;
+      });
+      
+      for (let dia = 1; dia <= ultimoDia; dia++) {
+        const fecha = `${calendarioAnioActual}-${String(calendarioMesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const turnosDia = turnosDelMes.filter(t => t.fecha === fecha);
+        const esHoy = new Date().toDateString() === new Date(fecha).toDateString();
+        
+        let diaHTML = `<div onclick="abrirFormTurno('${fecha}')" style="min-height:80px;padding:4px;border-radius:6px;cursor:pointer;transition:all 0.2s;background:${esHoy ? 'rgba(0,139,139,0.15)' : 'var(--card)'};border:${esHoy ? '2px solid var(--primary)' : '1px solid var(--border)'};" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">`;
+        diaHTML += `<div style="font-weight:700;margin-bottom:4px;color:${esHoy ? 'var(--primary)' : 'var(--text)'};">${dia}</div>`;
+        
+        turnosDia.forEach(turno => {
+          const colorTipo = {
+            'guardia': '#ff8c00',
+            'consulta': '#10b981',
+            'cirugia': '#ef4444',
+            'otro': '#6366f1'
+          }[turno.tipo] || '#6366f1';
+          
+          diaHTML += `<div style="background:${colorTipo};color:white;font-size:10px;padding:2px 4px;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${turno.tipo} - ${turno.lugar} ${turno.horaInicio}-${turno.horaFin}">${turno.horaInicio} ${turno.tipo}</div>`;
+        });
+        
+        diaHTML += '</div>';
+        calendarioHTML.push(diaHTML);
+      }
+      
+      document.getElementById('calendarioTurnos').innerHTML = calendarioHTML.join('');
+      
+      const turnosMesActual = turnosDelMes;
+      const total = turnosMesActual.length;
+      const valorTotal = turnosMesActual.reduce((sum, t) => sum + t.valor, 0);
       document.getElementById('resumenTurnos').textContent = `Total de turnos: ${total} | Valor total: $${valorTotal.toFixed(2)}`;
     }
 
@@ -1444,6 +1579,128 @@ html[data-theme="dark"] #medicationSelect {
 
       cargarTurnos();
       alert('Turno eliminado');
+    }
+
+    let cambiosTurno = [];
+
+    function mostrarVistaCalendario() {
+      document.getElementById('vistaCalendario').style.display = 'block';
+      document.getElementById('vistaCambios').style.display = 'none';
+      document.getElementById('btnVistaCalendario').style.background = 'var(--primary)';
+      document.getElementById('btnVistaCalendario').style.color = 'white';
+      document.getElementById('btnVistaCalendario').classList.remove('secondary');
+      document.getElementById('btnVistaCambios').style.background = '';
+      document.getElementById('btnVistaCambios').style.color = '';
+      document.getElementById('btnVistaCambios').classList.add('secondary');
+    }
+
+    function mostrarVistaCambios() {
+      document.getElementById('vistaCalendario').style.display = 'none';
+      document.getElementById('vistaCambios').style.display = 'block';
+      document.getElementById('btnVistaCambios').style.background = 'var(--primary)';
+      document.getElementById('btnVistaCambios').style.color = 'white';
+      document.getElementById('btnVistaCambios').classList.remove('secondary');
+      document.getElementById('btnVistaCalendario').style.background = '';
+      document.getElementById('btnVistaCalendario').style.color = '';
+      document.getElementById('btnVistaCalendario').classList.add('secondary');
+      cargarCambios();
+    }
+
+    function guardarCambioTurno() {
+      const medico = document.getElementById('cambioMedico').value.trim();
+      const miTurno = document.getElementById('cambioMiTurno').value;
+      const turnoAsumido = document.getElementById('cambioTurnoAsumido').value;
+      const tipo = document.getElementById('cambioTipo').value;
+      const notas = document.getElementById('cambioNotas').value.trim();
+
+      if (!medico || !miTurno || !turnoAsumido) {
+        alert('Por favor completa todos los campos requeridos');
+        return;
+      }
+
+      const cambio = {
+        id: Date.now(),
+        medico,
+        miTurno,
+        turnoAsumido,
+        tipo,
+        notas,
+        fecha: new Date().toISOString(),
+        creador: currentUser?.username || 'unknown'
+      };
+
+      const storageKey = 'cambios_turno_' + (currentUser?.username || 'local');
+      const cambiosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      cambiosExistentes.push(cambio);
+      localStorage.setItem(storageKey, JSON.stringify(cambiosExistentes));
+
+      limpiarFormCambio();
+      cargarCambios();
+      alert('Cambio de turno registrado exitosamente');
+    }
+
+    function limpiarFormCambio() {
+      document.getElementById('cambioMedico').value = '';
+      document.getElementById('cambioMiTurno').value = '';
+      document.getElementById('cambioTurnoAsumido').value = '';
+      document.getElementById('cambioTipo').value = 'guardia';
+      document.getElementById('cambioNotas').value = '';
+    }
+
+    function cargarCambios() {
+      const storageKey = 'cambios_turno_' + (currentUser?.username || 'local');
+      cambiosTurno = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      mostrarCambios();
+    }
+
+    function mostrarCambios() {
+      const listaCambios = document.getElementById('listaCambios');
+      
+      if (cambiosTurno.length === 0) {
+        listaCambios.innerHTML = '<p class="text-muted">No hay cambios de turno registrados</p>';
+        return;
+      }
+
+      cambiosTurno.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      listaCambios.innerHTML = cambiosTurno.map(cambio => {
+        const miTurnoFecha = new Date(cambio.miTurno).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const turnoAsumidoFecha = new Date(cambio.turnoAsumido).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        const colorTipo = {
+          'guardia': '#ff8c00',
+          'consulta': '#10b981',
+          'cirugia': '#ef4444',
+          'otro': '#6366f1'
+        }[cambio.tipo] || '#6366f1';
+
+        return `
+          <div class="doc-item" style="border-left: 4px solid ${colorTipo};">
+            <div style="flex: 1;">
+              <div class="doc-name">Cambio con: ${cambio.medico}</div>
+              <div class="doc-meta">
+                <span style="color: #ef4444;">➡ Cedo: ${miTurnoFecha}</span> | 
+                <span style="color: #10b981;">➡ Asumo: ${turnoAsumidoFecha}</span> | 
+                <span style="background: ${colorTipo}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${cambio.tipo.toUpperCase()}</span>
+              </div>
+              ${cambio.notas ? `<div class="doc-meta" style="margin-top: 4px; font-style: italic;">${cambio.notas}</div>` : ''}
+            </div>
+            <button class="btn sm danger" onclick="eliminarCambio(${cambio.id})">Eliminar</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function eliminarCambio(id) {
+      if (!confirm('¿Estás seguro de eliminar este cambio de turno?')) return;
+
+      const storageKey = 'cambios_turno_' + (currentUser?.username || 'local');
+      const cambiosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const filtered = cambiosExistentes.filter(c => c.id !== id);
+      localStorage.setItem(storageKey, JSON.stringify(filtered));
+
+      cargarCambios();
+      alert('Cambio de turno eliminado');
     }
 
     function buscarIA() {

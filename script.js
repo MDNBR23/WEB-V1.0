@@ -36,9 +36,28 @@
   }
   const DEF_AV = getDefaultAvatar();
 
-  function playDing(){
+  let globalAudioContext = null;
+  
+  function initAudioContext() {
+    if(!globalAudioContext) {
+      try {
+        globalAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(err) {
+        console.log('AudioContext not available');
+      }
+    }
+    return globalAudioContext;
+  }
+  
+  async function playDing(){
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = initAudioContext();
+      if(!audioContext) return;
+      
+      if(audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -54,9 +73,13 @@
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
     } catch (err) {
-      console.log('Audio not available');
+      console.log('Audio playback error:', err);
     }
   }
+  
+  document.addEventListener('click', () => {
+    initAudioContext();
+  }, { once: true });
 
   function toast(m,t='info',playSound=false){
     const o=document.querySelector('.toast');
@@ -231,7 +254,7 @@
         
         const adminLink=document.querySelector('a[href="admin.html"]');
         if(adminLink){
-          adminLink.style.display=(profile.role==='admin')?'':'none';
+          adminLink.style.display=(profile.role==='admin')?'flex':'none';
         }
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -274,6 +297,27 @@
         });
         
         if(data.success) {
+          if(data.user.role !== 'admin') {
+            try {
+              const maintenance = await api('/maintenance');
+              if(maintenance.active) {
+                document.body.innerHTML = `
+                  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--g1),var(--g2));padding:20px;">
+                    <div style="background:rgba(255,255,255,0.95);border-radius:20px;padding:48px;max-width:600px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                      <div style="font-size:80px;margin-bottom:24px;">🔧</div>
+                      <h1 style="margin:0 0 16px 0;color:#1a202c;font-size:32px;">Modo Mantenimiento</h1>
+                      <p style="color:#4a5568;font-size:18px;line-height:1.6;margin:0 0 32px 0;">${maintenance.message}</p>
+                      <button onclick="location.replace('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
+                    </div>
+                  </div>
+                `;
+                return;
+              }
+            } catch (err) {
+              console.error('Error checking maintenance mode:', err);
+            }
+          }
+          
           const cat = data.user.cat || '';
           let titulo = 'Usuario';
           
@@ -1382,7 +1426,6 @@
 
       if(respuestasNuevas > 0) {
         if(respuestasNuevas > lastUserSugerenciasCount && lastUserSugerenciasCount >= 0) {
-          playDing();
           toast('¡Tienes una nueva respuesta a tu sugerencia!', 'success', true);
         }
         sugerenciasBadge.textContent = respuestasNuevas;
@@ -1472,7 +1515,6 @@
         sugerenciasCounter.style.display = 'inline-block';
 
         if(count > lastSugerenciasCount && lastSugerenciasCount > 0) {
-          playDing();
           toast('Nueva sugerencia recibida', 'info', true);
         }
       } else {
@@ -1533,7 +1575,7 @@
 
       if(totalNotificaciones > 0) {
         if(totalNotificaciones > lastAdminNotifications && lastAdminNotifications > 0) {
-          playDing();
+          toast('Nueva notificación', 'info', true);
         }
         adminBadge.textContent = totalNotificaciones;
         adminBadge.style.display = 'inline-block';

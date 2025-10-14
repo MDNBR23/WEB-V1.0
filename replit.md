@@ -6,9 +6,13 @@ NBR WEB is a Spanish-language medical web platform designed for pediatric and ne
 ## Recent Changes (October 14, 2025)
 1. **Tools Section Enhancement:** Changed "Infusiones" to "Calculadora" with description "Calculadora de sedoanalgesia e infusiones" for better clarity.
 2. **Arterial Blood Gas Analyzer Improvement:** Removed SatO₂ and BE fields, added interactive visual feedback with real-time validation and color-coded status indicators (normal/low/high).
-3. **Infusion Calculator Formula Fix:** Corrected medication cc volume calculation to use proper concentration formulas.
-4. **Notification Sound System:** Implemented ding-dong sound for login, admin notifications (new users/suggestions), and user suggestion responses with sidebar badges.
-5. **Maintenance Mode:** Created admin-controlled maintenance mode with backend persistence (maintenance.json), allowing admins to access the platform while regular users see a customizable maintenance message.
+3. **Infusion Calculator Formula Fix:** Corrected medication cc volume calculation to use proper concentration formulas with improved regex pattern that handles both simple (/ML) and complex (/50ML) formats.
+4. **Notification Sound System:** Implemented ding-dong sound for login, admin notifications (new users/suggestions), and user suggestion responses with sidebar badges. Improved AudioContext handling with async/await for better browser compatibility.
+5. **Maintenance Mode:** Created admin-controlled maintenance mode with backend persistence (maintenance.json). Fixed login flow so non-admin users immediately see maintenance page without accessing main.html.
+6. **Interactive Shift Calendar:** Implemented visual monthly calendar for medical shifts with click-to-add functionality, color-coded shift types (guardia/consulta/cirugía/otro), hover effects, monthly navigation, and support for multiple shifts per day with detailed view.
+7. **Shift Exchange System:** Added dedicated tab for recording shift exchanges with other doctors, including original date, assumed date, doctor name, shift type, and notes. Complete history with color-coded visualization.
+8. **Admin Menu Security:** Fixed issue where non-admin users could see admin menu during page transitions. Admin link now hidden by default and only shown to administrators.
+9. **Infusion Calculator Medications:** Enhanced to load medications from both localStorage and server database, with validation to ensure only properly formatted medications are added to the calculator.
 
 ## User Preferences
 None recorded yet.
