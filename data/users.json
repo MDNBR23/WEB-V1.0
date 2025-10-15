@@ -11,5 +11,18 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z"
+  },
+  {
+    "username": "usuario",
+    "password": "$2b$10$sl4uJNWLYvNAvWNAudKsf.Xz/H0xxbB0OY/FP.plc5bcseVl2Z9qm",
+    "name": "Usuario de Prueba",
+    "email": "usuario@test.local",
+    "phone": "",
+    "institucion": "Hospital Test",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Pediatra",
+    "avatar": "",
+    "createdAt": "2025-10-14T00:00:00.000Z"
   }
 ]
