@@ -196,6 +196,8 @@
   padding: 16px;
   border-radius: 8px;
   margin-top: 12px;
+  transition: all 0.3s ease;
+  animation: fadeInScale 0.4s ease;
 }
 .infusion-result h5 {
   margin: 0 0 8px 0;
@@ -205,6 +207,27 @@
 .infusion-result p {
   margin: 4px 0;
   font-size: 14px;
+}
+.infusion-result.updating {
+  animation: pulse 0.5s ease;
+}
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 .medication-select {
   margin-bottom: 16px;
@@ -283,8 +306,8 @@ html[data-theme="dark"] #medicationSelect {
         <div id="toolMenu" class="tool-menu">
           <div class="card glass tool-card" onclick="showTool('corrector')">
             <span class="tool-card-icon">📝</span>
-            <h3>Corrector de Espacios</h3>
-            <p>Elimina espacios múltiples y normaliza el texto</p>
+            <h3>Corrector de Texto</h3>
+            <p>Herramientas de formato y corrección de texto</p>
           </div>
           
           <div class="card glass tool-card" onclick="showTool('gases')">
@@ -325,17 +348,33 @@ html[data-theme="dark"] #medicationSelect {
           </a>
           
           <section class="card glass tool-section">
-            <h3>Corrector de Espacios de Texto</h3>
-            <p class="text-muted">Elimina espacios múltiples y normaliza el texto.</p>
-            <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a corregir..."></textarea>
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button class="btn primary" onclick="corregirEspacios()">Corregir Espacios</button>
-              <button class="btn" onclick="limpiarTexto()">Limpiar</button>
-              <button class="btn" onclick="copiarTexto()">Copiar Resultado</button>
+            <h3>Corrector de Texto</h3>
+            <p class="text-muted">Herramientas de formato y corrección de texto.</p>
+            <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a procesar..." oninput="actualizarContadores()"></textarea>
+            
+            <div style="margin: 12px 0; padding: 12px; background: var(--bg); border-radius: 8px; display: flex; gap: 16px; flex-wrap: wrap;">
+              <span><strong>Caracteres:</strong> <span id="charCounter">0</span></span>
+              <span><strong>Palabras:</strong> <span id="wordCounter">0</span></span>
+              <span><strong>Líneas:</strong> <span id="lineCounter">0</span></span>
             </div>
-            <div id="textResult" class="tool-result" style="display:none;">
-              <strong>Resultado:</strong>
-              <pre id="textResultContent" style="white-space: pre-wrap; margin-top: 8px;"></pre>
+            
+            <div style="margin-top: 12px;">
+              <h4 style="margin: 0 0 8px 0; font-size: 15px;">Operaciones de texto:</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                <button class="btn sm" onclick="aplicarOperacion('espacios')">Corregir Espacios</button>
+                <button class="btn sm" onclick="aplicarOperacion('mayusculas')">TODO MAYÚSCULAS</button>
+                <button class="btn sm" onclick="aplicarOperacion('minusculas')">todo minúsculas</button>
+                <button class="btn sm" onclick="aplicarOperacion('capitalizar')">Capitalizar Palabras</button>
+                <button class="btn sm" onclick="aplicarOperacion('oracion')">Capitalizar oraciones</button>
+                <button class="btn sm" onclick="aplicarOperacion('invertir')">Invertir Texto</button>
+                <button class="btn sm" onclick="aplicarOperacion('eliminarSaltos')">Eliminar Saltos de Línea</button>
+                <button class="btn sm" onclick="aplicarOperacion('duplicar')">Eliminar Líneas Duplicadas</button>
+              </div>
+            </div>
+            
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button class="btn" onclick="limpiarTexto()">🗑️ Limpiar</button>
+              <button class="btn success" onclick="copiarTexto()">📋 Copiar Texto</button>
             </div>
           </section>
         </div>
@@ -438,7 +477,6 @@ html[data-theme="dark"] #medicationSelect {
                 </div>
 
                 <div style="margin-top:16px; display:flex; gap:8px;">
-                  <button class="btn primary" onclick="calculateInfusion()">💊 Calcular</button>
                   <button class="btn" onclick="clearInfusion()">🗑️ Limpiar</button>
                   <button class="btn success" onclick="copyInfusionOrder()">📋 Copiar Orden</button>
                 </div>
@@ -764,28 +802,74 @@ html[data-theme="dark"] #medicationSelect {
       }
     }
 
-    function corregirEspacios() {
-      const input = document.getElementById('textInput').value;
-      const corregido = input
-        .replace(/\s+/g, ' ')
-        .replace(/^\s+|\s+$/g, '')
-        .replace(/\s+([.,;:!?])/g, '$1')
-        .replace(/([.,;:!?])(\w)/g, '$1 $2');
+    function actualizarContadores() {
+      const texto = document.getElementById('textInput').value;
+      const chars = texto.length;
+      const words = texto.trim() === '' ? 0 : texto.trim().split(/\s+/).length;
+      const lines = texto === '' ? 0 : texto.split('\n').length;
       
-      document.getElementById('textResultContent').textContent = corregido;
-      document.getElementById('textResult').style.display = 'block';
-      document.getElementById('textInput').value = corregido;
+      document.getElementById('charCounter').textContent = chars;
+      document.getElementById('wordCounter').textContent = words;
+      document.getElementById('lineCounter').textContent = lines;
+    }
+
+    function aplicarOperacion(tipo) {
+      const input = document.getElementById('textInput');
+      let texto = input.value;
+      
+      switch(tipo) {
+        case 'espacios':
+          texto = texto
+            .replace(/\s+/g, ' ')
+            .replace(/^\s+|\s+$/g, '')
+            .replace(/\s+([.,;:!?])/g, '$1')
+            .replace(/([.,;:!?])(\w)/g, '$1 $2');
+          break;
+        case 'mayusculas':
+          texto = texto.toUpperCase();
+          break;
+        case 'minusculas':
+          texto = texto.toLowerCase();
+          break;
+        case 'capitalizar':
+          texto = texto.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+          break;
+        case 'oracion':
+          texto = texto.toLowerCase().replace(/(^\w|[.!?]\s+\w)/g, l => l.toUpperCase());
+          break;
+        case 'invertir':
+          texto = texto.split('').reverse().join('');
+          break;
+        case 'eliminarSaltos':
+          texto = texto.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+          break;
+        case 'duplicar':
+          const lineas = texto.split('\n');
+          const unicas = [...new Set(lineas)];
+          texto = unicas.join('\n');
+          break;
+      }
+      
+      input.value = texto;
+      actualizarContadores();
+      showToast('Operación aplicada correctamente', 'success');
     }
 
     function limpiarTexto() {
       document.getElementById('textInput').value = '';
-      document.getElementById('textResult').style.display = 'none';
+      actualizarContadores();
     }
 
     function copiarTexto() {
-      const texto = document.getElementById('textResultContent').textContent;
+      const texto = document.getElementById('textInput').value;
+      if (!texto) {
+        showToast('No hay texto para copiar', 'error');
+        return;
+      }
       navigator.clipboard.writeText(texto).then(() => {
-        alert('Texto copiado al portapapeles');
+        showToast('Texto copiado al portapapeles', 'success');
+      }).catch(() => {
+        showToast('Error al copiar texto', 'error');
       });
     }
 
@@ -962,60 +1046,18 @@ html[data-theme="dark"] #medicationSelect {
     async function loadInfusionMedications() {
       initDefaultInfusions();
       
-      try {
-        const serverMeds = await api('/medications');
-        
-        const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-        
-        const allMeds = [...localMeds];
-        
-        serverMeds.forEach(serverMed => {
-          if (!serverMed.nombre) return;
-          
-          if (!allMeds.find(m => m.nombre.toLowerCase() === serverMed.nombre.toLowerCase())) {
-            const medData = {
-              id: allMeds.length + 1,
-              nombre: serverMed.nombre,
-              presentacion: serverMed.dilucion || 'Consultar ficha técnica',
-              dosis: '1MG/KG/HORA',
-              unidad: 'mg/kg/h',
-              diluciones: ['12CC', '24CC', '50CC', '100CC'],
-              concentraciones: [0.42, 0.21, 0.10, 0.05],
-              ssn: '0.9',
-              ssn_percentage: '0.9%',
-              grupo: serverMed.grupo || '',
-              comentarios: serverMed.comentarios || ''
-            };
-            allMeds.push(medData);
-          }
-        });
-        
-        infusionMedications = allMeds.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        
-        const select = document.getElementById('medicationSelect');
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccionar medicamento</option>';
-        infusionMedications.forEach((med, index) => {
-          const option = document.createElement('option');
-          option.value = index;
-          option.textContent = med.nombre;
-          select.appendChild(option);
-        });
-      } catch (err) {
-        console.error('Error loading medications from server:', err.message || err);
-        const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-        infusionMedications = localMeds.sort((a, b) => a.nombre.localeCompare(b.nombre));
-        
-        const select = document.getElementById('medicationSelect');
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleccionar medicamento</option>';
-        infusionMedications.forEach((med, index) => {
-          const option = document.createElement('option');
-          option.value = index;
-          option.textContent = med.nombre;
-          select.appendChild(option);
-        });
-      }
+      const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
+      infusionMedications = localMeds.sort((a, b) => a.nombre.localeCompare(b.nombre));
+      
+      const select = document.getElementById('medicationSelect');
+      if (!select) return;
+      select.innerHTML = '<option value="">Seleccionar medicamento</option>';
+      infusionMedications.forEach((med, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = med.nombre;
+        select.appendChild(option);
+      });
     }
 
     function loadMedication() {
@@ -1058,6 +1100,7 @@ html[data-theme="dark"] #medicationSelect {
           document.querySelectorAll('#dilucionOptions .btn').forEach(b => {
             b.classList.remove('primary');
             b.classList.add('secondary');
+            b.removeAttribute('data-selected');
           });
           this.classList.remove('secondary');
           this.classList.add('primary');
@@ -1149,11 +1192,15 @@ html[data-theme="dark"] #medicationSelect {
         
         window.razonSeleccionada = razonCcHora;
         
+        const ordenMedica = document.getElementById('ordenMedica');
+        ordenMedica.classList.add('updating');
+        setTimeout(() => ordenMedica.classList.remove('updating'), 500);
+        
         document.getElementById('ordenMedicaContent').innerHTML = `
           <p><strong>ORDEN MÉDICA:</strong></p>
           <p id="ordenTexto">${med.nombre.toUpperCase()} ${ccMedicamento.toFixed(1)}CC + ${ccDiluyente.toFixed(1)}CC DE SS 0.9% PASAR A RAZÓN DE ${razonCcHora.toFixed(1)}CC/HORA</p>
         `;
-        document.getElementById('ordenMedica').style.display = 'block';
+        ordenMedica.style.display = 'block';
       }
     }
 

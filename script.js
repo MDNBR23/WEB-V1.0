@@ -114,6 +114,7 @@
       throw err;
     }
   }
+  window.api = api;
 
   let currentSession = null;
   

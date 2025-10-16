@@ -4,6 +4,20 @@
 NBR WEB is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
 
 ## Recent Changes (October 16, 2025)
+1. **Corrector de Texto Mejorado:** Renombrado de "Corrector de Espacios" a "Corrector de Texto" con nuevas funcionalidades:
+   - Transformación a MAYÚSCULAS, minúsculas, Capitalizar Palabras y oraciones
+   - Invertir texto y eliminar líneas duplicadas
+   - Contador en tiempo real de caracteres, palabras y líneas
+   - Interfaz interactiva con botones individuales para cada operación
+2. **Calculadora de Infusiones - Corrección Crítica:**
+   - **CORREGIDO:** La calculadora ahora usa EXCLUSIVAMENTE medicamentos del localStorage (infusion_medications_global) gestionados por el admin
+   - **CORREGIDO:** Se eliminó completamente la mezcla incorrecta con medicamentos del vademécum (medications.json)
+   - **CORREGIDO:** El selector de dilución ahora actualiza correctamente la orden médica al hacer clic
+   - Los medicamentos de la calculadora y el vademécum son ahora sistemas completamente separados e independientes
+   - La orden médica se actualiza automáticamente al cambiar peso, dosis o seleccionar dilución con animaciones visuales
+3. **Corrección de Errores:** Fixed JavaScript scope issue con la función `api()` ahora expuesta globalmente via `window.api`
+
+## Previous Changes (October 16, 2025)
 1. **Medication Database Consolidation:** Unified medication storage to single source (data/medications.json), eliminating data duplication and ensuring consistency across the platform.
 2. **Enhanced Medication Loading:** Removed restrictive regex filtering that prevented many medications from appearing in the infusion calculator selector. Now all medications with valid names are displayed, sorted alphabetically for better UX.
 3. **Interactive Infusion Calculator UI:** Completely redesigned the infusion calculator interface with:
