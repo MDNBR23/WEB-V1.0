@@ -686,20 +686,22 @@ html[data-theme="dark"] #medicationSelect {
             </div>
 
             <div style="margin-top: 24px;">
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <strong>Plantillas guardadas:</strong>
-                <select id="filterCategory" onchange="filtrarDocumentos()" style="margin-left: auto;">
-                  <option value="">Todas las categorías</option>
-                  <option value="pediatria">Pediatría</option>
-                  <option value="adultos">Adultos</option>
-                  <option value="geriatria">Geriatría</option>
-                  <option value="neonatologia">Neonatología</option>
-                  <option value="infusiones">Infusiones</option>
-                  <option value="otras">Otras</option>
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <strong id="plantillasCounter">Plantillas guardadas: 0</strong>
+                </div>
+                <select id="filterCategory" onchange="filtrarDocumentos()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                  <option value="">📂 Todas las categorías</option>
+                  <option value="pediatria">👶 Pediatría</option>
+                  <option value="adultos">👨‍⚕️ Adultos</option>
+                  <option value="geriatria">👴 Geriatría</option>
+                  <option value="neonatologia">👼 Neonatología</option>
+                  <option value="infusiones">💉 Infusiones</option>
+                  <option value="otras">📋 Otras</option>
                 </select>
-                <input type="search" id="searchDoc" placeholder="Buscar..." onkeyup="filtrarDocumentos()">
+                <input type="search" id="searchDoc" placeholder="🔍 Buscar plantilla..." onkeyup="filtrarDocumentos()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 200px;">
               </div>
-              <div id="docList" class="doc-list"></div>
+              <div id="docList" class="doc-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;"></div>
             </div>
           </section>
         </div>
@@ -1280,7 +1282,7 @@ html[data-theme="dark"] #medicationSelect {
       calculateInfusion();
     });
 
-    function guardarDocumento() {
+    async function guardarDocumento() {
       const nombre = document.getElementById('docName').value.trim();
       const categoria = document.getElementById('docCategory').value;
       const contenido = document.getElementById('docContent').value.trim();
@@ -1305,30 +1307,31 @@ html[data-theme="dark"] #medicationSelect {
         return;
       }
 
-      const doc = {
-        id: Date.now(),
-        nombre: nombre,
-        categoria: categoria,
-        contenido: contenido,
-        fecha: new Date().toISOString(),
-        tamanio: tamanio,
-        global: currentUser?.role === 'admin' && isGlobal,
-        creador: currentUser?.username || 'unknown'
-      };
+      try {
+        const response = await fetch('/api/plantillas', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            nombre: nombre,
+            categoria: categoria,
+            contenido: contenido,
+            global: isGlobal
+          })
+        });
 
-      documentos.push(doc);
-      
-      const storageKey = isGlobal && currentUser?.role === 'admin' 
-        ? 'plantillas_globales' 
-        : 'plantillas_' + (currentUser?.username || 'local');
-      
-      const existingDocs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      existingDocs.push(doc);
-      localStorage.setItem(storageKey, JSON.stringify(existingDocs));
-      
-      limpiarFormDoc();
-      cargarDocumentos();
-      alert('Plantilla guardada exitosamente');
+        const data = await response.json();
+
+        if (response.ok) {
+          limpiarFormDoc();
+          cargarDocumentos();
+          alert('Plantilla guardada exitosamente');
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo guardar la plantilla'));
+        }
+      } catch (err) {
+        console.error('Error guardando plantilla:', err);
+        alert('Error al guardar la plantilla');
+      }
     }
 
     function limpiarFormDoc() {
@@ -1340,52 +1343,116 @@ html[data-theme="dark"] #medicationSelect {
       }
     }
 
-    function cargarDocumentos() {
-      documentos = [];
-      
-      const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
-      documentos = [...globales];
-      
-      if (currentUser?.username) {
-        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
-        documentos = [...documentos, ...locales];
+    async function cargarDocumentos() {
+      try {
+        const response = await fetch('/api/plantillas');
+        
+        if (response.ok) {
+          documentos = await response.json();
+          mostrarDocumentos();
+        } else {
+          console.error('Error cargando plantillas:', response.statusText);
+          documentos = [];
+          mostrarDocumentos();
+        }
+      } catch (err) {
+        console.error('Error cargando plantillas:', err);
+        documentos = [];
+        mostrarDocumentos();
       }
-      
-      mostrarDocumentos();
     }
 
     function mostrarDocumentos(filtrados = null) {
       const lista = filtrados || documentos;
       const container = document.getElementById('docList');
+      const counter = document.getElementById('plantillasCounter');
+      
+      if (counter) {
+        counter.textContent = `Plantillas guardadas: ${lista.length}`;
+      }
       
       if (lista.length === 0) {
-        container.innerHTML = '<p class="text-muted">No hay plantillas guardadas</p>';
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #718096;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+            <p style="margin: 0; font-size: 16px;">No hay plantillas guardadas</p>
+          </div>
+        `;
         return;
       }
 
-      container.innerHTML = lista.map(doc => {
-        const fecha = new Date(doc.fecha).toLocaleDateString('es-ES');
+      const getCategoryIcon = (cat) => {
+        const icons = {
+          'pediatria': '👶',
+          'adultos': '👨‍⚕️',
+          'geriatria': '👴',
+          'neonatologia': '👼',
+          'infusiones': '💉',
+          'otras': '📋'
+        };
+        return icons[cat] || '📄';
+      };
+
+      container.innerHTML = lista.map((doc, index) => {
+        const fecha = new Date(doc.fecha || doc.created_at).toLocaleDateString('es-ES');
         const tamanioKB = (doc.tamanio / 1024).toFixed(1);
         const esPropia = doc.creador === currentUser?.username;
         const esAdmin = currentUser?.role === 'admin';
         const puedeEditar = esPropia || esAdmin;
-        const badge = doc.global ? '<span style="background:#008080;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:8px;">PREDEFINIDA</span>' : '';
+        const icon = getCategoryIcon(doc.categoria);
         
         return `
-          <div class="doc-item">
-            <div class="doc-name">${doc.nombre}${badge}</div>
-            <div class="doc-meta">
-              ${doc.categoria.charAt(0).toUpperCase() + doc.categoria.slice(1)} • 
-              ${tamanioKB} KB • 
-              ${fecha}
+          <div class="doc-item" style="
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: fadeIn 0.3s ease-in-out ${index * 0.05}s both;
+            position: relative;
+            overflow: hidden;
+          " onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            ${doc.global ? '<div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">PREDEFINIDA</div>' : ''}
+            <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 12px;">
+              <div style="font-size: 32px; line-height: 1;">${icon}</div>
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 16px; color: #2d3748; margin-bottom: 4px;">${doc.nombre}</div>
+                <div style="font-size: 13px; color: #718096;">
+                  ${doc.categoria.charAt(0).toUpperCase() + doc.categoria.slice(1)}
+                </div>
+              </div>
             </div>
-            ${puedeEditar ? `<button class="btn sm" onclick="editarDocumento(${doc.id})">Editar</button>` : ''}
-            <button class="btn sm" onclick="descargarDocumento(${doc.id})">Descargar</button>
-            ${puedeEditar ? `<button class="btn danger sm" onclick="eliminarDocumento(${doc.id})">Eliminar</button>` : ''}
+            <div style="display: flex; gap: 8px; font-size: 12px; color: #a0aec0; margin-bottom: 16px;">
+              <span>📦 ${tamanioKB} KB</span>
+              <span>•</span>
+              <span>📅 ${fecha}</span>
+              ${!doc.global ? `<span>•</span><span>👤 ${doc.creador}</span>` : ''}
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              ${puedeEditar ? `<button class="btn sm" onclick="event.stopPropagation(); editarDocumento(${doc.id})" style="flex: 1; min-width: 80px;">✏️ Editar</button>` : ''}
+              <button class="btn sm" onclick="event.stopPropagation(); descargarDocumento(${doc.id})" style="flex: 1; min-width: 80px;">⬇️ Descargar</button>
+              ${puedeEditar ? `<button class="btn danger sm" onclick="event.stopPropagation(); eliminarDocumento(${doc.id})" style="min-width: 80px;">🗑️</button>` : ''}
+            </div>
           </div>
         `;
       }).join('');
     }
+    
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
 
     function filtrarDocumentos() {
       const categoria = document.getElementById('filterCategory').value;
@@ -1430,7 +1497,7 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('editModal').style.display = 'none';
     }
 
-    function guardarEdicion() {
+    async function guardarEdicion() {
       if (!editandoDocId) return;
       
       const nombre = document.getElementById('editDocName').value.trim();
@@ -1449,48 +1516,31 @@ html[data-theme="dark"] #medicationSelect {
         return;
       }
       
-      const doc = documentos.find(d => d.id === editandoDocId);
-      if (!doc) return;
-      
-      const wasGlobal = doc.global;
-      const nowGlobal = currentUser?.role === 'admin' && isGlobal;
-      
-      doc.nombre = nombre;
-      doc.categoria = categoria;
-      doc.contenido = contenido;
-      doc.tamanio = tamanio;
-      doc.fecha = new Date().toISOString();
-      doc.global = nowGlobal;
-      
-      if (wasGlobal && !nowGlobal) {
-        const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
-        const filtered = globales.filter(d => d.id !== editandoDocId);
-        localStorage.setItem('plantillas_globales', JSON.stringify(filtered));
-        
-        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
-        locales.push(doc);
-        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(locales));
-      } else if (!wasGlobal && nowGlobal) {
-        const locales = JSON.parse(localStorage.getItem('plantillas_' + currentUser.username) || '[]');
-        const filtered = locales.filter(d => d.id !== editandoDocId);
-        localStorage.setItem('plantillas_' + currentUser.username, JSON.stringify(filtered));
-        
-        const globales = JSON.parse(localStorage.getItem('plantillas_globales') || '[]');
-        globales.push(doc);
-        localStorage.setItem('plantillas_globales', JSON.stringify(globales));
-      } else {
-        const storageKey = nowGlobal ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
-        const docs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        const index = docs.findIndex(d => d.id === editandoDocId);
-        if (index !== -1) {
-          docs[index] = doc;
-          localStorage.setItem(storageKey, JSON.stringify(docs));
+      try {
+        const response = await fetch(`/api/plantillas/${editandoDocId}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            nombre: nombre,
+            categoria: categoria,
+            contenido: contenido,
+            global: isGlobal
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          cerrarEditor();
+          cargarDocumentos();
+          alert('Plantilla actualizada exitosamente');
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo actualizar la plantilla'));
         }
+      } catch (err) {
+        console.error('Error actualizando plantilla:', err);
+        alert('Error al actualizar la plantilla');
       }
-      
-      cerrarEditor();
-      cargarDocumentos();
-      alert('Plantilla actualizada exitosamente');
     }
 
     function descargarDocumento(id) {
@@ -1506,19 +1556,29 @@ html[data-theme="dark"] #medicationSelect {
       URL.revokeObjectURL(url);
     }
 
-    function eliminarDocumento(id) {
+    async function eliminarDocumento(id) {
       const doc = documentos.find(d => d.id === id);
       if (!doc) return;
       
       if (!confirm(`¿Estás seguro de eliminar la plantilla "${doc.nombre}"?`)) return;
       
-      const storageKey = doc.global ? 'plantillas_globales' : 'plantillas_' + currentUser.username;
-      const docs = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const filtered = docs.filter(d => d.id !== id);
-      localStorage.setItem(storageKey, JSON.stringify(filtered));
-      
-      cargarDocumentos();
-      alert('Plantilla eliminada');
+      try {
+        const response = await fetch(`/api/plantillas/${id}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          cargarDocumentos();
+          alert('Plantilla eliminada');
+        } else {
+          alert('Error: ' + (data.error || 'No se pudo eliminar la plantilla'));
+        }
+      } catch (err) {
+        console.error('Error eliminando plantilla:', err);
+        alert('Error al eliminar la plantilla');
+      }
     }
 
     let turnos = [];

@@ -284,6 +284,33 @@
     }
   };
 
+  let inactivityTimer = null;
+  const INACTIVITY_TIMEOUT = 25 * 60 * 1000;
+
+  function resetInactivityTimer() {
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+    }
+    
+    inactivityTimer = setTimeout(async () => {
+      if (currentSession) {
+        alert('Tu sesión ha expirado por inactividad. Serás redirigido al inicio de sesión.');
+        await window.logout();
+      }
+    }, INACTIVITY_TIMEOUT);
+  }
+
+  if (!isAuth && !isReg && !isReset) {
+    const session = await checkSession();
+    if (session) {
+      resetInactivityTimer();
+      
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, { passive: true });
+      });
+    }
+  }
+
   const loginForm=document.getElementById('loginForm');
   if(loginForm){
     loginForm.addEventListener('submit',async (e)=>{
