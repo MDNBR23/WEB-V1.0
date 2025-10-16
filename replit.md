@@ -3,7 +3,18 @@
 ## Overview
 NBR WEB is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
 
-## Recent Changes (October 14, 2025)
+## Recent Changes (October 16, 2025)
+1. **Medication Database Consolidation:** Unified medication storage to single source (data/medications.json), eliminating data duplication and ensuring consistency across the platform.
+2. **Enhanced Medication Loading:** Removed restrictive regex filtering that prevented many medications from appearing in the infusion calculator selector. Now all medications with valid names are displayed, sorted alphabetically for better UX.
+3. **Interactive Infusion Calculator UI:** Completely redesigned the infusion calculator interface with:
+   - Interactive input cards similar to the gas analyzer tool
+   - Real-time validation for weight (0.5-150 kg) and dose inputs with visual feedback (✓ OK, ⚠️ warnings)
+   - Color-coded status indicators (green for normal, orange for warnings, red for errors)
+   - Interactive button-based dilution selection instead of radio buttons
+   - Enhanced visual design with icons and better information display
+   - Robust error handling with proper fallback to localStorage when needed
+
+## Previous Changes (October 14, 2025)
 1. **Tools Section Enhancement:** Changed "Infusiones" to "Calculadora" with description "Calculadora de sedoanalgesia e infusiones" for better clarity.
 2. **Arterial Blood Gas Analyzer Improvement:** Removed SatO₂ and BE fields, added interactive visual feedback with real-time validation and color-coded status indicators (normal/low/high).
 3. **Infusion Calculator Formula Fix:** Corrected medication cc volume calculation to use proper concentration formulas with improved regex pattern that handles both simple (/ML) and complex (/50ML) formats.
@@ -12,7 +23,6 @@ NBR WEB is a Spanish-language medical web platform designed for pediatric and ne
 6. **Interactive Shift Calendar:** Implemented visual monthly calendar for medical shifts with click-to-add functionality, color-coded shift types (guardia/consulta/cirugía/otro), hover effects, monthly navigation, and support for multiple shifts per day with detailed view.
 7. **Shift Exchange System:** Added dedicated tab for recording shift exchanges with other doctors, including original date, assumed date, doctor name, shift type, and notes. Complete history with color-coded visualization.
 8. **Admin Menu Security:** Fixed issue where non-admin users could see admin menu during page transitions. Admin link now hidden by default and only shown to administrators.
-9. **Infusion Calculator Medications:** Enhanced to load medications from both localStorage and server database, with validation to ensure only properly formatted medications are added to the calculator.
 
 ## User Preferences
 None recorded yet.

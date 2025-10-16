@@ -404,40 +404,43 @@ html[data-theme="dark"] #medicationSelect {
 
               <div id="medicationInfo" style="display:none;">
                 <div class="infusion-section">
-                  <h4>Presentación</h4>
-                  <p id="presentacion"></p>
+                  <h4>📋 Información del Medicamento</h4>
+                  <p id="presentacion" style="margin:0;"></p>
+                  <p id="medicationDetails" style="margin:8px 0 0 0; color:var(--muted); font-size:13px;"></p>
                 </div>
 
                 <div class="infusion-section">
-                  <h4>Ingresa dosis del medicamento y peso del paciente</h4>
-                  <div class="infusion-grid">
-                    <div>
-                      <label id="dosisLabel">Dosis</label>
-                      <input type="number" id="dosis" step="0.01" oninput="calculateInfusion()">
+                  <h4>💉 Datos del Paciente y Dosis</h4>
+                  <div class="gsa-grid">
+                    <div class="gsa-input-card">
+                      <label>Peso <small class="range-indicator">(kg)</small></label>
+                      <input type="number" id="peso" step="0.1" placeholder="Ej: 3.5" class="interactive-input">
+                      <div class="input-status" id="statusPeso"></div>
                     </div>
-                    <div>
-                      <label>Peso (kg)</label>
-                      <input type="number" id="peso" step="0.1" oninput="calculateInfusion()">
+                    <div class="gsa-input-card">
+                      <label id="dosisLabel">Dosis</label>
+                      <input type="number" id="dosis" step="0.01" placeholder="Ej: 1" class="interactive-input">
+                      <div class="input-status" id="statusDosis"></div>
                     </div>
                   </div>
                   <div id="dosisCalculada" style="margin-top:12px;"></div>
                 </div>
 
                 <div class="infusion-section">
-                  <h4>Selección de Dilución</h4>
-                  <div id="dilucionOptions"></div>
+                  <h4>💧 Selección de Dilución</h4>
+                  <div id="dilucionOptions" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:8px;"></div>
                   <div id="dosisInfusion" style="margin-top:12px;"></div>
                 </div>
 
                 <div id="ordenMedica" class="infusion-result" style="display:none;">
-                  <h5>ORDEN MÉDICA</h5>
+                  <h5>📝 ORDEN MÉDICA</h5>
                   <div id="ordenMedicaContent"></div>
                 </div>
 
                 <div style="margin-top:16px; display:flex; gap:8px;">
-                  <button class="btn primary" onclick="calculateInfusion()">Calcular</button>
-                  <button class="btn" onclick="clearInfusion()">Limpiar</button>
-                  <button class="btn success" onclick="copyInfusionOrder()">Copiar Orden Médica</button>
+                  <button class="btn primary" onclick="calculateInfusion()">💊 Calcular</button>
+                  <button class="btn" onclick="clearInfusion()">🗑️ Limpiar</button>
+                  <button class="btn success" onclick="copyInfusionOrder()">📋 Copiar Orden</button>
                 </div>
               </div>
             </div>
@@ -967,28 +970,30 @@ html[data-theme="dark"] #medicationSelect {
         const allMeds = [...localMeds];
         
         serverMeds.forEach(serverMed => {
-          const presentacion = serverMed.dilucion || '';
-          const concentracionMatch = presentacion.match(/=\s*([\d.]+)\s*(MCG|MG|UI)\/(\d*)ML/i);
+          if (!serverMed.nombre) return;
           
-          if (concentracionMatch && !allMeds.find(m => m.nombre.toLowerCase() === serverMed.nombre.toLowerCase())) {
+          if (!allMeds.find(m => m.nombre.toLowerCase() === serverMed.nombre.toLowerCase())) {
             const medData = {
               id: allMeds.length + 1,
               nombre: serverMed.nombre,
-              presentacion: serverMed.dilucion,
+              presentacion: serverMed.dilucion || 'Consultar ficha técnica',
               dosis: '1MG/KG/HORA',
               unidad: 'mg/kg/h',
               diluciones: ['12CC', '24CC', '50CC', '100CC'],
               concentraciones: [0.42, 0.21, 0.10, 0.05],
               ssn: '0.9',
-              ssn_percentage: '0.9%'
+              ssn_percentage: '0.9%',
+              grupo: serverMed.grupo || '',
+              comentarios: serverMed.comentarios || ''
             };
             allMeds.push(medData);
           }
         });
         
-        infusionMedications = allMeds;
+        infusionMedications = allMeds.sort((a, b) => a.nombre.localeCompare(b.nombre));
         
         const select = document.getElementById('medicationSelect');
+        if (!select) return;
         select.innerHTML = '<option value="">Seleccionar medicamento</option>';
         infusionMedications.forEach((med, index) => {
           const option = document.createElement('option');
@@ -997,11 +1002,12 @@ html[data-theme="dark"] #medicationSelect {
           select.appendChild(option);
         });
       } catch (err) {
-        console.error('Error loading medications:', err);
+        console.error('Error loading medications from server:', err.message || err);
         const localMeds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-        infusionMedications = localMeds;
+        infusionMedications = localMeds.sort((a, b) => a.nombre.localeCompare(b.nombre));
         
         const select = document.getElementById('medicationSelect');
+        if (!select) return;
         select.innerHTML = '<option value="">Seleccionar medicamento</option>';
         infusionMedications.forEach((med, index) => {
           const option = document.createElement('option');
@@ -1023,23 +1029,42 @@ html[data-theme="dark"] #medicationSelect {
       
       const med = infusionMedications[index];
       document.getElementById('medicationInfo').style.display = 'block';
-      document.getElementById('presentacion').innerHTML = `<strong>${med.presentacion}</strong><br>Dosis: ${med.dosis}`;
+      document.getElementById('presentacion').innerHTML = `<strong>${med.presentacion}</strong>`;
+      
+      let details = `Dosis: ${med.dosis}`;
+      if (med.grupo) details += ` • Grupo: ${med.grupo}`;
+      if (med.comentarios) details += `<br>${med.comentarios}`;
+      document.getElementById('medicationDetails').innerHTML = details;
       
       const unidad = med.unidad || 'mcg/kg/h';
-      document.getElementById('dosisLabel').textContent = `Dosis (${unidad})`;
+      document.getElementById('dosisLabel').innerHTML = `Dosis <small class="range-indicator">(${unidad})</small>`;
       
       document.getElementById('dosis').value = '';
       document.getElementById('peso').value = '';
+      document.getElementById('statusPeso').textContent = '';
+      document.getElementById('statusDosis').textContent = '';
+      document.getElementById('dosisCalculada').innerHTML = '';
+      document.getElementById('dosisInfusion').innerHTML = '';
+      document.getElementById('ordenMedica').style.display = 'none';
       
       const dilucionOptions = document.getElementById('dilucionOptions');
-      dilucionOptions.innerHTML = '<label><strong>Opciones de dilución disponibles:</strong></label><br>';
+      dilucionOptions.innerHTML = '';
       med.diluciones.forEach((dil, i) => {
-        dilucionOptions.innerHTML += `
-          <label style="display:block;margin:8px 0;">
-            <input type="radio" name="dilucion" value="${i}" onchange="calculateInfusion()">
-            ${dil}
-          </label>
-        `;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn sm secondary';
+        btn.textContent = dil;
+        btn.onclick = function() {
+          document.querySelectorAll('#dilucionOptions .btn').forEach(b => {
+            b.classList.remove('primary');
+            b.classList.add('secondary');
+          });
+          this.classList.remove('secondary');
+          this.classList.add('primary');
+          this.setAttribute('data-selected', 'true');
+          calculateInfusion();
+        };
+        dilucionOptions.appendChild(btn);
       });
     }
 
@@ -1103,9 +1128,9 @@ html[data-theme="dark"] #medicationSelect {
         <p><strong>Dosis:</strong> ${dosisPorHora.toFixed(2)} ${unidadHora}</p>
       `;
       
-      const selectedDilucion = document.querySelector('input[name="dilucion"]:checked');
-      if (selectedDilucion) {
-        const dilucionText = med.diluciones[parseInt(selectedDilucion.value)];
+      const selectedButton = document.querySelector('#dilucionOptions .btn[data-selected="true"]');
+      if (selectedButton) {
+        const dilucionText = selectedButton.textContent;
         const dilucionTotal = parseFloat(dilucionText.replace(/[^0-9.]/g, ''));
         
         const concentracionPorMl = concentracionEnUnidadDosis;
@@ -1157,6 +1182,56 @@ html[data-theme="dark"] #medicationSelect {
         alert('No se pudo copiar al portapapeles');
       });
     }
+
+    function validateInfusionInput(field, value) {
+      const statusEl = document.getElementById(`status${field}`);
+      if (!statusEl) return;
+      
+      if (value === '' || isNaN(value)) {
+        statusEl.textContent = '';
+        statusEl.style.color = '';
+        return;
+      }
+      
+      const numValue = parseFloat(value);
+      
+      if (field === 'Peso') {
+        if (numValue <= 0) {
+          statusEl.textContent = '⚠️ Debe ser mayor a 0';
+          statusEl.style.color = '#ef4444';
+        } else if (numValue < 0.5) {
+          statusEl.textContent = '⚠️ Peso muy bajo';
+          statusEl.style.color = '#f59e0b';
+        } else if (numValue > 150) {
+          statusEl.textContent = '⚠️ Peso muy alto';
+          statusEl.style.color = '#f59e0b';
+        } else {
+          statusEl.textContent = '✓ OK';
+          statusEl.style.color = '#10b981';
+        }
+      } else if (field === 'Dosis') {
+        if (numValue <= 0) {
+          statusEl.textContent = '⚠️ Debe ser mayor a 0';
+          statusEl.style.color = '#ef4444';
+        } else if (numValue > 100) {
+          statusEl.textContent = '⚠️ Dosis muy alta';
+          statusEl.style.color = '#f59e0b';
+        } else {
+          statusEl.textContent = '✓ OK';
+          statusEl.style.color = '#10b981';
+        }
+      }
+    }
+
+    document.getElementById('peso')?.addEventListener('input', (e) => {
+      validateInfusionInput('Peso', e.target.value);
+      calculateInfusion();
+    });
+    
+    document.getElementById('dosis')?.addEventListener('input', (e) => {
+      validateInfusionInput('Dosis', e.target.value);
+      calculateInfusion();
+    });
 
     function guardarDocumento() {
       const nombre = document.getElementById('docName').value.trim();
