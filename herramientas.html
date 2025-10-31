@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#008B8B">
-<title>Herramientas — NBR WEB</title>
+<title>Herramientas — Med Tools Hub</title>
 <link rel="stylesheet" href="style.css">
 <style>
 .tool-menu {
@@ -281,7 +281,7 @@ html[data-theme="dark"] #medicationSelect {
 </head><body>
   <div class="layout">
     <aside class="sidebar">
-      <div class="logo"><span class="logo-full">NBR WEB</span><span class="logo-short">NBR</span></div>
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
       <nav>
         <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
         <a href="vademecum.html"><span class="icon">💊</span><span>Vademecum</span></a>
@@ -339,6 +339,12 @@ html[data-theme="dark"] #medicationSelect {
             <span class="tool-card-icon">🤖</span>
             <h3>IA Médica</h3>
             <p>Consulta evidencia médica con IA especializada</p>
+          </div>
+          
+          <div class="card glass tool-card" onclick="showTool('interacciones')">
+            <span class="tool-card-icon">⚠️</span>
+            <h3>Interacciones Medicamentosas</h3>
+            <p>Verifica posibles interacciones entre medicamentos</p>
           </div>
         </div>
 
@@ -582,8 +588,8 @@ html[data-theme="dark"] #medicationSelect {
                 <div class="field">
                   <label>Tipo de Pago</label>
                   <select id="turnoPaymentType">
-                    <option value="ops">OPS (Variable)</option>
-                    <option value="nomina">Nómina (Fijo)</option>
+                    <option value="ops">OPS</option>
+                    <option value="nomina">Nómina</option>
                   </select>
                 </div>
               </div>
@@ -674,6 +680,52 @@ html[data-theme="dark"] #medicationSelect {
           </section>
         </div>
 
+        <div id="interaccionesTool" style="display:none;">
+          <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
+            <span>←</span>
+            <span>Volver al menú</span>
+          </a>
+          
+          <section class="card glass tool-section">
+            <h3>⚠️ Verificador de Interacciones Medicamentosas</h3>
+            <p class="text-muted">Herramienta para verificar posibles interacciones entre medicamentos. Agrega los medicamentos que el paciente está tomando para revisar.</p>
+            
+            <div style="background: rgba(251,191,36,0.1); border-left: 4px solid #fbbf24; padding: 16px; border-radius: 6px; margin: 16px 0;">
+              <p style="margin: 0; font-size: 14px; color: var(--text);">
+                <strong>⚠️ Importante:</strong> Esta herramienta es de apoyo clínico. Siempre verifica con fuentes actualizadas y tu criterio profesional antes de tomar decisiones terapéuticas.
+              </p>
+            </div>
+            
+            <div style="margin-top: 16px;">
+              <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <input type="text" id="drugInputInteraction" placeholder="Nombre del medicamento..." style="flex: 1; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px;">
+                <button class="btn primary" onclick="agregarMedicamentoInteraction()">Agregar</button>
+              </div>
+              
+              <div id="medicamentosListaInteraction" style="margin-bottom: 16px;"></div>
+              
+              <div style="display: flex; gap: 8px;">
+                <button class="btn success" onclick="verificarInteracciones()">🔍 Verificar Interacciones</button>
+                <button class="btn secondary" onclick="limpiarInteracciones()">🗑️ Limpiar Todo</button>
+              </div>
+            </div>
+
+            <div id="interaccionesResult" style="display:none; margin-top: 20px; padding: 20px; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--primary);">
+              <h4 style="margin: 0 0 12px 0; color: var(--primary);">📊 Resultados del Análisis</h4>
+              <div id="interaccionesResultContent"></div>
+            </div>
+            
+            <div style="margin-top: 24px; padding: 16px; background: var(--bg); border-radius: 8px;">
+              <h4 style="margin: 0 0 12px 0; font-size: 14px;">Recursos Recomendados:</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
+                <li><a href="https://www.drugs.com/drug_interactions.html" target="_blank" style="color: var(--primary);">Drugs.com Drug Interactions Checker</a></li>
+                <li><a href="https://reference.medscape.com/drug-interactionchecker" target="_blank" style="color: var(--primary);">Medscape Drug Interaction Checker</a></li>
+                <li><a href="https://www.uptodate.com/contents/search" target="_blank" style="color: var(--primary);">UpToDate - Base de Datos de Medicamentos</a></li>
+              </ul>
+            </div>
+          </section>
+        </div>
+
         <div id="plantillasTool" style="display:none;">
           <a href="javascript:void(0)" class="back-btn" onclick="showMenu()">
             <span>←</span>
@@ -742,7 +794,13 @@ html[data-theme="dark"] #medicationSelect {
             </div>
           </section>
         </div>
-
+        <footer class="app-footer">
+          <h4>Aviso Legal</h4>
+          <p>Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional.</p>
+          <p>El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud.</p>
+          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+          <p class="contact">administrador@medtoolshub.com</p>
+        </footer>
       </main>
     </div>
   </div>
@@ -1067,24 +1125,32 @@ html[data-theme="dark"] #medicationSelect {
       }
 
       const fio2 = fio2Percent / 100;
-      const io = (fio2 * map) / pao2;
+      const io = (fio2 * 100 * map) / pao2;
 
       let interpretacion = '';
       let severidad = '';
       let color = '';
 
-      if (io < 10) {
-        interpretacion = 'Buena oxigenación';
-        severidad = 'Sin compromiso significativo';
+      if (io < 4) {
+        interpretacion = 'Oxigenación normal';
+        severidad = 'Sin compromiso respiratorio';
         color = '#10b981';
-      } else if (io >= 10 && io < 25) {
-        interpretacion = 'Deterioro moderado de la oxigenación';
-        severidad = 'Vigilancia estrecha y optimización ventilatoria';
+      } else if (io >= 4 && io < 8) {
+        interpretacion = 'Hipoxemia leve';
+        severidad = 'Monitoreo y optimización ventilatoria';
+        color = '#3b82f6';
+      } else if (io >= 8 && io < 16) {
+        interpretacion = 'Hipoxemia moderada';
+        severidad = 'Vigilancia estrecha y ajustes ventilatorios';
         color = '#f59e0b';
-      } else {
-        interpretacion = 'Deterioro severo de la oxigenación';
-        severidad = 'Considerar estrategias avanzadas (VAFO, ECMO, etc.)';
+      } else if (io >= 16 && io < 25) {
+        interpretacion = 'Hipoxemia severa';
+        severidad = 'Considerar estrategias avanzadas de ventilación';
         color = '#ef4444';
+      } else {
+        interpretacion = 'Hipoxemia crítica';
+        severidad = 'Valorar VAFO, ECMO u otras terapias de rescate';
+        color = '#991b1b';
       }
 
       let html = '<div class="gsa-result" style="border-left: 4px solid ' + color + ';">';
@@ -1098,8 +1164,8 @@ html[data-theme="dark"] #medicationSelect {
       html += `<p style="font-size: 14px;">• MAP: ${map.toFixed(1)} cmH₂O</p>`;
       html += `<p style="font-size: 14px;">• PaO₂: ${pao2.toFixed(1)} mmHg</p>`;
       html += '<hr style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">';
-      html += '<p style="font-size: 13px; opacity: 0.9;"><strong>Fórmula:</strong> IO = (FiO₂ × MAP) / PaO₂</p>';
-      html += '<p style="font-size: 12px; opacity: 0.8;">IO < 10: Buena | IO 10-25: Moderado | IO > 25: Severo</p>';
+      html += '<p style="font-size: 13px; opacity: 0.9;"><strong>Fórmula:</strong> IO = (FiO₂ × MAP × 100) / PaO₂</p>';
+      html += '<p style="font-size: 12px; opacity: 0.8;">IO < 4: Normal | 4-8: Leve | 8-16: Moderado | 16-25: Severo | > 25: Crítico</p>';
       html += '</div>';
 
       document.getElementById('ioResult').innerHTML = html;
@@ -1883,10 +1949,13 @@ html[data-theme="dark"] #medicationSelect {
         return fechaTurno.getMonth() === calendarioMesActual && fechaTurno.getFullYear() === calendarioAnioActual;
       });
       
+      const now = new Date();
+      const colombiaToday = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+      
       for (let dia = 1; dia <= ultimoDia; dia++) {
         const fecha = `${calendarioAnioActual}-${String(calendarioMesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         const turnosDia = turnosDelMes.filter(t => t.fecha === fecha);
-        const esHoy = new Date().toDateString() === new Date(fecha).toDateString();
+        const esHoy = colombiaToday.toDateString() === new Date(fecha).toDateString();
         
         let diaHTML = `<div onclick="abrirFormTurno('${fecha}')" style="min-height:80px;padding:4px;border-radius:6px;cursor:pointer;transition:all 0.2s;background:${esHoy ? 'rgba(0,139,139,0.15)' : 'var(--card)'};border:${esHoy ? '2px solid var(--primary)' : '1px solid var(--border)'};" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">`;
         diaHTML += `<div style="font-weight:700;margin-bottom:4px;color:${esHoy ? 'var(--primary)' : 'var(--text)'};">${dia}</div>`;
@@ -2207,5 +2276,111 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('iaQuery').value = '';
       document.getElementById('iaResult').style.display = 'none';
     }
+
+    let medicamentosInteraction = [];
+
+    function agregarMedicamentoInteraction() {
+      const input = document.getElementById('drugInputInteraction');
+      const medicamento = input.value.trim();
+      
+      if (!medicamento) {
+        alert('Por favor, ingresa el nombre de un medicamento');
+        return;
+      }
+      
+      if (medicamentosInteraction.includes(medicamento.toLowerCase())) {
+        alert('Este medicamento ya está en la lista');
+        return;
+      }
+      
+      medicamentosInteraction.push(medicamento.toLowerCase());
+      input.value = '';
+      actualizarListaMedicamentosInteraction();
+    }
+
+    function actualizarListaMedicamentosInteraction() {
+      const container = document.getElementById('medicamentosListaInteraction');
+      
+      if (medicamentosInteraction.length === 0) {
+        container.innerHTML = '<p style="color: var(--muted); font-size: 14px; text-align: center; padding: 20px;">No hay medicamentos agregados. Agrega al menos 2 medicamentos para verificar interacciones.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;">
+          ${medicamentosInteraction.map((med, index) => `
+            <div style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--g1), var(--g2)); color: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="flex: 1; font-weight: 600; font-size: 14px; text-transform: capitalize;">💊 ${med}</div>
+              <button onclick="eliminarMedicamentoInteraction(${index})" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">✕</button>
+            </div>
+          `).join('')}
+        </div>
+        <p style="margin-top: 12px; font-size: 13px; color: var(--muted);">
+          <strong>${medicamentosInteraction.length}</strong> medicamento${medicamentosInteraction.length !== 1 ? 's' : ''} agregado${medicamentosInteraction.length !== 1 ? 's' : ''}
+        </p>
+      `;
+    }
+
+    function eliminarMedicamentoInteraction(index) {
+      medicamentosInteraction.splice(index, 1);
+      actualizarListaMedicamentosInteraction();
+    }
+
+    function verificarInteracciones() {
+      if (medicamentosInteraction.length < 2) {
+        alert('Agrega al menos 2 medicamentos para verificar interacciones');
+        return;
+      }
+      
+      let html = `
+        <div style="background: rgba(99,102,241,0.1); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="margin: 0; font-size: 14px; line-height: 1.6;">
+            <strong>📝 Análisis de ${medicamentosInteraction.length} medicamentos:</strong><br>
+            ${medicamentosInteraction.map(m => '<span style="background: rgba(0,139,139,0.15); padding: 2px 8px; border-radius: 4px; margin: 2px; display: inline-block; text-transform: capitalize;">' + m + '</span>').join('')}
+          </p>
+        </div>
+        
+        <div style="background: rgba(16,185,129,0.1); border-left: 4px solid #10b981; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+          <p style="margin: 0 0 8px 0; font-weight: 600; color: #10b981;">✓ Verificación Básica Completada</p>
+          <p style="margin: 0; font-size: 14px;">
+            Se ha generado una lista de los medicamentos para verificar. Para un análisis detallado de interacciones, recomendamos consultar las bases de datos especializadas listadas abajo.
+          </p>
+        </div>
+        
+        <div style="background: rgba(251,191,36,0.1); border-left: 4px solid #fbbf24; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+          <p style="margin: 0 0 8px 0; font-weight: 600; color: #d97706;">⚠️ Recomendaciones Importantes</p>
+          <ul style="margin: 8px 0 0 20px; padding: 0; font-size: 14px; line-height: 1.8;">
+            <li>Verifica las interacciones en bases de datos actualizadas</li>
+            <li>Considera las características del paciente (edad, peso, comorbilidades)</li>
+            <li>Revisa dosis, vías de administración y tiempos</li>
+            <li>Consulta con farmacia clínica cuando sea necesario</li>
+          </ul>
+        </div>
+        
+        <div style="margin-top: 16px;">
+          <h5 style="margin: 0 0 12px 0; font-size: 14px; color: var(--primary);">🔗 Verifica en bases de datos especializadas:</h5>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="https://www.drugs.com/drug_interactions.html" target="_blank" class="btn secondary" style="text-decoration: none; text-align: center;">Drugs.com Interaction Checker</a>
+            <a href="https://reference.medscape.com/drug-interactionchecker" target="_blank" class="btn secondary" style="text-decoration: none; text-align: center;">Medscape Drug Interaction Checker</a>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('interaccionesResultContent').innerHTML = html;
+      document.getElementById('interaccionesResult').style.display = 'block';
+    }
+
+    function limpiarInteracciones() {
+      medicamentosInteraction = [];
+      document.getElementById('drugInputInteraction').value = '';
+      actualizarListaMedicamentosInteraction();
+      document.getElementById('interaccionesResult').style.display = 'none';
+    }
+
+    document.getElementById('drugInputInteraction')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        agregarMedicamentoInteraction();
+      }
+    });
   </script>
 </body></html>

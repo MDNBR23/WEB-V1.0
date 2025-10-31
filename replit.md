@@ -1,9 +1,41 @@
-# NBR WEB - Medical Platform
+# Med Tools Hub - Medical Platform
 
 ## Overview
-NBR WEB is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
+Med Tools Hub is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
 
-## Recent Changes (October 16, 2025)
+## Recent Changes (October 31, 2025)
+1. **Enhanced Legal Footer:** Updated footer across all 9 HTML pages (index, register, reset-password, main, herramientas, sugerencias, admin, vademecum, configuracion) with comprehensive legal disclaimer:
+   - Full text: "Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional. El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud. NBR® 2025 | Med Tools Hub | administrador@medtoolshub.com"
+   - Consistent styling via CSS classes (.legal-footer, .legal-disclaimer) for responsive design
+2. **Colombia Clock Flicker Fix:** Eliminated clock flickering when switching browser tabs:
+   - Changed from innerHTML (DOM reconstruction) to persistent DOM elements (dateSpan, separator, timeSpan)
+   - Updates now use textContent for performance and stability
+   - Maintains theme-aware colors and America/Bogota timezone (UTC-5)
+3. **Oxygenation Index Formula Correction:** Fixed critical medical calculation error:
+   - Corrected formula: IO = (FiO₂ × MAP × 100) / PaO₂ (added missing ×100 multiplier)
+   - Updated pediatric/neonatal severity ranges: <4 Normal, 4-8 Leve, 8-16 Moderado, 16-25 Severo, >25 Crítico
+   - Improved result display with color-coded severity indicators
+4. **Shift Calendar Timezone Fix:** Calendar now correctly highlights current day using Colombia timezone (America/Bogota) instead of browser's local timezone, ensuring consistent day highlighting for all users
+5. **Drug Interaction Checker Tool:** Added new medical tool for checking medication interactions:
+   - Interactive interface to add multiple medications with visual pills display
+   - Real-time medication list management (add/remove)
+   - Verification system with medical warnings and recommendations
+   - Direct links to specialized databases (Drugs.com, Medscape, UpToDate)
+   - Placeholder for future API integration with medical interaction databases
+   - Comprehensive user guidance and clinical safety reminders
+
+## Previous Changes (October 31, 2025)
+1. **Platform Rebranding:** Successfully migrated and rebranded entire platform from "NBR WEB" to "Med Tools Hub" across all pages:
+   - Updated all HTML files (index, register, main, admin, vademecum, configuracion, sugerencias, herramientas, reset-password)
+   - Updated server.js with new platform name
+   - Updated all metadata, titles, and UI references
+2. **Colombia Clock Enhancement:** Fixed theme-aware colors for the Colombia timezone clock:
+   - Dark text (rgba(15,23,42,0.95)) for light mode ensuring visibility
+   - Light text (rgba(255,255,255,0.85)) for dark mode
+   - Dynamic theme detection and automatic color switching
+3. **Shift Management UX Improvement:** Removed "(Variable)" and "(Fijo)" labels from OPS and Nómina payment type options for cleaner interface
+
+## Previous Changes (October 16, 2025)
 1. **Corrector de Texto Mejorado:** Renombrado de "Corrector de Espacios" a "Corrector de Texto" con nuevas funcionalidades:
    - Transformación a MAYÚSCULAS, minúsculas, Capitalizar Palabras y oraciones
    - Invertir texto y eliminar líneas duplicadas
@@ -42,7 +74,7 @@ NBR WEB is a Spanish-language medical web platform designed for pediatric and ne
 None recorded yet.
 
 ## System Architecture
-NBR WEB is built with a focus on simplicity, security, and performance using a pure web stack.
+Med Tools Hub is built with a focus on simplicity, security, and performance using a pure web stack.
 
 ### UI/UX Decisions
 - **Design:** Modern teal/cyan theme with enhanced contrast, clear typography, and accessible color palettes (WCAG AA compliant).

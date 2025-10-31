@@ -267,6 +267,26 @@
     const clockEl = document.getElementById('colombiaClock');
     if (!clockEl) return;
     
+    const theme = document.documentElement.getAttribute('data-theme');
+    const textColor = theme === 'dark' ? 'rgba(255,255,255,0.85)' : 'rgba(15,23,42,0.95)';
+    
+    const dateSpan = document.createElement('span');
+    dateSpan.style.fontWeight = '600';
+    dateSpan.style.color = textColor;
+    
+    const separator = document.createElement('span');
+    separator.textContent = ' | ';
+    separator.style.opacity = '0.8';
+    separator.style.color = textColor;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.style.fontWeight = '700';
+    timeSpan.style.color = textColor;
+    
+    clockEl.appendChild(dateSpan);
+    clockEl.appendChild(separator);
+    clockEl.appendChild(timeSpan);
+    
     function updateClock() {
       const now = new Date();
       const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
@@ -283,7 +303,8 @@
       const minutes = String(colombiaTime.getMinutes()).padStart(2, '0');
       const seconds = String(colombiaTime.getSeconds()).padStart(2, '0');
       
-      clockEl.innerHTML = `<span style="font-weight:600;">${dayName} ${day} ${month} ${year}</span> <span style="opacity:0.8;">|</span> <span style="font-weight:700;">${hours}:${minutes}:${seconds}</span>`;
+      dateSpan.textContent = `${dayName} ${day} ${month} ${year}`;
+      timeSpan.textContent = `${hours}:${minutes}:${seconds}`;
     }
     
     updateClock();

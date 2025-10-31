@@ -104,9 +104,9 @@ async function initializeData() {
       username: 'admin',
       password: hashedPassword,
       name: 'Administrador',
-      email: 'admin@nbrweb.local',
+      email: 'admin@medtoolshub.local',
       phone: '',
-      institucion: 'NBR WEB',
+      institucion: 'Med Tools Hub',
       role: 'admin',
       status: 'aprobado',
       cat: 'Pediatra',
@@ -120,7 +120,7 @@ async function initializeData() {
   if (globalAnuncios.length === 0) {
     globalAnuncios.push({
       id: crypto.randomUUID(),
-      titulo: 'Bienvenidos a NBR WEB',
+      titulo: 'Bienvenidos a Med Tools Hub',
       fecha: new Date().toISOString().slice(0, 10),
       texto: 'Plataforma médica para profesionales de pediatría y neonatología.',
       img: '',
@@ -281,7 +281,7 @@ app.post('/api/reset-password-request', async (req, res) => {
     try {
       const emailContent = `Hola ${user.name || user.username},
 
-Has solicitado restablecer tu contraseña en NBR WEB.
+Has solicitado restablecer tu contraseña en Med Tools Hub.
 
 Tu código de recuperación es: ${resetToken}
 
@@ -290,7 +290,7 @@ Este código es válido por 1 hora.
 Si no solicitaste este cambio, puedes ignorar este mensaje.
 
 Saludos,
-NBR WEB`;
+Med Tools Hub`;
 
       const htmlContent = `
 <!DOCTYPE html>
@@ -308,12 +308,12 @@ NBR WEB`;
 <body>
   <div class="container">
     <div class="header">
-      <h1>NBR WEB</h1>
+      <h1>Med Tools Hub</h1>
       <p>Recuperación de Contraseña</p>
     </div>
     <div class="content">
       <p>Hola <strong>${user.name || user.username}</strong>,</p>
-      <p>Has solicitado restablecer tu contraseña en NBR WEB.</p>
+      <p>Has solicitado restablecer tu contraseña en Med Tools Hub.</p>
       <p>Tu código de recuperación es:</p>
       <div class="code">${resetToken}</div>
       <p>Este código es válido por <strong>1 hora</strong>.</p>
@@ -328,7 +328,7 @@ NBR WEB`;
 
       await sendEmail({
         to: email,
-        subject: 'Código de Recuperación - NBR WEB',
+        subject: 'Código de Recuperación - Med Tools Hub',
         text: emailContent,
         html: htmlContent
       });
@@ -1084,6 +1084,6 @@ app.use(express.static('.', {
 
 initializeData().then(() => {
   app.listen(PORT, HOST, () => {
-    console.log(`NBR WEB Server running at http://${HOST}:${PORT}/`);
+    console.log(`Med Tools Hub Server running at http://${HOST}:${PORT}/`);
   });
 });

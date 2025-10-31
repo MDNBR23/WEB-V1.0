@@ -940,3 +940,45 @@ textarea{
   margin-left: 0;
 }
 
+.app-footer {
+  margin-top: 48px;
+  padding: 24px 20px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.app-footer h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.app-footer p {
+  margin: 0 0 8px 0;
+}
+
+.app-footer .contact {
+  font-size: 12px;
+  color: var(--primary);
+  margin-top: 12px;
+}
+
+.app-footer .trademark {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    font-size: 12px;
+    padding: 20px 16px;
+  }
+}
+
