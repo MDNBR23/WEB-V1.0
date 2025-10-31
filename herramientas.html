@@ -295,6 +295,7 @@ html[data-theme="dark"] #medicationSelect {
       <header class="header">
         <button id="btnToggleSidebar" type="button"></button>
         <h2>Herramientas</h2>
+        <div id="colombiaClock" style="font-size:13px;color:var(--muted);margin:0 auto 0 12px;white-space:nowrap;"></div>
         <div class="user-info">
           <img id="avatarTop" alt="">
           <span id="mainUserInfo" class="text-muted"></span>
@@ -311,9 +312,9 @@ html[data-theme="dark"] #medicationSelect {
           </div>
           
           <div class="card glass tool-card" onclick="showTool('gases')">
-            <span class="tool-card-icon">🩺</span>
-            <h3>Gases Arteriales</h3>
-            <p>Interpreta resultados de gasometría arterial</p>
+            <span class="tool-card-icon">🫁</span>
+            <h3>Ventilación</h3>
+            <p>Interpreta gases arteriales y calcula índice de oxigenación</p>
           </div>
           
           <div class="card glass tool-card" onclick="showTool('infusiones')">
@@ -386,8 +387,8 @@ html[data-theme="dark"] #medicationSelect {
           </a>
           
           <section class="card glass tool-section">
-            <h3>🩺 Lector de Gases Arteriales</h3>
-            <p class="text-muted">Interpreta resultados de gasometría arterial con análisis detallado.</p>
+            <h3>🫁 Ventilación</h3>
+            <p class="text-muted">Interpreta resultados de gasometría arterial y calcula el índice de oxigenación.</p>
             <div class="gsa-grid">
               <div class="gsa-input-card">
                 <label>pH <small class="range-indicator">(7.35-7.45)</small></label>
@@ -415,6 +416,35 @@ html[data-theme="dark"] #medicationSelect {
               <button class="btn" onclick="limpiarGSA()">🗑️ Limpiar</button>
             </div>
             <div id="gsaResult" style="display:none; margin-top: 16px;"></div>
+            
+            <hr style="margin: 24px 0; border: none; border-top: 2px solid var(--border);">
+            
+            <h4 style="margin: 0 0 12px 0; color: var(--primary);">📊 Índice de Oxigenación (IO)</h4>
+            <p class="text-muted" style="margin-bottom: 16px;">Calcula el índice de oxigenación usando la fórmula: IO = (FiO₂ × MAP) / PaO₂</p>
+            
+            <div class="gsa-grid">
+              <div class="gsa-input-card">
+                <label>FiO₂ <small class="range-indicator">(%)</small></label>
+                <input type="number" id="ioFiO2" step="1" placeholder="21-100" min="21" max="100" class="interactive-input">
+                <div class="input-status" id="statusFiO2"></div>
+              </div>
+              <div class="gsa-input-card">
+                <label>MAP <small class="range-indicator">(cmH₂O)</small></label>
+                <input type="number" id="ioMAP" step="0.1" placeholder="5-20" class="interactive-input">
+                <div class="input-status" id="statusMAP"></div>
+              </div>
+              <div class="gsa-input-card">
+                <label>PaO₂ <small class="range-indicator">(mmHg)</small></label>
+                <input type="number" id="ioPaO2" step="0.1" placeholder="80-95" class="interactive-input">
+                <div class="input-status" id="statusIOPaO2"></div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button class="btn primary" onclick="calcularIO()">🧮 Calcular Índice</button>
+              <button class="btn" onclick="limpiarIO()">🗑️ Limpiar</button>
+            </div>
+            <div id="ioResult" style="display:none; margin-top: 16px;"></div>
           </section>
         </div>
 
@@ -549,6 +579,13 @@ html[data-theme="dark"] #medicationSelect {
                     <option value="otro">Otro</option>
                   </select>
                 </div>
+                <div class="field">
+                  <label>Tipo de Pago</label>
+                  <select id="turnoPaymentType">
+                    <option value="ops">OPS (Variable)</option>
+                    <option value="nomina">Nómina (Fijo)</option>
+                  </select>
+                </div>
               </div>
               <div class="field" style="margin-top: 12px;">
                 <label>Notas</label>
@@ -560,9 +597,9 @@ html[data-theme="dark"] #medicationSelect {
               </div>
             </div>
             
-              <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
-                <h4 style="margin: 0 0 8px 0; color: var(--primary);">Resumen del Mes</h4>
-                <p id="resumenTurnos" style="margin: 0; font-size: 14px;">Total de turnos: 0 | Valor total: $0.00</p>
+              <div style="margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--primary);">
+                <h4 style="margin: 0 0 12px 0; color: var(--primary);">📊 Resumen del Mes Actual</h4>
+                <div id="resumenTurnos" style="font-size: 14px;"></div>
               </div>
             </div>
             
@@ -1012,6 +1049,128 @@ html[data-theme="dark"] #medicationSelect {
     });
     document.getElementById('gsaHCO3')?.addEventListener('input', (e) => {
       validateGSAInput('HCO3', e.target.value, 22, 26);
+    });
+
+    function calcularIO() {
+      const fio2Percent = parseFloat(document.getElementById('ioFiO2').value);
+      const map = parseFloat(document.getElementById('ioMAP').value);
+      const pao2 = parseFloat(document.getElementById('ioPaO2').value);
+
+      if (isNaN(fio2Percent) || isNaN(map) || isNaN(pao2)) {
+        alert('Por favor, completa todos los campos (FiO₂, MAP y PaO₂)');
+        return;
+      }
+
+      if (pao2 <= 0) {
+        alert('PaO₂ debe ser mayor que 0');
+        return;
+      }
+
+      const fio2 = fio2Percent / 100;
+      const io = (fio2 * map) / pao2;
+
+      let interpretacion = '';
+      let severidad = '';
+      let color = '';
+
+      if (io < 10) {
+        interpretacion = 'Buena oxigenación';
+        severidad = 'Sin compromiso significativo';
+        color = '#10b981';
+      } else if (io >= 10 && io < 25) {
+        interpretacion = 'Deterioro moderado de la oxigenación';
+        severidad = 'Vigilancia estrecha y optimización ventilatoria';
+        color = '#f59e0b';
+      } else {
+        interpretacion = 'Deterioro severo de la oxigenación';
+        severidad = 'Considerar estrategias avanzadas (VAFO, ECMO, etc.)';
+        color = '#ef4444';
+      }
+
+      let html = '<div class="gsa-result" style="border-left: 4px solid ' + color + ';">';
+      html += '<h4>📊 Índice de Oxigenación</h4>';
+      html += `<p style="font-size: 24px; font-weight: 700; margin: 12px 0; color: ${color};">IO = ${io.toFixed(2)}</p>`;
+      html += `<p><strong>Interpretación:</strong> ${interpretacion}</p>`;
+      html += `<p><strong>Recomendación:</strong> ${severidad}</p>`;
+      html += '<hr style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">';
+      html += '<p style="font-size: 14px;"><strong>Valores ingresados:</strong></p>';
+      html += `<p style="font-size: 14px;">• FiO₂: ${fio2Percent}% (${fio2.toFixed(2)})</p>`;
+      html += `<p style="font-size: 14px;">• MAP: ${map.toFixed(1)} cmH₂O</p>`;
+      html += `<p style="font-size: 14px;">• PaO₂: ${pao2.toFixed(1)} mmHg</p>`;
+      html += '<hr style="margin: 12px 0; border: none; border-top: 1px solid rgba(255,255,255,0.3);">';
+      html += '<p style="font-size: 13px; opacity: 0.9;"><strong>Fórmula:</strong> IO = (FiO₂ × MAP) / PaO₂</p>';
+      html += '<p style="font-size: 12px; opacity: 0.8;">IO < 10: Buena | IO 10-25: Moderado | IO > 25: Severo</p>';
+      html += '</div>';
+
+      document.getElementById('ioResult').innerHTML = html;
+      document.getElementById('ioResult').style.display = 'block';
+    }
+
+    function limpiarIO() {
+      document.getElementById('ioFiO2').value = '';
+      document.getElementById('ioMAP').value = '';
+      document.getElementById('ioPaO2').value = '';
+      document.getElementById('statusFiO2').textContent = '';
+      document.getElementById('statusMAP').textContent = '';
+      document.getElementById('statusIOPaO2').textContent = '';
+      document.getElementById('ioResult').style.display = 'none';
+    }
+
+    document.getElementById('ioFiO2')?.addEventListener('input', (e) => {
+      const statusEl = document.getElementById('statusFiO2');
+      const value = parseFloat(e.target.value);
+      if (isNaN(value) || value === '') {
+        statusEl.textContent = '';
+      } else if (value < 21) {
+        statusEl.textContent = '↓ Bajo';
+        statusEl.style.color = '#ef4444';
+      } else if (value >= 21 && value <= 40) {
+        statusEl.textContent = '✓ Bajo';
+        statusEl.style.color = '#10b981';
+      } else if (value > 40 && value <= 60) {
+        statusEl.textContent = '⚠ Moderado';
+        statusEl.style.color = '#f59e0b';
+      } else {
+        statusEl.textContent = '⚠ Alto';
+        statusEl.style.color = '#ef4444';
+      }
+    });
+
+    document.getElementById('ioMAP')?.addEventListener('input', (e) => {
+      const statusEl = document.getElementById('statusMAP');
+      const value = parseFloat(e.target.value);
+      if (isNaN(value) || value === '') {
+        statusEl.textContent = '';
+      } else if (value < 5) {
+        statusEl.textContent = '↓ Bajo';
+        statusEl.style.color = '#ef4444';
+      } else if (value >= 5 && value <= 15) {
+        statusEl.textContent = '✓ Normal';
+        statusEl.style.color = '#10b981';
+      } else {
+        statusEl.textContent = '↑ Alto';
+        statusEl.style.color = '#f59e0b';
+      }
+    });
+
+    document.getElementById('ioPaO2')?.addEventListener('input', (e) => {
+      const statusEl = document.getElementById('statusIOPaO2');
+      const value = parseFloat(e.target.value);
+      if (isNaN(value) || value === '') {
+        statusEl.textContent = '';
+      } else if (value < 60) {
+        statusEl.textContent = '↓ Hipoxemia severa';
+        statusEl.style.color = '#ef4444';
+      } else if (value >= 60 && value < 80) {
+        statusEl.textContent = '↓ Hipoxemia moderada';
+        statusEl.style.color = '#f59e0b';
+      } else if (value >= 80 && value <= 95) {
+        statusEl.textContent = '✓ Normal';
+        statusEl.style.color = '#10b981';
+      } else {
+        statusEl.textContent = '↑ Hiperoxia';
+        statusEl.style.color = '#f59e0b';
+      }
     });
 
     function initDefaultInfusions() {
@@ -1592,6 +1751,7 @@ html[data-theme="dark"] #medicationSelect {
       const valor = parseFloat(document.getElementById('turnoValor').value) || 0;
       const lugar = document.getElementById('turnoLugar').value.trim();
       const tipo = document.getElementById('turnoTipo').value;
+      const paymentType = document.getElementById('turnoPaymentType').value;
       const notas = document.getElementById('turnoNotas').value.trim();
 
       if (!fecha || !horaInicio || !horaFin) {
@@ -1607,8 +1767,10 @@ html[data-theme="dark"] #medicationSelect {
         valor,
         lugar,
         tipo,
+        paymentType,
         notas,
-        creador: currentUser?.username || 'unknown'
+        creador: currentUser?.username || 'unknown',
+        isExchange: false
       };
 
       const storageKey = 'turnos_' + (currentUser?.username || 'local');
@@ -1628,6 +1790,7 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('turnoValor').value = '';
       document.getElementById('turnoLugar').value = '';
       document.getElementById('turnoTipo').value = 'guardia';
+      document.getElementById('turnoPaymentType').value = 'ops';
       document.getElementById('turnoNotas').value = '';
     }
 
@@ -1736,7 +1899,12 @@ html[data-theme="dark"] #medicationSelect {
             'otro': '#6366f1'
           }[turno.tipo] || '#6366f1';
           
-          diaHTML += `<div style="background:${colorTipo};color:white;font-size:10px;padding:2px 4px;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${turno.tipo} - ${turno.lugar} ${turno.horaInicio}-${turno.horaFin}">${turno.horaInicio} ${turno.tipo}</div>`;
+          const exchangeIcon = turno.isExchange ? '🔄 ' : '';
+          const paymentIcon = turno.paymentType === 'nomina' ? '💰' : '📊';
+          const tooltipText = `${turno.tipo} - ${turno.lugar} ${turno.horaInicio}-${turno.horaFin}${turno.isExchange ? ' (INTERCAMBIO)' : ''} | ${turno.paymentType === 'nomina' ? 'Nómina' : 'OPS'}`;
+          const borderStyle = turno.isExchange ? `border: 2px dashed white;` : '';
+          
+          diaHTML += `<div style="background:${colorTipo};color:white;font-size:10px;padding:2px 4px;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${borderStyle}" title="${tooltipText}">${exchangeIcon}${paymentIcon} ${turno.horaInicio} ${turno.tipo}</div>`;
         });
         
         diaHTML += '</div>';
@@ -1745,10 +1913,100 @@ html[data-theme="dark"] #medicationSelect {
       
       document.getElementById('calendarioTurnos').innerHTML = calendarioHTML.join('');
       
-      const turnosMesActual = turnosDelMes;
+      actualizarResumenMensual(turnosDelMes);
+    }
+    
+    function actualizarResumenMensual(turnosMes) {
+      const now = new Date();
+      const mesActual = now.getMonth();
+      const anioActual = now.getFullYear();
+      
+      const turnosMesActual = turnosMes.filter(t => {
+        const fechaTurno = new Date(t.fecha);
+        return fechaTurno.getMonth() === mesActual && fechaTurno.getFullYear() === anioActual;
+      });
+      
       const total = turnosMesActual.length;
       const valorTotal = turnosMesActual.reduce((sum, t) => sum + t.valor, 0);
-      document.getElementById('resumenTurnos').textContent = `Total de turnos: ${total} | Valor total: $${valorTotal.toFixed(2)}`;
+      
+      const porUbicacion = {};
+      turnosMesActual.forEach(t => {
+        const ubicacion = t.lugar || 'Sin ubicación';
+        if (!porUbicacion[ubicacion]) {
+          porUbicacion[ubicacion] = {
+            count: 0,
+            valor: 0,
+            nomina: 0,
+            ops: 0,
+            valorNomina: 0,
+            valorOps: 0
+          };
+        }
+        porUbicacion[ubicacion].count++;
+        porUbicacion[ubicacion].valor += t.valor || 0;
+        
+        const paymentType = t.paymentType || 'ops';
+        if (paymentType === 'nomina') {
+          porUbicacion[ubicacion].nomina++;
+          porUbicacion[ubicacion].valorNomina += t.valor || 0;
+        } else {
+          porUbicacion[ubicacion].ops++;
+          porUbicacion[ubicacion].valorOps += t.valor || 0;
+        }
+      });
+      
+      const totalNomina = turnosMesActual.filter(t => (t.paymentType || 'ops') === 'nomina').length;
+      const totalOps = turnosMesActual.filter(t => (t.paymentType || 'ops') === 'ops').length;
+      const valorNomina = turnosMesActual.filter(t => (t.paymentType || 'ops') === 'nomina').reduce((sum, t) => sum + t.valor, 0);
+      const valorOps = turnosMesActual.filter(t => (t.paymentType || 'ops') === 'ops').reduce((sum, t) => sum + t.valor, 0);
+      
+      let html = '<div style="margin-bottom: 16px;">';
+      html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">';
+      html += `<div style="padding: 12px; background: linear-gradient(135deg, var(--g1), var(--g2)); border-radius: 8px; color: white;">
+        <div style="font-size: 12px; opacity: 0.9;">Total Turnos</div>
+        <div style="font-size: 24px; font-weight: 700;">${total}</div>
+      </div>`;
+      html += `<div style="padding: 12px; background: linear-gradient(135deg, var(--g1), var(--g2)); border-radius: 8px; color: white;">
+        <div style="font-size: 12px; opacity: 0.9;">Valor Total</div>
+        <div style="font-size: 24px; font-weight: 700;">$${valorTotal.toFixed(2)}</div>
+      </div>`;
+      html += '</div>';
+      
+      html += '<div style="margin-bottom: 16px;">';
+      html += '<h5 style="margin: 0 0 8px 0; color: var(--primary);">Por Tipo de Pago</h5>';
+      html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">';
+      html += `<div style="padding: 10px; background: rgba(0,139,139,0.1); border-radius: 6px; border-left: 3px solid #10b981;">
+        <div style="font-weight: 600; color: #10b981;">💰 Nómina (Fijo)</div>
+        <div style="font-size: 13px; margin-top: 4px;">Turnos: ${totalNomina} | Valor: $${valorNomina.toFixed(2)}</div>
+      </div>`;
+      html += `<div style="padding: 10px; background: rgba(0,139,139,0.1); border-radius: 6px; border-left: 3px solid #f59e0b;">
+        <div style="font-weight: 600; color: #f59e0b;">📊 OPS (Variable)</div>
+        <div style="font-size: 13px; margin-top: 4px;">Turnos: ${totalOps} | Valor: $${valorOps.toFixed(2)}</div>
+      </div>`;
+      html += '</div>';
+      html += '</div>';
+      
+      if (Object.keys(porUbicacion).length > 0) {
+        html += '<div>';
+        html += '<h5 style="margin: 0 0 8px 0; color: var(--primary);">Desglose por Ubicación</h5>';
+        Object.keys(porUbicacion).sort().forEach(ubicacion => {
+          const data = porUbicacion[ubicacion];
+          html += `<div style="padding: 10px; background: rgba(0,139,139,0.05); border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--primary);">
+            <div style="font-weight: 600; margin-bottom: 6px;">📍 ${ubicacion}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; font-size: 13px;">
+              <div>Total: ${data.count} turnos</div>
+              <div>Valor: $${data.valor.toFixed(2)}</div>
+              <div style="color: #10b981;">Nómina: ${data.nomina} ($${data.valorNomina.toFixed(2)})</div>
+              <div style="color: #f59e0b;">OPS: ${data.ops} ($${data.valorOps.toFixed(2)})</div>
+            </div>
+          </div>`;
+        });
+        html += '</div>';
+      }
+      
+      html += '</div>';
+      
+      document.getElementById('resumenTurnos').innerHTML = html;
     }
 
     function eliminarTurno(id) {
@@ -1816,9 +2074,34 @@ html[data-theme="dark"] #medicationSelect {
       cambiosExistentes.push(cambio);
       localStorage.setItem(storageKey, JSON.stringify(cambiosExistentes));
 
+      const turnoIntercambiado = {
+        id: Date.now() + 1,
+        fecha: turnoAsumido,
+        horaInicio: '00:00',
+        horaFin: '23:59',
+        valor: 0,
+        lugar: `Cambio con ${medico}`,
+        tipo: tipo,
+        paymentType: 'ops',
+        notas: `Intercambio de turno. Mi turno original: ${new Date(miTurno).toLocaleDateString('es-ES')}. ${notas}`,
+        creador: currentUser?.username || 'unknown',
+        isExchange: true,
+        exchangeDetails: {
+          medico: medico,
+          miTurno: miTurno,
+          cambioId: cambio.id
+        }
+      };
+
+      const storageKeyTurnos = 'turnos_' + (currentUser?.username || 'local');
+      const turnosExistentes = JSON.parse(localStorage.getItem(storageKeyTurnos) || '[]');
+      turnosExistentes.push(turnoIntercambiado);
+      localStorage.setItem(storageKeyTurnos, JSON.stringify(turnosExistentes));
+
       limpiarFormCambio();
       cargarCambios();
-      alert('Cambio de turno registrado exitosamente');
+      cargarTurnos();
+      alert('Cambio de turno registrado exitosamente y agregado al calendario');
     }
 
     function limpiarFormCambio() {

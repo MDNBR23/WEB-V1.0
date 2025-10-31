@@ -263,8 +263,36 @@
     }
   }
   
+  function initColombiaClock() {
+    const clockEl = document.getElementById('colombiaClock');
+    if (!clockEl) return;
+    
+    function updateClock() {
+      const now = new Date();
+      const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+      
+      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      
+      const dayName = days[colombiaTime.getDay()];
+      const day = String(colombiaTime.getDate()).padStart(2, '0');
+      const month = months[colombiaTime.getMonth()];
+      const year = colombiaTime.getFullYear();
+      
+      const hours = String(colombiaTime.getHours()).padStart(2, '0');
+      const minutes = String(colombiaTime.getMinutes()).padStart(2, '0');
+      const seconds = String(colombiaTime.getSeconds()).padStart(2, '0');
+      
+      clockEl.innerHTML = `<span style="font-weight:600;">${dayName} ${day} ${month} ${year}</span> <span style="opacity:0.8;">|</span> <span style="font-weight:700;">${hours}:${minutes}:${seconds}</span>`;
+    }
+    
+    updateClock();
+    setInterval(updateClock, 1000);
+  }
+  
   if(!isAuth && !isReg && !isReset) {
     await fillTop();
+    initColombiaClock();
     
     const session = await checkSession();
     if(session && session.role !== 'admin') {
