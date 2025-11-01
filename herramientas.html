@@ -531,8 +531,10 @@ html[data-theme="dark"] #medicationSelect {
             <h3>Gestión de Turnos Médicos</h3>
             <p class="text-muted">Organiza tus turnos médicos con calendario interactivo.</p>
             
-            <div style="display: flex; gap: 8px; margin-top: 16px; margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; margin-top: 16px; margin-bottom: 12px; flex-wrap: wrap;">
               <button class="btn sm" id="btnVistaCalendario" onclick="mostrarVistaCalendario()" style="background: var(--primary); color: white;">📅 Calendario</button>
+              <button class="btn sm secondary" id="btnVistaNomina" onclick="mostrarVistaNomina()">💰 Nómina</button>
+              <button class="btn sm secondary" id="btnVistaOPS" onclick="mostrarVistaOPS()">📊 OPS</button>
               <button class="btn sm secondary" id="btnVistaCambios" onclick="mostrarVistaCambios()">🔄 Cambios de Turno</button>
             </div>
             
@@ -606,6 +608,172 @@ html[data-theme="dark"] #medicationSelect {
               <div style="margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--primary);">
                 <h4 style="margin: 0 0 12px 0; color: var(--primary);">📊 Resumen del Mes Actual</h4>
                 <div id="resumenTurnos" style="font-size: 14px;"></div>
+              </div>
+            </div>
+            
+            <div id="vistaNomina" style="display:none;">
+              <h4 style="margin-bottom: 12px;">💰 Configuración de Nómina</h4>
+              <p class="text-muted" style="margin-bottom: 16px;">Establece tu salario mensual fijo y los días de trabajo recurrentes.</p>
+              
+              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid #10b981; margin-bottom: 20px;">
+                <h5 style="margin: 0 0 12px 0; color: #10b981;">Información de Nómina</h5>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                  <div class="field">
+                    <label>Salario Mensual Fijo ($)</label>
+                    <input type="number" id="nominaSalarioFijo" step="0.01" placeholder="0.00">
+                  </div>
+                  <div class="field">
+                    <label>Lugar de Trabajo</label>
+                    <input type="text" id="nominaLugar" placeholder="Hospital, Clínica...">
+                  </div>
+                </div>
+                
+                <div class="field" style="margin-top: 12px;">
+                  <label>Días de Trabajo (selecciona los días que trabajas)</label>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia0" value="0">
+                      <span>Domingo</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia1" value="1">
+                      <span>Lunes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia2" value="2">
+                      <span>Martes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia3" value="3">
+                      <span>Miércoles</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia4" value="4">
+                      <span>Jueves</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia5" value="5">
+                      <span>Viernes</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
+                      <input type="checkbox" id="nominaDia6" value="6">
+                      <span>Sábado</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
+                  <div class="field">
+                    <label>Hora de Inicio</label>
+                    <input type="time" id="nominaHoraInicio" value="08:00">
+                  </div>
+                  <div class="field">
+                    <label>Hora de Fin</label>
+                    <input type="time" id="nominaHoraFin" value="17:00">
+                  </div>
+                  <div class="field">
+                    <label>Tipo de Turno</label>
+                    <select id="nominaTipo">
+                      <option value="guardia">Guardia</option>
+                      <option value="consulta" selected>Consulta</option>
+                      <option value="cirugia">Cirugía</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                  <button class="btn success" onclick="generarTurnosNomina()">✓ Aplicar Turnos al Mes Actual</button>
+                  <button class="btn secondary" onclick="limpiarConfigNomina()">🗑️ Limpiar</button>
+                </div>
+              </div>
+              
+              <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid #10b981;">
+                <h5 style="margin: 0 0 8px 0; color: #10b981;">ℹ️ Cómo funciona</h5>
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                  <li>Configura tu salario mensual fijo y los días que trabajas regularmente</li>
+                  <li>Al aplicar, se crearán automáticamente todos los turnos del mes actual</li>
+                  <li>Los turnos se marcarán como tipo "Nómina" en el calendario</li>
+                  <li>El valor del turno se calculará automáticamente: Salario Mensual / Días de Trabajo</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div id="vistaOPS" style="display:none;">
+              <h4 style="margin-bottom: 12px;">📊 Gestión de Turnos OPS</h4>
+              <p class="text-muted" style="margin-bottom: 16px;">Crea turnos individuales o genera secuencias automáticas para turnos OPS variables.</p>
+              
+              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid #f59e0b; margin-bottom: 20px;">
+                <h5 style="margin: 0 0 12px 0; color: #f59e0b;">Generar Secuencia Automática</h5>
+                <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">Crea múltiples turnos siguiendo un patrón específico.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                  <div class="field">
+                    <label>Fecha de Inicio</label>
+                    <input type="date" id="opsSecFechaInicio">
+                  </div>
+                  <div class="field">
+                    <label>Número de Turnos</label>
+                    <input type="number" id="opsSecCantidad" min="1" max="31" value="4" placeholder="¿Cuántos turnos?">
+                  </div>
+                  <div class="field">
+                    <label>Frecuencia</label>
+                    <select id="opsSecFrecuencia">
+                      <option value="1">Cada día</option>
+                      <option value="2">Cada 2 días</option>
+                      <option value="3" selected>Cada 3 días</option>
+                      <option value="4">Cada 4 días</option>
+                      <option value="7">Cada semana</option>
+                      <option value="14">Cada 2 semanas</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
+                  <div class="field">
+                    <label>Hora de Inicio</label>
+                    <input type="time" id="opsSecHoraInicio" value="07:00">
+                  </div>
+                  <div class="field">
+                    <label>Hora de Fin</label>
+                    <input type="time" id="opsSecHoraFin" value="19:00">
+                  </div>
+                  <div class="field">
+                    <label>Valor por Turno ($)</label>
+                    <input type="number" id="opsSecValor" step="0.01" placeholder="0.00">
+                  </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
+                  <div class="field">
+                    <label>Lugar</label>
+                    <input type="text" id="opsSecLugar" placeholder="Hospital, Clínica...">
+                  </div>
+                  <div class="field">
+                    <label>Tipo de Turno</label>
+                    <select id="opsSecTipo">
+                      <option value="guardia" selected>Guardia</option>
+                      <option value="consulta">Consulta</option>
+                      <option value="cirugia">Cirugía</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                  <button class="btn primary" onclick="generarSecuenciaOPS()">🔄 Generar Secuencia</button>
+                  <button class="btn secondary" onclick="limpiarSecuenciaOPS()">🗑️ Limpiar</button>
+                </div>
+              </div>
+              
+              <div style="padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <h5 style="margin: 0 0 8px 0; color: #f59e0b;">ℹ️ Cómo funciona</h5>
+                <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                  <li>Define una fecha de inicio y cuántos turnos quieres crear</li>
+                  <li>Selecciona la frecuencia (cada cuántos días se repite el turno)</li>
+                  <li>Los turnos se crearán automáticamente con los mismos datos</li>
+                  <li>También puedes agregar turnos individuales haciendo clic en cualquier día del calendario</li>
+                </ul>
               </div>
             </div>
             
@@ -1950,12 +2118,15 @@ html[data-theme="dark"] #medicationSelect {
       });
       
       const now = new Date();
-      const colombiaToday = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+      const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+      const hoyDia = colombiaTime.getDate();
+      const hoyMes = colombiaTime.getMonth();
+      const hoyAnio = colombiaTime.getFullYear();
       
       for (let dia = 1; dia <= ultimoDia; dia++) {
         const fecha = `${calendarioAnioActual}-${String(calendarioMesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         const turnosDia = turnosDelMes.filter(t => t.fecha === fecha);
-        const esHoy = colombiaToday.toDateString() === new Date(fecha).toDateString();
+        const esHoy = (dia === hoyDia && calendarioMesActual === hoyMes && calendarioAnioActual === hoyAnio);
         
         let diaHTML = `<div onclick="abrirFormTurno('${fecha}')" style="min-height:80px;padding:4px;border-radius:6px;cursor:pointer;transition:all 0.2s;background:${esHoy ? 'rgba(0,139,139,0.15)' : 'var(--card)'};border:${esHoy ? '2px solid var(--primary)' : '1px solid var(--border)'};" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">`;
         diaHTML += `<div style="font-weight:700;margin-bottom:4px;color:${esHoy ? 'var(--primary)' : 'var(--text)'};">${dia}</div>`;
@@ -2045,11 +2216,11 @@ html[data-theme="dark"] #medicationSelect {
       html += '<h5 style="margin: 0 0 8px 0; color: var(--primary);">Por Tipo de Pago</h5>';
       html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">';
       html += `<div style="padding: 10px; background: rgba(0,139,139,0.1); border-radius: 6px; border-left: 3px solid #10b981;">
-        <div style="font-weight: 600; color: #10b981;">💰 Nómina (Fijo)</div>
+        <div style="font-weight: 600; color: #10b981;">💰 Nómina</div>
         <div style="font-size: 13px; margin-top: 4px;">Turnos: ${totalNomina} | Valor: $${valorNomina.toFixed(2)}</div>
       </div>`;
       html += `<div style="padding: 10px; background: rgba(0,139,139,0.1); border-radius: 6px; border-left: 3px solid #f59e0b;">
-        <div style="font-weight: 600; color: #f59e0b;">📊 OPS (Variable)</div>
+        <div style="font-weight: 600; color: #f59e0b;">📊 OPS</div>
         <div style="font-size: 13px; margin-top: 4px;">Turnos: ${totalOps} | Valor: $${valorOps.toFixed(2)}</div>
       </div>`;
       html += '</div>';
@@ -2094,10 +2265,22 @@ html[data-theme="dark"] #medicationSelect {
 
     function mostrarVistaCalendario() {
       document.getElementById('vistaCalendario').style.display = 'block';
+      document.getElementById('vistaNomina').style.display = 'none';
+      document.getElementById('vistaOPS').style.display = 'none';
       document.getElementById('vistaCambios').style.display = 'none';
+      
       document.getElementById('btnVistaCalendario').style.background = 'var(--primary)';
       document.getElementById('btnVistaCalendario').style.color = 'white';
       document.getElementById('btnVistaCalendario').classList.remove('secondary');
+      
+      document.getElementById('btnVistaNomina').style.background = '';
+      document.getElementById('btnVistaNomina').style.color = '';
+      document.getElementById('btnVistaNomina').classList.add('secondary');
+      
+      document.getElementById('btnVistaOPS').style.background = '';
+      document.getElementById('btnVistaOPS').style.color = '';
+      document.getElementById('btnVistaOPS').classList.add('secondary');
+      
       document.getElementById('btnVistaCambios').style.background = '';
       document.getElementById('btnVistaCambios').style.color = '';
       document.getElementById('btnVistaCambios').classList.add('secondary');
@@ -2105,13 +2288,26 @@ html[data-theme="dark"] #medicationSelect {
 
     function mostrarVistaCambios() {
       document.getElementById('vistaCalendario').style.display = 'none';
+      document.getElementById('vistaNomina').style.display = 'none';
+      document.getElementById('vistaOPS').style.display = 'none';
       document.getElementById('vistaCambios').style.display = 'block';
-      document.getElementById('btnVistaCambios').style.background = 'var(--primary)';
-      document.getElementById('btnVistaCambios').style.color = 'white';
-      document.getElementById('btnVistaCambios').classList.remove('secondary');
+      
       document.getElementById('btnVistaCalendario').style.background = '';
       document.getElementById('btnVistaCalendario').style.color = '';
       document.getElementById('btnVistaCalendario').classList.add('secondary');
+      
+      document.getElementById('btnVistaNomina').style.background = '';
+      document.getElementById('btnVistaNomina').style.color = '';
+      document.getElementById('btnVistaNomina').classList.add('secondary');
+      
+      document.getElementById('btnVistaOPS').style.background = '';
+      document.getElementById('btnVistaOPS').style.color = '';
+      document.getElementById('btnVistaOPS').classList.add('secondary');
+      
+      document.getElementById('btnVistaCambios').style.background = 'var(--primary)';
+      document.getElementById('btnVistaCambios').style.color = 'white';
+      document.getElementById('btnVistaCambios').classList.remove('secondary');
+      
       cargarCambios();
     }
 
@@ -2235,6 +2431,231 @@ html[data-theme="dark"] #medicationSelect {
 
       cargarCambios();
       alert('Cambio de turno eliminado');
+    }
+
+    function mostrarVistaNomina() {
+      document.getElementById('vistaCalendario').style.display = 'none';
+      document.getElementById('vistaNomina').style.display = 'block';
+      document.getElementById('vistaOPS').style.display = 'none';
+      document.getElementById('vistaCambios').style.display = 'none';
+      
+      document.getElementById('btnVistaCalendario').classList.add('secondary');
+      document.getElementById('btnVistaCalendario').style.background = '';
+      document.getElementById('btnVistaCalendario').style.color = '';
+      
+      document.getElementById('btnVistaNomina').classList.remove('secondary');
+      document.getElementById('btnVistaNomina').style.background = 'var(--primary)';
+      document.getElementById('btnVistaNomina').style.color = 'white';
+      
+      document.getElementById('btnVistaOPS').classList.add('secondary');
+      document.getElementById('btnVistaOPS').style.background = '';
+      document.getElementById('btnVistaOPS').style.color = '';
+      
+      document.getElementById('btnVistaCambios').classList.add('secondary');
+      document.getElementById('btnVistaCambios').style.background = '';
+      document.getElementById('btnVistaCambios').style.color = '';
+    }
+
+    function mostrarVistaOPS() {
+      document.getElementById('vistaCalendario').style.display = 'none';
+      document.getElementById('vistaNomina').style.display = 'none';
+      document.getElementById('vistaOPS').style.display = 'block';
+      document.getElementById('vistaCambios').style.display = 'none';
+      
+      document.getElementById('btnVistaCalendario').classList.add('secondary');
+      document.getElementById('btnVistaCalendario').style.background = '';
+      document.getElementById('btnVistaCalendario').style.color = '';
+      
+      document.getElementById('btnVistaNomina').classList.add('secondary');
+      document.getElementById('btnVistaNomina').style.background = '';
+      document.getElementById('btnVistaNomina').style.color = '';
+      
+      document.getElementById('btnVistaOPS').classList.remove('secondary');
+      document.getElementById('btnVistaOPS').style.background = 'var(--primary)';
+      document.getElementById('btnVistaOPS').style.color = 'white';
+      
+      document.getElementById('btnVistaCambios').classList.add('secondary');
+      document.getElementById('btnVistaCambios').style.background = '';
+      document.getElementById('btnVistaCambios').style.color = '';
+    }
+
+    function generarTurnosNomina() {
+      const salario = parseFloat(document.getElementById('nominaSalarioFijo').value);
+      const lugar = document.getElementById('nominaLugar').value.trim();
+      const horaInicio = document.getElementById('nominaHoraInicio').value;
+      const horaFin = document.getElementById('nominaHoraFin').value;
+      const tipo = document.getElementById('nominaTipo').value;
+
+      const diasSeleccionados = [];
+      for (let i = 0; i <= 6; i++) {
+        if (document.getElementById(`nominaDia${i}`).checked) {
+          diasSeleccionados.push(i);
+        }
+      }
+
+      if (!salario || salario <= 0) {
+        alert('Por favor ingresa un salario mensual válido');
+        return;
+      }
+
+      if (!lugar) {
+        alert('Por favor ingresa el lugar de trabajo');
+        return;
+      }
+
+      if (diasSeleccionados.length === 0) {
+        alert('Por favor selecciona al menos un día de trabajo');
+        return;
+      }
+
+      const now = new Date();
+      const mesActual = now.getMonth();
+      const anioActual = now.getFullYear();
+      const ultimoDia = new Date(anioActual, mesActual + 1, 0).getDate();
+
+      const turnosACrear = [];
+      let totalDiasEnMes = 0;
+
+      for (let dia = 1; dia <= ultimoDia; dia++) {
+        const fecha = new Date(anioActual, mesActual, dia);
+        const diaSemana = fecha.getDay();
+
+        if (diasSeleccionados.includes(diaSemana)) {
+          totalDiasEnMes++;
+        }
+      }
+
+      if (totalDiasEnMes === 0) {
+        alert('No hay días de trabajo en el mes actual con los días seleccionados');
+        return;
+      }
+
+      const valorPorTurno = salario / totalDiasEnMes;
+
+      for (let dia = 1; dia <= ultimoDia; dia++) {
+        const fecha = new Date(anioActual, mesActual, dia);
+        const diaSemana = fecha.getDay();
+
+        if (diasSeleccionados.includes(diaSemana)) {
+          const fechaStr = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+          
+          turnosACrear.push({
+            id: Date.now() + Math.random(),
+            fecha: fechaStr,
+            horaInicio: horaInicio,
+            horaFin: horaFin,
+            valor: valorPorTurno,
+            lugar: lugar,
+            tipo: tipo,
+            paymentType: 'nomina',
+            notas: `Turno de nómina - Salario mensual: $${salario.toFixed(2)}`,
+            creador: currentUser?.username || 'unknown',
+            isExchange: false
+          });
+        }
+      }
+
+      const storageKey = 'turnos_' + (currentUser?.username || 'local');
+      const turnosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      const turnosExistentesFiltrados = turnosExistentes.filter(t => {
+        const fechaTurno = new Date(t.fecha);
+        return !(fechaTurno.getMonth() === mesActual && 
+                 fechaTurno.getFullYear() === anioActual && 
+                 t.paymentType === 'nomina');
+      });
+
+      const nuevosTurnos = [...turnosExistentesFiltrados, ...turnosACrear];
+      localStorage.setItem(storageKey, JSON.stringify(nuevosTurnos));
+
+      cargarTurnos();
+      mostrarVistaCalendario();
+      alert(`✓ Se han generado ${turnosACrear.length} turnos de nómina para el mes actual.\n\nCálculo:\nSalario mensual: $${salario.toFixed(2)}\nTurnos generados: ${turnosACrear.length}\nValor por turno: $${valorPorTurno.toFixed(2)}\nTotal: $${(valorPorTurno * turnosACrear.length).toFixed(2)}`);
+    }
+
+    function limpiarConfigNomina() {
+      document.getElementById('nominaSalarioFijo').value = '';
+      document.getElementById('nominaLugar').value = '';
+      document.getElementById('nominaHoraInicio').value = '08:00';
+      document.getElementById('nominaHoraFin').value = '17:00';
+      document.getElementById('nominaTipo').value = 'consulta';
+      
+      for (let i = 0; i <= 6; i++) {
+        document.getElementById(`nominaDia${i}`).checked = false;
+      }
+    }
+
+    function generarSecuenciaOPS() {
+      const fechaInicio = document.getElementById('opsSecFechaInicio').value;
+      const cantidad = parseInt(document.getElementById('opsSecCantidad').value);
+      const frecuencia = parseInt(document.getElementById('opsSecFrecuencia').value);
+      const horaInicio = document.getElementById('opsSecHoraInicio').value;
+      const horaFin = document.getElementById('opsSecHoraFin').value;
+      const valor = parseFloat(document.getElementById('opsSecValor').value) || 0;
+      const lugar = document.getElementById('opsSecLugar').value.trim();
+      const tipo = document.getElementById('opsSecTipo').value;
+
+      if (!fechaInicio) {
+        alert('Por favor selecciona una fecha de inicio');
+        return;
+      }
+
+      if (!cantidad || cantidad < 1 || cantidad > 31) {
+        alert('Por favor ingresa un número válido de turnos (entre 1 y 31)');
+        return;
+      }
+
+      if (!lugar) {
+        alert('Por favor ingresa el lugar');
+        return;
+      }
+
+      const turnosACrear = [];
+      const fechaBase = new Date(fechaInicio + 'T00:00:00');
+
+      for (let i = 0; i < cantidad; i++) {
+        const fecha = new Date(fechaBase);
+        fecha.setDate(fechaBase.getDate() + (i * frecuencia));
+        
+        const anio = fecha.getFullYear();
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const fechaStr = `${anio}-${mes}-${dia}`;
+
+        turnosACrear.push({
+          id: Date.now() + Math.random(),
+          fecha: fechaStr,
+          horaInicio: horaInicio,
+          horaFin: horaFin,
+          valor: valor,
+          lugar: lugar,
+          tipo: tipo,
+          paymentType: 'ops',
+          notas: `Turno OPS (secuencia ${i + 1}/${cantidad})`,
+          creador: currentUser?.username || 'unknown',
+          isExchange: false
+        });
+      }
+
+      const storageKey = 'turnos_' + (currentUser?.username || 'local');
+      const turnosExistentes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const nuevosTurnos = [...turnosExistentes, ...turnosACrear];
+      localStorage.setItem(storageKey, JSON.stringify(nuevosTurnos));
+
+      cargarTurnos();
+      mostrarVistaCalendario();
+      alert(`✓ Se han generado ${cantidad} turnos OPS en secuencia.\nValor total: $${(valor * cantidad).toFixed(2)}`);
+    }
+
+    function limpiarSecuenciaOPS() {
+      document.getElementById('opsSecFechaInicio').value = '';
+      document.getElementById('opsSecCantidad').value = '4';
+      document.getElementById('opsSecFrecuencia').value = '3';
+      document.getElementById('opsSecHoraInicio').value = '07:00';
+      document.getElementById('opsSecHoraFin').value = '19:00';
+      document.getElementById('opsSecValor').value = '';
+      document.getElementById('opsSecLugar').value = '';
+      document.getElementById('opsSecTipo').value = 'guardia';
     }
 
     function buscarIA() {
