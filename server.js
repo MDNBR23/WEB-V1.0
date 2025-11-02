@@ -6,38 +6,40 @@ const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');
 const { Pool } = require('pg');
+const nodemailer = require('nodemailer');
 
 async function sendEmail(message) {
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
-
-  if (!xReplitToken) {
-    throw new Error('No se pudo obtener el token de autenticación de Replit');
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error('SMTP credentials not configured');
+    throw new Error('Configuración de email no disponible');
   }
 
-  const response = await fetch('https://connectors.replit.com/api/v2/mailer/send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X_REPLIT_TOKEN': xReplitToken,
-    },
-    body: JSON.stringify({
-      to: message.to,
-      subject: message.subject,
-      text: message.text,
-      html: message.html || undefined
-    }),
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.hostinger.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Error al enviar email');
-  }
+  const mailOptions = {
+    from: `"Med Tools Hub" <${process.env.SMTP_USER}>`,
+    to: message.to,
+    subject: message.subject,
+    text: message.text,
+    html: message.html || message.text
+  };
 
-  return await response.json();
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw new Error('Error al enviar el correo electrónico');
+  }
 }
 
 const app = express();

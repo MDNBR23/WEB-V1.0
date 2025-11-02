@@ -5,7 +5,7 @@ Med Tools Hub is a Spanish-language medical web platform designed for pediatric 
 
 ## Recent Changes (October 31, 2025)
 1. **Enhanced Legal Footer:** Updated footer across all 9 HTML pages (index, register, reset-password, main, herramientas, sugerencias, admin, vademecum, configuracion) with comprehensive legal disclaimer:
-   - Full text: "Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional. El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud. NBR® 2025 | Med Tools Hub | administrador@medtoolshub.com"
+   - Full text: "Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional. El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud. NBR® 2025 | Med Tools Hub | administrador@medtoolshub.cloud"
    - Consistent styling via CSS classes (.legal-footer, .legal-disclaimer) for responsive design
 2. **Colombia Clock Flicker Fix:** Eliminated clock flickering when switching browser tabs:
    - Changed from innerHTML (DOM reconstruction) to persistent DOM elements (dateSpan, separator, timeSpan)
