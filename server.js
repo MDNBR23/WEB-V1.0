@@ -215,6 +215,18 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({error: 'Usuario no existe'});
     }
     
+    if (user.status === 'pendiente') {
+      return res.status(401).json({error: 'Tu registro está pendiente de aprobación por el administrador. Te notificaremos cuando sea aprobado.'});
+    }
+    
+    if (user.status === 'suspendido') {
+      return res.status(403).json({error: 'Tu cuenta ha sido suspendida. Por favor contacta al administrador para más información.'});
+    }
+    
+    if (user.status === 'rechazado') {
+      return res.status(403).json({error: 'Tu solicitud de registro ha sido rechazada. Si crees que esto es un error, contacta al administrador.'});
+    }
+    
     if (user.status !== 'aprobado') {
       return res.status(401).json({error: 'Tu registro no ha sido aprobado'});
     }
@@ -1071,6 +1083,125 @@ app.delete('/api/plantillas/:id', async (req, res) => {
   } catch (err) {
     console.error('Error deleting plantilla:', err);
     res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.get('/api/tools/status', async (req, res) => {
+  try {
+    const toolsStatus = await readJSON('tools_status.json', {
+      corrector: { enabled: true, name: 'Corrector de Texto' },
+      gases: { enabled: true, name: 'Gases Sanguíneos' },
+      infusiones: { enabled: true, name: 'Infusiones' },
+      plantillas: { enabled: true, name: 'Plantillas' },
+      turnos: { enabled: true, name: 'Mis Turnos' },
+      ia: { enabled: true, name: 'Asistente IA' },
+      interacciones: { enabled: true, name: 'Interacciones Medicamentosas' }
+    });
+    res.json(toolsStatus);
+  } catch (err) {
+    console.error('Error getting tools status:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.put('/api/tools/status', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const toolsStatus = req.body;
+    await writeJSON('tools_status.json', toolsStatus);
+    res.json({success: true, toolsStatus});
+  } catch (err) {
+    console.error('Error updating tools status:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.get('/api/backup/export', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const backup = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      jsonFiles: {},
+      database: {}
+    };
+    
+    const jsonFiles = ['users.json', 'anuncios_global.json', 'guias_global.json', 'medications.json', 'sugerencias.json', 'maintenance.json'];
+    
+    for (const file of jsonFiles) {
+      backup.jsonFiles[file] = await readJSON(file, []);
+    }
+    
+    const plantillasResult = await pool.query('SELECT * FROM plantillas ORDER BY created_at DESC');
+    backup.database.plantillas = plantillasResult.rows;
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="medtools-backup-${new Date().toISOString().slice(0,10)}.json"`);
+    res.json(backup);
+  } catch (err) {
+    console.error('Error creating backup:', err);
+    res.status(500).json({error: 'Error al crear backup'});
+  }
+});
+
+app.post('/api/backup/import', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const backup = req.body;
+    
+    if (!backup || !backup.version || !backup.jsonFiles) {
+      return res.status(400).json({error: 'Formato de backup inválido'});
+    }
+    
+    for (const [filename, data] of Object.entries(backup.jsonFiles)) {
+      await writeJSON(filename, data);
+    }
+    
+    if (backup.database && backup.database.plantillas) {
+      await pool.query('DELETE FROM plantillas');
+      
+      for (const plantilla of backup.database.plantillas) {
+        const query = `
+          INSERT INTO plantillas (id, nombre, categoria, contenido, fecha, tamanio, global, creador, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO UPDATE SET
+            nombre = EXCLUDED.nombre,
+            categoria = EXCLUDED.categoria,
+            contenido = EXCLUDED.contenido,
+            fecha = EXCLUDED.fecha,
+            tamanio = EXCLUDED.tamanio,
+            global = EXCLUDED.global,
+            creador = EXCLUDED.creador,
+            updated_at = EXCLUDED.updated_at
+        `;
+        await pool.query(query, [
+          plantilla.id,
+          plantilla.nombre,
+          plantilla.categoria,
+          plantilla.contenido,
+          plantilla.fecha || null,
+          plantilla.tamanio,
+          plantilla.global,
+          plantilla.creador,
+          plantilla.created_at,
+          plantilla.updated_at || plantilla.created_at
+        ]);
+      }
+    }
+    
+    res.json({success: true, message: 'Backup importado exitosamente'});
+  } catch (err) {
+    console.error('Error importing backup:', err);
+    res.status(500).json({error: 'Error al importar backup: ' + err.message});
   }
 });
 

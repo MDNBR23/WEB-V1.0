@@ -316,9 +316,18 @@
     initColombiaClock();
     
     const session = await checkSession();
-    if(session && session.role !== 'admin') {
-      await updateUserSugerenciasNotifications();
-      setInterval(updateUserSugerenciasNotifications, 30000);
+    if(session) {
+      if(session.role !== 'admin') {
+        await updateUserSugerenciasNotifications();
+        setInterval(updateUserSugerenciasNotifications, 10000);
+      } else {
+        await updateUserSugerenciasNotifications();
+        await updateAdminNotifications();
+        setInterval(async () => {
+          await updateUserSugerenciasNotifications();
+          await updateAdminNotifications();
+        }, 10000);
+      }
     }
   }
 
@@ -816,19 +825,42 @@
   const adminUsersTable=document.getElementById('adminUsersTable');
   const modalUser=document.getElementById('modalUser');
   const userForm=document.getElementById('userForm');
+  let allUsers = [];
   
   function openModal(id, show){
     const el=document.getElementById(id);
     if(el) el.style.display=show?'flex':'none';
   }
   
-  async function renderUsers(){
+  window.filterUsers = function() {
+    const searchTerm = document.getElementById('searchUsers')?.value.toLowerCase() || '';
+    const filterCat = document.getElementById('filterCategoria')?.value || '';
+    const filterRole = document.getElementById('filterRol')?.value || '';
+    const filterStat = document.getElementById('filterEstado')?.value || '';
+    
+    const filtered = allUsers.filter(u => {
+      const matchesSearch = !searchTerm || 
+        (u.username||'').toLowerCase().includes(searchTerm) ||
+        (u.name||'').toLowerCase().includes(searchTerm) ||
+        (u.email||'').toLowerCase().includes(searchTerm) ||
+        (u.institucion||'').toLowerCase().includes(searchTerm);
+      
+      const matchesCat = !filterCat || (u.cat === filterCat);
+      const matchesRole = !filterRole || (u.role === filterRole);
+      const matchesStat = !filterStat || (u.status === filterStat);
+      
+      return matchesSearch && matchesCat && matchesRole && matchesStat;
+    });
+    
+    displayUsers(filtered);
+  };
+  
+  async function displayUsers(users) {
     const tb=adminUsersTable?.querySelector('tbody');
     if(!tb) return;
     
     try {
       const session = await checkSession();
-      const users = await api('/users');
       const me=session.username;
       
       tb.innerHTML=users.map(u=>{
@@ -924,6 +956,18 @@
       }));
     } catch (err) {
       console.error('Error rendering users:', err);
+    }
+  }
+  
+  async function renderUsers(){
+    const tb=adminUsersTable?.querySelector('tbody');
+    if(!tb) return;
+    
+    try {
+      allUsers = await api('/users');
+      await displayUsers(allUsers);
+    } catch (err) {
+      console.error('Error loading users:', err);
     }
   }
   
@@ -1852,6 +1896,157 @@
       toast('Error al guardar mensaje', 'error');
     }
   };
+
+  window.exportarBackup = async function() {
+    const backupStatus = document.getElementById('backupStatus');
+    try {
+      backupStatus.style.display = 'block';
+      backupStatus.style.background = 'rgba(33,150,243,0.1)';
+      backupStatus.style.border = '1px solid #2196f3';
+      backupStatus.textContent = 'Generando backup...';
+      
+      const response = await fetch('/api/backup/export', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al generar backup');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `medtools-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      backupStatus.style.background = 'rgba(76,175,80,0.1)';
+      backupStatus.style.border = '1px solid #4caf50';
+      backupStatus.textContent = '✓ Backup descargado exitosamente';
+      
+      setTimeout(() => {
+        backupStatus.style.display = 'none';
+      }, 3000);
+      
+      toast('Backup descargado exitosamente', 'success');
+    } catch (err) {
+      console.error('Error exporting backup:', err);
+      backupStatus.style.background = 'rgba(244,67,54,0.1)';
+      backupStatus.style.border = '1px solid #f44336';
+      backupStatus.textContent = '✗ Error al generar backup: ' + err.message;
+      toast('Error al exportar backup', 'error');
+    }
+  };
+
+  window.importarBackup = async function() {
+    const backupStatus = document.getElementById('backupStatus');
+    const fileInput = document.getElementById('backupFileInput');
+    const file = fileInput.files[0];
+    
+    if (!file) return;
+    
+    if (!confirm('⚠️ ADVERTENCIA: Esta acción reemplazará TODOS los datos actuales del sistema con los datos del backup. ¿Estás seguro de que deseas continuar?')) {
+      fileInput.value = '';
+      return;
+    }
+    
+    try {
+      backupStatus.style.display = 'block';
+      backupStatus.style.background = 'rgba(33,150,243,0.1)';
+      backupStatus.style.border = '1px solid #2196f3';
+      backupStatus.textContent = 'Importando backup...';
+      
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const backupData = JSON.parse(e.target.result);
+          
+          const response = await api('/backup/import', {
+            method: 'POST',
+            body: JSON.stringify(backupData)
+          });
+          
+          backupStatus.style.background = 'rgba(76,175,80,0.1)';
+          backupStatus.style.border = '1px solid #4caf50';
+          backupStatus.textContent = '✓ Backup importado exitosamente. Recargando página...';
+          
+          toast('Backup importado exitosamente', 'success');
+          
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
+        } catch (err) {
+          console.error('Error importing backup:', err);
+          backupStatus.style.background = 'rgba(244,67,54,0.1)';
+          backupStatus.style.border = '1px solid #f44336';
+          backupStatus.textContent = '✗ Error al importar backup: ' + err.message;
+          toast('Error al importar backup', 'error');
+        }
+      };
+      reader.readAsText(file);
+    } catch (err) {
+      console.error('Error reading file:', err);
+      backupStatus.style.background = 'rgba(244,67,54,0.1)';
+      backupStatus.style.border = '1px solid #f44336';
+      backupStatus.textContent = '✗ Error al leer archivo';
+      toast('Error al leer archivo de backup', 'error');
+    }
+    
+    fileInput.value = '';
+  };
+
+  const toolsControlList = document.getElementById('toolsControlList');
+  let currentToolsStatus = {};
+
+  async function loadToolsControl() {
+    if (!toolsControlList) return;
+    
+    try {
+      currentToolsStatus = await api('/tools/status');
+      
+      toolsControlList.innerHTML = Object.entries(currentToolsStatus).map(([key, tool]) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--card);border-radius:8px;border:1px solid var(--border);">
+          <span style="font-weight:500;">${tool.name}</span>
+          <label class="switch" style="margin:0;">
+            <input type="checkbox" ${tool.enabled ? 'checked' : ''} onchange="toggleTool('${key}', this.checked)">
+            <span class="slider"></span>
+            <span style="font-size:13px;">${tool.enabled ? 'Activa' : 'Bloqueada'}</span>
+          </label>
+        </div>
+      `).join('');
+    } catch (err) {
+      console.error('Error loading tools control:', err);
+    }
+  }
+
+  window.toggleTool = async function(toolKey, enabled) {
+    try {
+      currentToolsStatus[toolKey].enabled = enabled;
+      
+      await api('/tools/status', {
+        method: 'PUT',
+        body: JSON.stringify(currentToolsStatus)
+      });
+      
+      toast(`Herramienta ${enabled ? 'activada' : 'bloqueada'} exitosamente`, 'success');
+      await loadToolsControl();
+    } catch (err) {
+      console.error('Error toggling tool:', err);
+      toast('Error al actualizar herramienta', 'error');
+      await loadToolsControl();
+    }
+  };
+
+  if (toolsControlList) {
+    loadToolsControl();
+  }
 
   const adminInfusionesTable = document.getElementById('adminInfusionesTable');
   const modalInfusion = document.getElementById('modalInfusion');

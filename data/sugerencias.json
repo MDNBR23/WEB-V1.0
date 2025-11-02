@@ -7,5 +7,38 @@
     "fecha": "2025-10-06T23:39:23.053Z",
     "respondida": true,
     "fechaRespuesta": "2025-10-06T23:40:03.423Z"
+  },
+  {
+    "id": "997467b4-3eca-4d11-80e7-67d85be35429",
+    "username": "usuario",
+    "mensaje": "fdghfghdfh",
+    "respuesta": "",
+    "fecha": "2025-11-02T21:57:31.978Z",
+    "respondida": false
+  },
+  {
+    "id": "b7f86192-caf5-4af4-a2ac-97fa0d6d3c10",
+    "username": "usuario",
+    "mensaje": "fdghdfghdfgh",
+    "respuesta": "",
+    "fecha": "2025-11-02T21:57:35.164Z",
+    "respondida": false
+  },
+  {
+    "id": "24a4836b-c7d2-4131-90dd-c067d1590a74",
+    "username": "usuario",
+    "mensaje": "dfghdfghdfghdfhg",
+    "respuesta": "",
+    "fecha": "2025-11-02T21:57:37.067Z",
+    "respondida": false
+  },
+  {
+    "id": "3c96c6da-50a1-4580-a310-bdbabc6e688b",
+    "username": "usuario",
+    "mensaje": "dfghdfghdfghdfgh",
+    "respuesta": "Muchas gracias por tu sugerencia. Hemos tomado nota de tus comentarios y trabajaremos para implementar las mejoras necesarias. Tu retroalimentación es muy valiosa para nosotros.",
+    "fecha": "2025-11-02T21:57:38.608Z",
+    "respondida": true,
+    "fechaRespuesta": "2025-11-02T22:09:35.667Z"
   }
 ]
