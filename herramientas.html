@@ -376,10 +376,7 @@ html[data-theme="dark"] #medicationSelect {
             
             <div id="excelView" style="display:none;">
               <div style="margin-bottom:12px;padding:12px;background:rgba(33,150,243,0.1);border-left:4px solid #2196f3;border-radius:6px;">
-                <p style="margin:0;font-size:14px;">💡 <strong>Vista de tabla:</strong> Pega texto con tabulaciones o columnas. <strong>Clic y arrastra</strong> para seleccionar múltiples celdas. Usa <strong>Ctrl/Cmd + clic</strong> para agregar/quitar celdas de la selección. Doble clic en una celda para copiarla rápidamente. Pega datos de Excel directamente para crear la tabla automáticamente.</p>
-              </div>
-              <div style="margin-bottom:12px;">
-                <textarea id="excelPasteArea" placeholder="Pega aquí datos de Excel o texto con columnas..." style="width:100%;min-height:80px;padding:10px;border:2px dashed var(--border);border-radius:6px;font-family:monospace;font-size:13px;" onpaste="handleExcelPaste(event)"></textarea>
+                <p style="margin:0;font-size:14px;">💡 <strong>Vista de tabla:</strong> <strong>Clic y arrastra</strong> para seleccionar celdas continuas. Usa <strong>Ctrl/Cmd + clic</strong> para seleccionar celdas individuales. <strong>Ctrl/Cmd + C</strong> para copiar. <strong>Ctrl/Cmd + V</strong> sobre una celda para pegar datos de Excel directamente.</p>
               </div>
               <div style="overflow:auto;max-height:500px;border:1px solid var(--border);border-radius:8px;background:white;">
                 <table id="excelTable" style="width:100%;border-collapse:collapse;background:var(--card);user-select:text;">
@@ -391,7 +388,7 @@ html[data-theme="dark"] #medicationSelect {
                 <button class="btn sm" onclick="addExcelColumn()">+ Columna</button>
                 <button class="btn sm secondary" onclick="clearExcelTable()">🗑️ Limpiar Tabla</button>
                 <button class="btn sm success" onclick="copyExcelTable()">📋 Copiar Toda la Tabla</button>
-                <button class="btn sm" onclick="copySelectedCell()">📋 Copiar Celdas Seleccionadas</button>
+                <button class="btn sm" onclick="copySelectedCells()">📋 Copiar Selección</button>
               </div>
             </div>
             
@@ -973,11 +970,11 @@ html[data-theme="dark"] #medicationSelect {
             </div>
 
             <div style="margin-top: 24px;">
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; padding: 16px; background: linear-gradient(135deg, rgba(0,139,139,0.05), rgba(0,128,128,0.1)); border-radius: 12px; border: 1px solid var(--border);">
                 <div style="flex: 1; min-width: 200px;">
-                  <strong id="plantillasCounter">Plantillas guardadas: 0</strong>
+                  <strong id="plantillasCounter" style="font-size: 16px; color: var(--primary);">Plantillas guardadas: 0</strong>
                 </div>
-                <select id="filterCategory" onchange="filtrarDocumentos()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <select id="filterCategory" onchange="filtrarDocumentos()" style="padding: 10px 14px; border-radius: 10px; border: 2px solid var(--border); background: var(--card); font-weight: 500; cursor: pointer; transition: all 0.2s;">
                   <option value="">📂 Todas las categorías</option>
                   <option value="pediatria">👶 Pediatría</option>
                   <option value="adultos">👨‍⚕️ Adultos</option>
@@ -986,9 +983,9 @@ html[data-theme="dark"] #medicationSelect {
                   <option value="infusiones">💉 Infusiones</option>
                   <option value="otras">📋 Otras</option>
                 </select>
-                <input type="search" id="searchDoc" placeholder="🔍 Buscar plantilla..." onkeyup="filtrarDocumentos()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; min-width: 200px;">
+                <input type="search" id="searchDoc" placeholder="🔍 Buscar plantilla..." onkeyup="filtrarDocumentos()" style="padding: 10px 14px; border-radius: 10px; border: 2px solid var(--border); min-width: 250px; background: var(--card); transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(0,139,139,0.1)'" onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
               </div>
-              <div id="docList" class="doc-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;"></div>
+              <div id="docList" class="doc-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px;"></div>
             </div>
           </section>
         </div>
@@ -1060,6 +1057,7 @@ html[data-theme="dark"] #medicationSelect {
       document.addEventListener('mouseup', handleCellMouseUp);
       
       loadInfusionMedications();
+      loadToolsStatus();
       showMenu();
     }
 
@@ -1073,16 +1071,21 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('iaTool').style.display = 'none';
     }
 
-    async function showTool(tool) {
+    let toolsStatusCache = null;
+    
+    async function loadToolsStatus() {
       try {
-        const toolsStatus = await api('/tools/status');
-        
-        if (currentUser && currentUser.role !== 'admin' && toolsStatus[tool] && !toolsStatus[tool].enabled) {
-          alert(`⚠️ La herramienta "${toolsStatus[tool].name}" no está disponible temporalmente. Estamos trabajando en mejoras.`);
-          return;
-        }
+        toolsStatusCache = await api('/tools/status');
       } catch (err) {
-        console.error('Error checking tool status:', err);
+        console.error('Error loading tools status:', err);
+        toolsStatusCache = {};
+      }
+    }
+    
+    function showTool(tool) {
+      if (toolsStatusCache === null) {
+        setTimeout(() => showTool(tool), 100);
+        return;
       }
       
       document.getElementById('toolMenu').style.display = 'none';
@@ -1092,6 +1095,12 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('plantillasTool').style.display = 'none';
       document.getElementById('turnosTool').style.display = 'none';
       document.getElementById('iaTool').style.display = 'none';
+      
+      if (currentUser && currentUser.role !== 'admin' && toolsStatusCache[tool] && !toolsStatusCache[tool].enabled) {
+        alert(`⚠️ La herramienta "${toolsStatusCache[tool].name}" no está disponible temporalmente. Estamos trabajando en mejoras.`);
+        document.getElementById('toolMenu').style.display = 'grid';
+        return;
+      }
       
       if (tool === 'corrector') {
         document.getElementById('correctorTool').style.display = 'block';
@@ -1210,6 +1219,7 @@ html[data-theme="dark"] #medicationSelect {
     let selectedCells = [];
     let isDragging = false;
     let dragStartCell = null;
+    let hasDragged = false;
 
     function selectCell(td, isAdding = false) {
       if (!isAdding && selectedCells.indexOf(td) === -1) {
@@ -1229,7 +1239,10 @@ html[data-theme="dark"] #medicationSelect {
     }
 
     function handleCellClick(td, event) {
-      if (isDragging) return;
+      if (hasDragged) {
+        hasDragged = false;
+        return;
+      }
       
       const isCtrlOrCmd = event.ctrlKey || event.metaKey;
       
@@ -1267,8 +1280,18 @@ html[data-theme="dark"] #medicationSelect {
       
       isDragging = true;
       dragStartCell = td;
+      hasDragged = false;
       
       const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+      
+      if (!isCtrlOrCmd) {
+        selectedCells.forEach(cell => {
+          cell.style.backgroundColor = 'var(--card)';
+          cell.style.outline = 'none';
+        });
+        selectedCells = [];
+      }
+      
       selectCell(td, isCtrlOrCmd);
       
       event.preventDefault();
@@ -1276,6 +1299,7 @@ html[data-theme="dark"] #medicationSelect {
 
     function handleCellMouseEnter(td, event) {
       if (isDragging && dragStartCell) {
+        hasDragged = true;
         selectCell(td, true);
       }
     }
@@ -1287,13 +1311,14 @@ html[data-theme="dark"] #medicationSelect {
       }
     }
 
-    function handleExcelPaste(event) {
-      event.preventDefault();
-      const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-      document.getElementById('excelPasteArea').value = pastedText;
-      parseTextToTable(pastedText);
-      showToast('Datos procesados en la tabla', 'success');
-    }
+    document.addEventListener('keydown', function(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        if (selectedCells.length > 0 && document.getElementById('excelView').style.display !== 'none') {
+          event.preventDefault();
+          copySelectedCells();
+        }
+      }
+    });
 
     function parseTextToTable(text) {
       const tbody = document.getElementById('excelTableBody');
@@ -1355,6 +1380,43 @@ html[data-theme="dark"] #medicationSelect {
             }
           });
           
+          td.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            
+            if (pastedText.includes('\t') || pastedText.includes('\n')) {
+              const tbody = document.getElementById('excelTableBody');
+              const currentRow = td.parentElement;
+              const rowIndex = Array.from(tbody.rows).indexOf(currentRow);
+              const colIndex = Array.from(currentRow.cells).indexOf(td);
+              
+              const lines = pastedText.split('\n').filter(line => line);
+              lines.forEach((line, lineIdx) => {
+                const cells = line.split('\t');
+                const targetRowIndex = rowIndex + lineIdx;
+                
+                while (tbody.rows.length <= targetRowIndex) {
+                  addExcelRow();
+                }
+                
+                const targetRow = tbody.rows[targetRowIndex];
+                cells.forEach((cellText, cellIdx) => {
+                  const targetColIndex = colIndex + cellIdx;
+                  
+                  while (targetRow.cells.length <= targetColIndex) {
+                    addCellToRow(targetRow);
+                  }
+                  
+                  targetRow.cells[targetColIndex].textContent = cellText.trim();
+                });
+              });
+              
+              showToast('Datos pegados en la tabla', 'success');
+            } else {
+              td.textContent = pastedText;
+            }
+          });
+          
           tr.appendChild(td);
         });
         
@@ -1362,32 +1424,119 @@ html[data-theme="dark"] #medicationSelect {
       });
     }
 
-    function copySelectedCell() {
+    function copySelectedCells() {
       if (selectedCells.length === 0) {
         showToast('Selecciona al menos una celda primero', 'error');
         return;
       }
       
-      if (selectedCells.length === 1) {
-        const text = selectedCells[0].textContent.trim();
-        if (!text) {
-          showToast('La celda está vacía', 'error');
-          return;
+      const tbody = document.getElementById('excelTableBody');
+      const rows = Array.from(tbody.rows);
+      
+      const cellPositions = selectedCells.map(cell => {
+        const row = cell.parentElement;
+        const rowIndex = rows.indexOf(row);
+        const colIndex = Array.from(row.cells).indexOf(cell);
+        return { cell, rowIndex, colIndex, text: cell.textContent.trim() };
+      });
+      
+      cellPositions.sort((a, b) => {
+        if (a.rowIndex !== b.rowIndex) return a.rowIndex - b.rowIndex;
+        return a.colIndex - b.colIndex;
+      });
+      
+      const minRow = Math.min(...cellPositions.map(p => p.rowIndex));
+      const maxRow = Math.max(...cellPositions.map(p => p.rowIndex));
+      const minCol = Math.min(...cellPositions.map(p => p.colIndex));
+      const maxCol = Math.max(...cellPositions.map(p => p.colIndex));
+      
+      let clipboardText = '';
+      for (let r = minRow; r <= maxRow; r++) {
+        const rowCells = [];
+        for (let c = minCol; c <= maxCol; c++) {
+          const cellPos = cellPositions.find(p => p.rowIndex === r && p.colIndex === c);
+          rowCells.push(cellPos ? cellPos.text : '');
         }
-        navigator.clipboard.writeText(text).then(() => {
-          showToast('Celda copiada: ' + text.substring(0, 40) + (text.length > 40 ? '...' : ''), 'success');
-        }).catch(() => {
-          showToast('Error al copiar celda', 'error');
-        });
-      } else {
-        const texts = selectedCells.map(cell => cell.textContent.trim());
-        const combinedText = texts.join('\n');
-        navigator.clipboard.writeText(combinedText).then(() => {
-          showToast(`${selectedCells.length} celdas copiadas al portapapeles`, 'success');
-        }).catch(() => {
-          showToast('Error al copiar celdas', 'error');
-        });
+        clipboardText += rowCells.join('\t') + '\n';
       }
+      
+      navigator.clipboard.writeText(clipboardText.trim()).then(() => {
+        showToast(`${selectedCells.length} celda(s) copiada(s) en formato tabla`, 'success');
+      }).catch(() => {
+        showToast('Error al copiar celdas', 'error');
+      });
+    }
+
+    function addCellToRow(row) {
+      const td = document.createElement('td');
+      td.contentEditable = 'true';
+      td.style.border = '1px solid #e2e8f0';
+      td.style.padding = '8px 12px';
+      td.style.minWidth = '80px';
+      td.style.cursor = 'pointer';
+      td.style.backgroundColor = 'var(--card)';
+      td.style.transition = 'background-color 0.2s';
+      
+      td.addEventListener('click', function(e) {
+        handleCellClick(td, e);
+      });
+      
+      td.addEventListener('mousedown', function(e) {
+        handleCellMouseDown(td, e);
+      });
+      
+      td.addEventListener('mouseenter', function(e) {
+        handleCellMouseEnter(td, e);
+      });
+      
+      td.addEventListener('dblclick', function() {
+        const text = td.textContent.trim();
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Celda copiada: ' + text.substring(0, 30) + (text.length > 30 ? '...' : ''), 'success');
+          });
+        }
+      });
+      
+      td.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        
+        if (pastedText.includes('\t') || pastedText.includes('\n')) {
+          const tbody = document.getElementById('excelTableBody');
+          const currentRow = td.parentElement;
+          const rowIndex = Array.from(tbody.rows).indexOf(currentRow);
+          const colIndex = Array.from(currentRow.cells).indexOf(td);
+          
+          const lines = pastedText.split('\n').filter(line => line);
+          lines.forEach((line, lineIdx) => {
+            const cells = line.split('\t');
+            const targetRowIndex = rowIndex + lineIdx;
+            
+            while (tbody.rows.length <= targetRowIndex) {
+              addExcelRow();
+            }
+            
+            const targetRow = tbody.rows[targetRowIndex];
+            cells.forEach((cellText, cellIdx) => {
+              const targetColIndex = colIndex + cellIdx;
+              
+              while (targetRow.cells.length <= targetColIndex) {
+                addCellToRow(targetRow);
+              }
+              
+              targetRow.cells[targetColIndex].textContent = cellText.trim();
+            });
+          });
+          
+          showToast('Datos pegados en la tabla', 'success');
+        } else {
+          td.textContent = pastedText;
+        }
+      });
+      
+      row.appendChild(td);
+      return td;
     }
 
     function initEmptyTable() {
@@ -1405,37 +1554,7 @@ html[data-theme="dark"] #medicationSelect {
       const colCount = tbody.rows.length > 0 ? tbody.rows[0].cells.length : 3;
       
       for (let i = 0; i < (colCount || 3); i++) {
-        const td = document.createElement('td');
-        td.contentEditable = 'true';
-        td.style.border = '1px solid #e2e8f0';
-        td.style.padding = '8px 12px';
-        td.style.minWidth = '80px';
-        td.style.cursor = 'pointer';
-        td.style.backgroundColor = 'var(--card)';
-        td.style.transition = 'background-color 0.2s';
-        
-        td.addEventListener('click', function(e) {
-          handleCellClick(td, e);
-        });
-        
-        td.addEventListener('mousedown', function(e) {
-          handleCellMouseDown(td, e);
-        });
-        
-        td.addEventListener('mouseenter', function(e) {
-          handleCellMouseEnter(td, e);
-        });
-        
-        td.addEventListener('dblclick', function() {
-          const text = td.textContent.trim();
-          if (text) {
-            navigator.clipboard.writeText(text).then(() => {
-              showToast('Celda copiada: ' + text.substring(0, 30) + (text.length > 30 ? '...' : ''), 'success');
-            });
-          }
-        });
-        
-        tr.appendChild(td);
+        addCellToRow(tr);
       }
       
       tbody.appendChild(tr);
@@ -1451,29 +1570,7 @@ html[data-theme="dark"] #medicationSelect {
       }
       
       for (let row of rows) {
-        const td = document.createElement('td');
-        td.contentEditable = 'true';
-        td.style.border = '1px solid #e2e8f0';
-        td.style.padding = '8px 12px';
-        td.style.minWidth = '80px';
-        td.style.cursor = 'pointer';
-        td.style.backgroundColor = 'var(--card)';
-        td.style.transition = 'background-color 0.2s';
-        
-        td.addEventListener('click', function(e) {
-          handleCellClick(td, e);
-        });
-        
-        td.addEventListener('dblclick', function() {
-          const text = td.textContent.trim();
-          if (text) {
-            navigator.clipboard.writeText(text).then(() => {
-              showToast('Celda copiada: ' + text.substring(0, 30) + (text.length > 30 ? '...' : ''), 'success');
-            });
-          }
-        });
-        
-        row.appendChild(td);
+        addCellToRow(row);
       }
     }
 
@@ -2105,16 +2202,8 @@ html[data-theme="dark"] #medicationSelect {
 
     async function cargarDocumentos() {
       try {
-        const response = await fetch('/api/plantillas');
-        
-        if (response.ok) {
-          documentos = await response.json();
-          mostrarDocumentos();
-        } else {
-          console.error('Error cargando plantillas:', response.statusText);
-          documentos = [];
-          mostrarDocumentos();
-        }
+        documentos = await api('/plantillas');
+        mostrarDocumentos();
       } catch (err) {
         console.error('Error cargando plantillas:', err);
         documentos = [];
@@ -2154,45 +2243,60 @@ html[data-theme="dark"] #medicationSelect {
       };
 
       container.innerHTML = lista.map((doc, index) => {
-        const fecha = new Date(doc.fecha || doc.created_at).toLocaleDateString('es-ES');
+        const fecha = new Date(doc.fecha || doc.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         const tamanioKB = (doc.tamanio / 1024).toFixed(1);
         const esPropia = doc.creador === currentUser?.username;
         const esAdmin = currentUser?.role === 'admin';
         const puedeEditar = esPropia || esAdmin;
         const icon = getCategoryIcon(doc.categoria);
         
+        const categoryColors = {
+          'pediatria': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          'adultos': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          'geriatria': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          'neonatologia': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+          'infusiones': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+          'otras': 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
+        };
+        
+        const categoryGradient = categoryColors[doc.categoria] || categoryColors['otras'];
+        
         return `
-          <div class="doc-item" style="
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
+          <div class="doc-item plantilla-card" style="
+            background: var(--card);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             animation: fadeIn 0.3s ease-in-out ${index * 0.05}s both;
             position: relative;
             overflow: hidden;
-          " onmouseenter="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-            ${doc.global ? '<div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">PREDEFINIDA</div>' : ''}
-            <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 12px;">
-              <div style="font-size: 32px; line-height: 1;">${icon}</div>
-              <div style="flex: 1;">
-                <div style="font-weight: 600; font-size: 16px; color: #2d3748; margin-bottom: 4px;">${doc.nombre}</div>
-                <div style="font-size: 13px; color: #718096;">
-                  ${doc.categoria.charAt(0).toUpperCase() + doc.categoria.slice(1)}
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 12px 28px rgba(0,139,139,0.2)'; this.style.borderColor='var(--primary)';" onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'; this.style.borderColor='transparent';">
+            <div style="height: 6px; background: ${categoryGradient};"></div>
+            <div style="padding: 20px;">
+              ${doc.global ? '<div style="position: absolute; top: 18px; right: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 14px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">✨ PREDEFINIDA</div>' : ''}
+              <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 14px;">
+                <div style="font-size: 48px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">${icon}</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 700; font-size: 17px; color: var(--text); margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${doc.nombre}">${doc.nombre}</div>
+                  <div style="display: inline-block; background: ${categoryGradient}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                    ${doc.categoria.charAt(0).toUpperCase() + doc.categoria.slice(1)}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div style="display: flex; gap: 8px; font-size: 12px; color: #a0aec0; margin-bottom: 16px;">
-              <span>📦 ${tamanioKB} KB</span>
-              <span>•</span>
-              <span>📅 ${fecha}</span>
-              ${!doc.global ? `<span>•</span><span>👤 ${doc.creador}</span>` : ''}
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              ${puedeEditar ? `<button class="btn sm" onclick="event.stopPropagation(); editarDocumento(${doc.id})" style="flex: 1; min-width: 80px;">✏️ Editar</button>` : ''}
-              <button class="btn sm" onclick="event.stopPropagation(); descargarDocumento(${doc.id})" style="flex: 1; min-width: 80px;">⬇️ Descargar</button>
-              ${puedeEditar ? `<button class="btn danger sm" onclick="event.stopPropagation(); eliminarDocumento(${doc.id})" style="min-width: 80px;">🗑️</button>` : ''}
+              <div style="display: flex; gap: 12px; font-size: 12px; color: var(--muted); margin-bottom: 18px; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 4px;">📦 <strong>${tamanioKB} KB</strong></span>
+                <span>•</span>
+                <span style="display: flex; align-items: center; gap: 4px;">📅 <strong>${fecha}</strong></span>
+                ${!doc.global ? `<span>•</span><span style="display: flex; align-items: center; gap: 4px;">👤 <strong>${doc.creador}</strong></span>` : ''}
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${puedeEditar ? `<button class="btn sm primary" onclick="event.stopPropagation(); editarDocumento(${doc.id})" style="flex: 1; min-width: 90px; font-weight: 600;">✏️ Editar</button>` : ''}
+                <button class="btn sm success" onclick="event.stopPropagation(); descargarDocumento(${doc.id})" style="flex: 1; min-width: 90px; font-weight: 600;">⬇️ Descargar</button>
+                ${puedeEditar ? `<button class="btn danger sm" onclick="event.stopPropagation(); eliminarDocumento(${doc.id})" style="min-width: 50px; font-weight: 600;">🗑️</button>` : ''}
+              </div>
             </div>
           </div>
         `;
