@@ -3,7 +3,16 @@
 ## Overview
 Med Tools Hub is a Spanish-language medical web platform designed for pediatric and neonatal healthcare professionals. It provides a comprehensive system for user management, medical announcements, clinical guidelines, and medication information. The platform is fully functional, production-ready, and features a robust backend API with user session management and data isolation. Its purpose is to centralize essential resources and tools for healthcare providers.
 
-## Recent Changes (October 31, 2025)
+## Recent Changes (November 3, 2025)
+1. **Database Migration:** Created PostgreSQL table for plantillas to fix "Error en el servidor" when saving templates
+2. **Enhanced Excel Table Selection:** Improved the Corrector de Texto table view with multiple cell selection capabilities:
+   - Drag selection: Click and drag to select multiple cells
+   - Ctrl/Cmd + Click: Add or remove individual cells from selection
+   - Double-click: Quick copy individual cell
+   - Copy multiple cells: All selected cells are copied with line breaks
+3. **Backup System Verified:** Confirmed that backups already include plantillas automatically
+
+## Previous Changes (October 31, 2025)
 1. **Enhanced Legal Footer:** Updated footer across all 9 HTML pages (index, register, reset-password, main, herramientas, sugerencias, admin, vademecum, configuracion) with comprehensive legal disclaimer:
    - Full text: "Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional. El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud. NBR® 2025 | Med Tools Hub | administrador@medtoolshub.cloud"
    - Consistent styling via CSS classes (.legal-footer, .legal-disclaimer) for responsive design

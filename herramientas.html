@@ -376,7 +376,7 @@ html[data-theme="dark"] #medicationSelect {
             
             <div id="excelView" style="display:none;">
               <div style="margin-bottom:12px;padding:12px;background:rgba(33,150,243,0.1);border-left:4px solid #2196f3;border-radius:6px;">
-                <p style="margin:0;font-size:14px;">💡 <strong>Vista de tabla:</strong> Pega texto con tabulaciones o columnas. Haz clic en una celda para seleccionarla y copiar su contenido. Pega datos de Excel directamente para crear la tabla automáticamente.</p>
+                <p style="margin:0;font-size:14px;">💡 <strong>Vista de tabla:</strong> Pega texto con tabulaciones o columnas. <strong>Clic y arrastra</strong> para seleccionar múltiples celdas. Usa <strong>Ctrl/Cmd + clic</strong> para agregar/quitar celdas de la selección. Doble clic en una celda para copiarla rápidamente. Pega datos de Excel directamente para crear la tabla automáticamente.</p>
               </div>
               <div style="margin-bottom:12px;">
                 <textarea id="excelPasteArea" placeholder="Pega aquí datos de Excel o texto con columnas..." style="width:100%;min-height:80px;padding:10px;border:2px dashed var(--border);border-radius:6px;font-family:monospace;font-size:13px;" onpaste="handleExcelPaste(event)"></textarea>
@@ -391,7 +391,7 @@ html[data-theme="dark"] #medicationSelect {
                 <button class="btn sm" onclick="addExcelColumn()">+ Columna</button>
                 <button class="btn sm secondary" onclick="clearExcelTable()">🗑️ Limpiar Tabla</button>
                 <button class="btn sm success" onclick="copyExcelTable()">📋 Copiar Toda la Tabla</button>
-                <button class="btn sm" onclick="copySelectedCell()">📋 Copiar Celda Seleccionada</button>
+                <button class="btn sm" onclick="copySelectedCell()">📋 Copiar Celdas Seleccionadas</button>
               </div>
             </div>
             
@@ -1057,6 +1057,8 @@ html[data-theme="dark"] #medicationSelect {
         document.getElementById('adminInfusionesLink').style.display = 'inline-block';
       }
       
+      document.addEventListener('mouseup', handleCellMouseUp);
+      
       loadInfusionMedications();
       showMenu();
     }
@@ -1205,7 +1207,85 @@ html[data-theme="dark"] #medicationSelect {
       }
     }
 
-    let selectedCell = null;
+    let selectedCells = [];
+    let isDragging = false;
+    let dragStartCell = null;
+
+    function selectCell(td, isAdding = false) {
+      if (!isAdding && selectedCells.indexOf(td) === -1) {
+        selectedCells.forEach(cell => {
+          cell.style.backgroundColor = 'var(--card)';
+          cell.style.outline = 'none';
+        });
+        selectedCells = [];
+      }
+      
+      const cellIndex = selectedCells.indexOf(td);
+      if (cellIndex === -1) {
+        selectedCells.push(td);
+        td.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
+        td.style.outline = '2px solid #2196f3';
+      }
+    }
+
+    function handleCellClick(td, event) {
+      if (isDragging) return;
+      
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+      
+      if (!isCtrlOrCmd) {
+        selectedCells.forEach(cell => {
+          cell.style.backgroundColor = 'var(--card)';
+          cell.style.outline = 'none';
+        });
+        selectedCells = [];
+      }
+      
+      const cellIndex = selectedCells.indexOf(td);
+      if (cellIndex > -1) {
+        td.style.backgroundColor = 'var(--card)';
+        td.style.outline = 'none';
+        selectedCells.splice(cellIndex, 1);
+      } else {
+        selectedCells.push(td);
+        td.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
+        td.style.outline = '2px solid #2196f3';
+      }
+      
+      if (selectedCells.length === 1 && !isCtrlOrCmd) {
+        td.focus();
+        const range = document.createRange();
+        range.selectNodeContents(td);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    function handleCellMouseDown(td, event) {
+      if (event.button !== 0) return;
+      
+      isDragging = true;
+      dragStartCell = td;
+      
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey;
+      selectCell(td, isCtrlOrCmd);
+      
+      event.preventDefault();
+    }
+
+    function handleCellMouseEnter(td, event) {
+      if (isDragging && dragStartCell) {
+        selectCell(td, true);
+      }
+    }
+
+    function handleCellMouseUp(event) {
+      if (isDragging) {
+        isDragging = false;
+        dragStartCell = null;
+      }
+    }
 
     function handleExcelPaste(event) {
       event.preventDefault();
@@ -1254,21 +1334,16 @@ html[data-theme="dark"] #medicationSelect {
           td.style.backgroundColor = 'var(--card)';
           td.style.transition = 'background-color 0.2s';
           
-          td.addEventListener('click', function() {
-            if (selectedCell) {
-              selectedCell.style.backgroundColor = 'var(--card)';
-              selectedCell.style.outline = 'none';
-            }
-            selectedCell = td;
-            td.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
-            td.style.outline = '2px solid #2196f3';
-            
-            td.focus();
-            const range = document.createRange();
-            range.selectNodeContents(td);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+          td.addEventListener('click', function(e) {
+            handleCellClick(td, e);
+          });
+          
+          td.addEventListener('mousedown', function(e) {
+            handleCellMouseDown(td, e);
+          });
+          
+          td.addEventListener('mouseenter', function(e) {
+            handleCellMouseEnter(td, e);
           });
           
           td.addEventListener('dblclick', function() {
@@ -1288,22 +1363,31 @@ html[data-theme="dark"] #medicationSelect {
     }
 
     function copySelectedCell() {
-      if (!selectedCell) {
-        showToast('Selecciona una celda primero', 'error');
+      if (selectedCells.length === 0) {
+        showToast('Selecciona al menos una celda primero', 'error');
         return;
       }
       
-      const text = selectedCell.textContent.trim();
-      if (!text) {
-        showToast('La celda está vacía', 'error');
-        return;
+      if (selectedCells.length === 1) {
+        const text = selectedCells[0].textContent.trim();
+        if (!text) {
+          showToast('La celda está vacía', 'error');
+          return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('Celda copiada: ' + text.substring(0, 40) + (text.length > 40 ? '...' : ''), 'success');
+        }).catch(() => {
+          showToast('Error al copiar celda', 'error');
+        });
+      } else {
+        const texts = selectedCells.map(cell => cell.textContent.trim());
+        const combinedText = texts.join('\n');
+        navigator.clipboard.writeText(combinedText).then(() => {
+          showToast(`${selectedCells.length} celdas copiadas al portapapeles`, 'success');
+        }).catch(() => {
+          showToast('Error al copiar celdas', 'error');
+        });
       }
-      
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Celda copiada: ' + text.substring(0, 40) + (text.length > 40 ? '...' : ''), 'success');
-      }).catch(() => {
-        showToast('Error al copiar celda', 'error');
-      });
     }
 
     function initEmptyTable() {
@@ -1330,15 +1414,16 @@ html[data-theme="dark"] #medicationSelect {
         td.style.backgroundColor = 'var(--card)';
         td.style.transition = 'background-color 0.2s';
         
-        td.addEventListener('click', function() {
-          if (selectedCell) {
-            selectedCell.style.backgroundColor = 'var(--card)';
-            selectedCell.style.outline = 'none';
-          }
-          selectedCell = td;
-          td.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
-          td.style.outline = '2px solid #2196f3';
-          td.focus();
+        td.addEventListener('click', function(e) {
+          handleCellClick(td, e);
+        });
+        
+        td.addEventListener('mousedown', function(e) {
+          handleCellMouseDown(td, e);
+        });
+        
+        td.addEventListener('mouseenter', function(e) {
+          handleCellMouseEnter(td, e);
         });
         
         td.addEventListener('dblclick', function() {
@@ -1375,15 +1460,8 @@ html[data-theme="dark"] #medicationSelect {
         td.style.backgroundColor = 'var(--card)';
         td.style.transition = 'background-color 0.2s';
         
-        td.addEventListener('click', function() {
-          if (selectedCell) {
-            selectedCell.style.backgroundColor = 'var(--card)';
-            selectedCell.style.outline = 'none';
-          }
-          selectedCell = td;
-          td.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
-          td.style.outline = '2px solid #2196f3';
-          td.focus();
+        td.addEventListener('click', function(e) {
+          handleCellClick(td, e);
         });
         
         td.addEventListener('dblclick', function() {

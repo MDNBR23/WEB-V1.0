@@ -24,7 +24,7 @@
     "name": "Asistente IA"
   },
   "interacciones": {
-    "enabled": false,
+    "enabled": true,
     "name": "Interacciones Medicamentosas"
   }
 }
