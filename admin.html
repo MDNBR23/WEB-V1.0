@@ -188,13 +188,37 @@
                 <li>Configuración de mantenimiento</li>
               </ul>
             </div>
-            <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            
+            <h4 style="margin:24px 0 12px 0;">Crear Nuevo Backup</h4>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px;">
               <button class="btn primary" onclick="exportarBackup()">📥 Descargar Backup</button>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input id="backupFileInput" type="file" accept=".json" style="display:none;" onchange="importarBackup()">
                 <button class="btn" onclick="document.getElementById('backupFileInput').click()">📤 Importar Backup</button>
               </div>
             </div>
+            
+            <h4 style="margin:24px 0 12px 0;">Backups Guardados en el Servidor</h4>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+              <button class="btn sm" onclick="cargarListaBackups()">🔄 Actualizar lista</button>
+              <span id="backupsCount" class="text-muted" style="font-size:14px;"></span>
+            </div>
+            <div class="table-wrap">
+              <table id="backupsServerTable">
+                <thead>
+                  <tr>
+                    <th>Archivo</th>
+                    <th>Fecha de Creación</th>
+                    <th>Tamaño</th>
+                    <th style="width:220px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);">Cargando backups...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            
             <div id="backupStatus" style="margin-top:16px;padding:12px;border-radius:6px;display:none;"></div>
           </div>
         </section>

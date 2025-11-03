@@ -48,8 +48,12 @@ const HOST = '0.0.0.0';
 const DATA_DIR = path.join(__dirname, 'data');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  ssl: { rejectUnauthorized: false }
 });
 
 app.use(bodyParser.json({limit: '50mb'}));
@@ -93,6 +97,30 @@ async function writeJSON(filename, data) {
   } catch (err) {
     console.error(`Error writing ${filename}:`, err);
     throw err;
+  }
+}
+
+async function initializeDatabase() {
+  try {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS plantillas (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(255) NOT NULL,
+        categoria VARCHAR(100) NOT NULL,
+        contenido TEXT NOT NULL,
+        fecha DATE,
+        tamanio INTEGER NOT NULL,
+        global BOOLEAN DEFAULT false,
+        creador VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    await pool.query(createTableQuery);
+    console.log('Database table "plantillas" initialized successfully');
+  } catch (err) {
+    console.error('Error initializing database:', err);
   }
 }
 
@@ -1207,6 +1235,95 @@ app.post('/api/backup/import', async (req, res) => {
   }
 });
 
+const BACKUP_DIR = path.join(__dirname, 'backups');
+
+app.get('/api/backup/list', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    await fs.mkdir(BACKUP_DIR, { recursive: true });
+    const files = await fs.readdir(BACKUP_DIR);
+    const backupFiles = files
+      .filter(f => f.startsWith('medtools-backup-') && f.endsWith('.json'));
+    
+    const backupsWithInfo = await Promise.all(
+      backupFiles.map(async (filename) => {
+        const filepath = path.join(BACKUP_DIR, filename);
+        const stats = await fs.stat(filepath);
+        return {
+          filename,
+          size: stats.size,
+          created: stats.mtime.toISOString(),
+          sizeKB: (stats.size / 1024).toFixed(2)
+        };
+      })
+    );
+    
+    backupsWithInfo.sort((a, b) => new Date(b.created) - new Date(a.created));
+    res.json(backupsWithInfo);
+  } catch (err) {
+    console.error('Error listing backups:', err);
+    res.status(500).json({error: 'Error al listar backups'});
+  }
+});
+
+app.get('/api/backup/download/:filename', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const { filename } = req.params;
+    
+    if (!filename.startsWith('medtools-backup-') || !filename.endsWith('.json')) {
+      return res.status(400).json({error: 'Nombre de archivo inválido'});
+    }
+    
+    const filepath = path.join(BACKUP_DIR, filename);
+    
+    try {
+      await fs.access(filepath);
+    } catch {
+      return res.status(404).json({error: 'Backup no encontrado'});
+    }
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.sendFile(filepath);
+  } catch (err) {
+    console.error('Error downloading backup:', err);
+    res.status(500).json({error: 'Error al descargar backup'});
+  }
+});
+
+app.delete('/api/backup/:filename', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const { filename } = req.params;
+    
+    if (!filename.startsWith('medtools-backup-') || !filename.endsWith('.json')) {
+      return res.status(400).json({error: 'Nombre de archivo inválido'});
+    }
+    
+    const filepath = path.join(BACKUP_DIR, filename);
+    
+    try {
+      await fs.unlink(filepath);
+      res.json({success: true, message: 'Backup eliminado correctamente'});
+    } catch {
+      return res.status(404).json({error: 'Backup no encontrado'});
+    }
+  } catch (err) {
+    console.error('Error deleting backup:', err);
+    res.status(500).json({error: 'Error al eliminar backup'});
+  }
+});
+
 app.use(express.static('.', {
   setHeaders: (res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -1215,8 +1332,14 @@ app.use(express.static('.', {
   }
 }));
 
-initializeData().then(() => {
+Promise.all([
+  initializeDatabase(),
+  initializeData()
+]).then(() => {
   app.listen(PORT, HOST, () => {
     console.log(`Med Tools Hub Server running at http://${HOST}:${PORT}/`);
   });
+}).catch(err => {
+  console.error('Error during initialization:', err);
+  process.exit(1);
 });
