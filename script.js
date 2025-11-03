@@ -1015,7 +1015,7 @@
     
     try {
       const list = await api('/anuncios');
-      tb.innerHTML=list.map(a=>`<tr><td>${a.img && a.img.startsWith('data:')?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:''}</td><td>${a.titulo}</td><td>${a.fecha}</td><td>${a.texto}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></div></td></tr>`).join('');
+      tb.innerHTML=list.map(a=>`<tr><td>${a.img && a.img.startsWith('data:')?`<img src='${a.img}' class='thumb' style='width:60px;height:60px;border-radius:8px;border:1px solid var(--border);object-fit:cover;'>`:''}</td><td>${a.titulo}</td><td>${a.fecha}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-an='${a.id}'>Editar</button><button class='btn sm danger' data-del-an='${a.id}'>Eliminar</button></div></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-an]').forEach(b=>b.addEventListener('click',()=>openAnuncio(b.getAttribute('data-edit-an'))));
       tb.querySelectorAll('[data-del-an]').forEach(b=>b.addEventListener('click',async()=>{
@@ -1298,7 +1298,7 @@
     
     try {
       const list = await api('/guias');
-      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.texto}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></div></td></tr>`).join('');
+      tb.innerHTML=list.map(g=>`<tr><td>${g.titulo}</td><td>${g.fecha}</td><td>${g.url?`<a href='${g.url}' target='_blank'>Abrir</a>`:''}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-g='${g.id}'>Editar</button><button class='btn sm danger' data-del-g='${g.id}'>Eliminar</button></div></td></tr>`).join('');
       
       tb.querySelectorAll('[data-edit-g]').forEach(b=>b.addEventListener('click',()=>openGuia(b.getAttribute('data-edit-g'))));
       tb.querySelectorAll('[data-del-g]').forEach(b=>b.addEventListener('click',async()=>{
@@ -1375,27 +1375,213 @@
   
   if(adminGTable) await renderGuiasAdmin();
 
+  let anunciosRotationInterval = null;
+  let currentAnuncioIndex = 0;
+  let anunciosList = [];
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showAnuncio(index) {
+    const items = document.querySelectorAll('.anuncio-item');
+    const indicators = document.querySelectorAll('.anuncio-indicator');
+    
+    items.forEach((item, i) => {
+      item.classList.toggle('active', i === index);
+    });
+    
+    indicators.forEach((ind, i) => {
+      ind.classList.toggle('active', i === index);
+    });
+    
+    currentAnuncioIndex = index;
+  }
+
+  function nextAnuncio() {
+    const nextIndex = (currentAnuncioIndex + 1) % anunciosList.length;
+    showAnuncio(nextIndex);
+  }
+
+  function prevAnuncio() {
+    const prevIndex = (currentAnuncioIndex - 1 + anunciosList.length) % anunciosList.length;
+    showAnuncio(prevIndex);
+  }
+
   async function renderAnunciosMain(){
     const cont=document.getElementById('anunciosList');
     if(!cont) return;
     
+    if(anunciosRotationInterval) {
+      clearInterval(anunciosRotationInterval);
+    }
+    
     try {
       const list = await api('/anuncios');
-      const sorted = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-      cont.innerHTML=sorted.map(a=>`<article class='glass' style='padding:10px;border-radius:12px;display:flex;gap:10px;align-items:flex-start'>${a.img && a.img.startsWith('data:')?`<img src='${a.img}' alt='' style='width:120px;height:120px;border-radius:10px;border:1px solid var(--border);object-fit:cover;flex-shrink:0;'>`:''}<div style='flex:1'><div style='display:flex;gap:8px;align-items:center;flex-wrap:wrap'><strong>${a.titulo}</strong><span class='chip'>${a.fecha}</span></div><div class='text-muted'>${a.texto}</div></div></article>`).join('');
+      anunciosList = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+      
+      if(anunciosList.length === 0) {
+        cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">No hay anuncios disponibles</div>';
+        return;
+      }
+      
+      const anunciosHtml = anunciosList.map((a, index) => `
+        <article class='anuncio-item${index === 0 ? ' active' : ''}'>
+          <div class='anuncio-header'>
+            <h3 class='anuncio-titulo'>${escapeHtml(a.titulo)}</h3>
+            <span class='anuncio-fecha'>${a.fecha || 'Sin fecha'}</span>
+          </div>
+          <div class='anuncio-body'>
+            ${a.img && a.img.startsWith('data:') ? 
+              `<img src='${a.img}' alt='${escapeHtml(a.titulo)}' class='anuncio-imagen'>` : 
+              ''}
+            <div class='anuncio-texto'>${escapeHtml(a.texto)}</div>
+          </div>
+        </article>
+      `).join('');
+      
+      const indicators = anunciosList.map((_, index) => 
+        `<div class='anuncio-indicator${index === 0 ? ' active' : ''}' data-index='${index}'></div>`
+      ).join('');
+      
+      cont.innerHTML = `
+        <div class='anuncios-container'>
+          ${anunciosHtml}
+        </div>
+        ${anunciosList.length > 1 ? `
+          <div class='anuncios-controls'>
+            <button class='anuncio-nav-btn' id='prevAnuncio' type='button'>◀</button>
+            <div class='anuncios-indicators'>
+              ${indicators}
+            </div>
+            <button class='anuncio-nav-btn' id='nextAnuncio' type='button'>▶</button>
+          </div>
+        ` : ''}
+      `;
+      
+      if(anunciosList.length > 1) {
+        document.getElementById('prevAnuncio')?.addEventListener('click', prevAnuncio);
+        document.getElementById('nextAnuncio')?.addEventListener('click', nextAnuncio);
+        
+        document.querySelectorAll('.anuncio-indicator').forEach(ind => {
+          ind.addEventListener('click', () => {
+            const index = parseInt(ind.getAttribute('data-index'));
+            showAnuncio(index);
+            if(anunciosRotationInterval) {
+              clearInterval(anunciosRotationInterval);
+              anunciosRotationInterval = setInterval(nextAnuncio, 30000);
+            }
+          });
+        });
+        
+        currentAnuncioIndex = 0;
+        anunciosRotationInterval = setInterval(nextAnuncio, 30000);
+      }
+      
     } catch (err) {
       console.error('Error rendering anuncios main:', err);
     }
   }
   
+  let guiasRotationInterval = null;
+  let currentGuiaIndex = 0;
+  let guiasList = [];
+
+  function showGuia(index) {
+    const items = document.querySelectorAll('.guia-item');
+    const indicators = document.querySelectorAll('.guia-indicator');
+    
+    items.forEach((item, i) => {
+      item.classList.toggle('active', i === index);
+    });
+    
+    indicators.forEach((ind, i) => {
+      ind.classList.toggle('active', i === index);
+    });
+    
+    currentGuiaIndex = index;
+  }
+
+  function nextGuia() {
+    const nextIndex = (currentGuiaIndex + 1) % guiasList.length;
+    showGuia(nextIndex);
+  }
+
+  function prevGuia() {
+    const prevIndex = (currentGuiaIndex - 1 + guiasList.length) % guiasList.length;
+    showGuia(prevIndex);
+  }
+
   async function renderGuiasMain(){
     const cont=document.getElementById('guiasList');
     if(!cont) return;
     
+    if(guiasRotationInterval) {
+      clearInterval(guiasRotationInterval);
+    }
+    
     try {
       const list = await api('/guias');
-      const sorted = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-      cont.innerHTML=sorted.map(g=>`<div class='glass' style='padding:10px;border-radius:12px'><div style='display:flex;gap:8px;align-items:center'><strong>${g.titulo}</strong><span class='chip'>${g.fecha}</span></div><div class='text-muted'>${g.texto}</div>${g.url?`<div class='mt12'><a class='btn sm' target='_blank' href='${g.url}'>Abrir</a></div>`:''}</div>`).join('');
+      guiasList = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+      
+      if(guiasList.length === 0) {
+        cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">No hay guías disponibles</div>';
+        return;
+      }
+      
+      const guiasHtml = guiasList.map((g, index) => `
+        <article class='guia-item${index === 0 ? ' active' : ''}'>
+          <div class='anuncio-header'>
+            <h3 class='anuncio-titulo'>${escapeHtml(g.titulo)}</h3>
+            <span class='anuncio-fecha'>${g.fecha || 'Sin fecha'}</span>
+          </div>
+          <div class='anuncio-body'>
+            <div class='anuncio-texto'>${escapeHtml(g.texto)}</div>
+          </div>
+          ${g.url ? `<div style='margin-top:16px;padding-top:16px;border-top:1px solid var(--border);'><a class='btn sm' target='_blank' href='${g.url}'>Abrir guía completa</a></div>` : ''}
+        </article>
+      `).join('');
+      
+      const indicators = guiasList.map((_, index) => 
+        `<div class='guia-indicator${index === 0 ? ' active' : ''}' data-index='${index}'></div>`
+      ).join('');
+      
+      cont.innerHTML = `
+        <div class='anuncios-container'>
+          ${guiasHtml}
+        </div>
+        ${guiasList.length > 1 ? `
+          <div class='anuncios-controls'>
+            <button class='anuncio-nav-btn' id='prevGuia' type='button'>◀</button>
+            <div class='anuncios-indicators'>
+              ${indicators}
+            </div>
+            <button class='anuncio-nav-btn' id='nextGuia' type='button'>▶</button>
+          </div>
+        ` : ''}
+      `;
+      
+      if(guiasList.length > 1) {
+        document.getElementById('prevGuia')?.addEventListener('click', prevGuia);
+        document.getElementById('nextGuia')?.addEventListener('click', nextGuia);
+        
+        document.querySelectorAll('.guia-indicator').forEach(ind => {
+          ind.addEventListener('click', () => {
+            const index = parseInt(ind.getAttribute('data-index'));
+            showGuia(index);
+            if(guiasRotationInterval) {
+              clearInterval(guiasRotationInterval);
+              guiasRotationInterval = setInterval(nextGuia, 30000);
+            }
+          });
+        });
+        
+        currentGuiaIndex = 0;
+        guiasRotationInterval = setInterval(nextGuia, 30000);
+      }
+      
     } catch (err) {
       console.error('Error rendering guias main:', err);
     }

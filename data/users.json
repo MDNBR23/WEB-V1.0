@@ -24,5 +24,72 @@
     "cat": "Pediatra",
     "avatar": "",
     "createdAt": "2025-10-14T00:00:00.000Z"
+  },
+  {
+    "username": "BabillaSincelejana1998",
+    "name": "BabillaSincelejana1998",
+    "password": "$2b$10$uJdGfltNax8RtP.5jAMQv.I.xjqXKD1V7ubRfIyJdLJpeYHrRwAp2",
+    "email": "16puo1mgm@mozmail.com",
+    "phone": "3008125997",
+    "institucion": "La Miseriacordia Infernacional",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Médico General",
+    "avatar": "",
+    "createdAt": "2025-11-03T01:54:48.896Z",
+    "resetToken": "8d7860027b744971932ee5b6d9af077d8164412c449165f7c034215113e4e1f6",
+    "resetExpiry": 1762138736475
+  },
+  {
+    "username": "Telmvane",
+    "name": "Thelma Barros",
+    "password": "$2b$10$nAY1ijB.2LUBjYyXqX0k5uyn..Hg4v4abW2.ueMzNQL0GLNfVz0Ue",
+    "email": "telmvane.barros@gmail.com",
+    "phone": "3160416703",
+    "institucion": "Universidad metropolitana",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Residente",
+    "avatar": "",
+    "createdAt": "2025-11-03T03:26:56.901Z"
+  },
+  {
+    "username": "gabrielabrinez",
+    "name": "Gabriela Briñez",
+    "password": "$2b$10$BOCpo3cGGFJ2zcEsjm.kUO1D7XrYw0p3Mp4g6dJj9XyOkLiii7qNK",
+    "email": "gabrielabrinez18@hotmail.com",
+    "phone": "3025973082",
+    "institucion": "Universidad Simon Bolivar",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Estudiante",
+    "avatar": "",
+    "createdAt": "2025-11-03T03:27:20.817Z"
+  },
+  {
+    "username": "Wrock",
+    "name": "Wagner Roca",
+    "password": "$2b$10$fR4U9Kfx9tMkSgrigJFnxOEMmDB91MGY6URS5ZDDmR42v7zokYumq",
+    "email": "wag.rock@hotmail.com",
+    "phone": "3016491738",
+    "institucion": "Misericordia",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Pediatra",
+    "avatar": "",
+    "createdAt": "2025-11-03T03:28:22.814Z"
+  },
+  {
+    "username": "Ginapaovelasco",
+    "name": "Ginapaovelasco",
+    "password": "$2b$10$tzrNfQ3M/FoMVsdhIW92ze1IQIPPq9C9RrpkiP7iBa2sRqpoF9rfm",
+    "email": "ginapaola20-89@hotmail.com",
+    "phone": "3217237950",
+    "institucion": "Misericordia internacional",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Fisioterapeuta",
+    "avatar": "",
+    "createdAt": "2025-11-03T04:06:43.062Z"
   }
 ]
