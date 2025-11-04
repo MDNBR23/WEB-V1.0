@@ -2188,6 +2188,134 @@
     fileInput.value = '';
   };
 
+  window.guardarBackupEnServidor = async function() {
+    const backupStatus = document.getElementById('backupStatus');
+    try {
+      backupStatus.style.display = 'block';
+      backupStatus.style.background = 'rgba(33,150,243,0.1)';
+      backupStatus.style.border = '1px solid #2196f3';
+      backupStatus.textContent = 'Creando backup en el servidor...';
+      
+      const response = await api('/backup/create', {
+        method: 'POST'
+      });
+      
+      backupStatus.style.background = 'rgba(76,175,80,0.1)';
+      backupStatus.style.border = '1px solid #4caf50';
+      backupStatus.textContent = `✓ Backup creado exitosamente: ${response.backup.filename} (${response.backup.sizeKB} KB)`;
+      
+      setTimeout(() => {
+        backupStatus.style.display = 'none';
+      }, 4000);
+      
+      toast('Backup guardado en el servidor', 'success');
+      
+      cargarListaBackups();
+    } catch (err) {
+      console.error('Error creating backup on server:', err);
+      backupStatus.style.background = 'rgba(244,67,54,0.1)';
+      backupStatus.style.border = '1px solid #f44336';
+      backupStatus.textContent = '✗ Error al crear backup en el servidor: ' + err.message;
+      toast('Error al guardar backup en el servidor', 'error');
+    }
+  };
+
+  window.cargarListaBackups = async function() {
+    const table = document.getElementById('backupsServerTable');
+    const tbody = table.querySelector('tbody');
+    const backupsCount = document.getElementById('backupsCount');
+    
+    try {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);">Cargando backups...</td></tr>';
+      
+      const backups = await api('/backup/list');
+      
+      if (backups.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);">No hay backups guardados en el servidor</td></tr>';
+        backupsCount.textContent = '';
+        return;
+      }
+      
+      backupsCount.textContent = `${backups.length} backup${backups.length !== 1 ? 's' : ''} encontrado${backups.length !== 1 ? 's' : ''}`;
+      
+      tbody.innerHTML = backups.map(backup => {
+        const fecha = new Date(backup.created).toLocaleString('es-CO', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        return `
+          <tr>
+            <td style="font-family:monospace;font-size:13px;">${backup.filename}</td>
+            <td>${fecha}</td>
+            <td>${backup.sizeKB} KB</td>
+            <td>
+              <button class="btn sm" onclick="descargarBackupServidor('${backup.filename}')" title="Descargar backup">⬇️ Descargar</button>
+              <button class="btn sm danger" onclick="eliminarBackupServidor('${backup.filename}')" title="Eliminar backup">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error('Error loading backups list:', err);
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--danger);">Error al cargar la lista de backups</td></tr>';
+      backupsCount.textContent = '';
+      toast('Error al cargar lista de backups', 'error');
+    }
+  };
+
+  window.descargarBackupServidor = async function(filename) {
+    try {
+      toast('Descargando backup...', 'info');
+      
+      const response = await fetch(`/api/backup/download/${filename}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al descargar backup');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast('Backup descargado exitosamente', 'success');
+    } catch (err) {
+      console.error('Error downloading backup from server:', err);
+      toast('Error al descargar backup del servidor', 'error');
+    }
+  };
+
+  window.eliminarBackupServidor = async function(filename) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar el backup "${filename}"?\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+    
+    try {
+      await api(`/backup/${filename}`, {
+        method: 'DELETE'
+      });
+      
+      toast('Backup eliminado exitosamente', 'success');
+      cargarListaBackups();
+    } catch (err) {
+      console.error('Error deleting backup from server:', err);
+      toast('Error al eliminar backup del servidor', 'error');
+    }
+  };
+
   const toolsControlList = document.getElementById('toolsControlList');
   let currentToolsStatus = {};
 
@@ -2484,6 +2612,10 @@
         content.style.display = isVisible ? 'none' : 'block';
         if(icon) {
           icon.textContent = isVisible ? '▼' : '▲';
+        }
+        
+        if(!isVisible && targetId === 'backup') {
+          cargarListaBackups();
         }
       }
     });

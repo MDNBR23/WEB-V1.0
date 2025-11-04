@@ -1237,6 +1237,54 @@ app.post('/api/backup/import', async (req, res) => {
 
 const BACKUP_DIR = path.join(__dirname, 'backups');
 
+app.post('/api/backup/create', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const backup = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      jsonFiles: {},
+      database: {}
+    };
+    
+    const jsonFiles = ['users.json', 'anuncios_global.json', 'guias_global.json', 'medications.json', 'sugerencias.json', 'maintenance.json', 'tools_status.json'];
+    
+    for (const file of jsonFiles) {
+      backup.jsonFiles[file] = await readJSON(file, []);
+    }
+    
+    const plantillasResult = await pool.query('SELECT * FROM plantillas ORDER BY created_at DESC');
+    backup.database.plantillas = plantillasResult.rows;
+    
+    await fs.mkdir(BACKUP_DIR, { recursive: true });
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `medtools-backup-${timestamp}.json`;
+    const filepath = path.join(BACKUP_DIR, filename);
+    
+    await fs.writeFile(filepath, JSON.stringify(backup, null, 2), 'utf8');
+    
+    const stats = await fs.stat(filepath);
+    
+    res.json({
+      success: true,
+      message: 'Backup creado exitosamente',
+      backup: {
+        filename,
+        size: stats.size,
+        created: stats.mtime.toISOString(),
+        sizeKB: (stats.size / 1024).toFixed(2)
+      }
+    });
+  } catch (err) {
+    console.error('Error creating backup on server:', err);
+    res.status(500).json({error: 'Error al crear backup en el servidor'});
+  }
+});
+
 app.get('/api/backup/list', async (req, res) => {
   if (!req.session.user || req.session.user.role !== 'admin') {
     return res.status(403).json({error: 'No autorizado'});

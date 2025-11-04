@@ -191,7 +191,8 @@
             
             <h4 style="margin:24px 0 12px 0;">Crear Nuevo Backup</h4>
             <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px;">
-              <button class="btn primary" onclick="exportarBackup()">📥 Descargar Backup</button>
+              <button class="btn primary" onclick="guardarBackupEnServidor()">💾 Guardar en Servidor</button>
+              <button class="btn" onclick="exportarBackup()">📥 Descargar Backup</button>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input id="backupFileInput" type="file" accept=".json" style="display:none;" onchange="importarBackup()">
                 <button class="btn" onclick="document.getElementById('backupFileInput').click()">📤 Importar Backup</button>
