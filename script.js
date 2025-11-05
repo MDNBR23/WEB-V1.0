@@ -1587,6 +1587,46 @@
     }
   }
   
+  window.verTodasGuias = async function() {
+    try {
+      const list = await api('/guias');
+      const guias = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+      
+      if(guias.length === 0) {
+        toast('No hay guías disponibles', 'info');
+        return;
+      }
+      
+      const modalContent = `
+        <div class="modal-overlay" onclick="this.remove()">
+          <div class="modal glass" onclick="event.stopPropagation()" style="max-width:900px;max-height:90vh;overflow-y:auto;">
+            <header>
+              <h3>📚 Todas las Guías de Pediatría & Neonatología</h3>
+              <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" type="button">✕</button>
+            </header>
+            <div class="stack" style="gap:16px;margin-top:20px;">
+              ${guias.map(g => `
+                <div class="card" style="padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;transition:all 0.3s;">
+                  <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+                    <h4 style="margin:0;font-size:18px;font-weight:700;color:var(--text);flex:1;">${escapeHtml(g.titulo)}</h4>
+                    <span style="font-size:13px;color:var(--muted);white-space:nowrap;">${g.fecha || 'Sin fecha'}</span>
+                  </div>
+                  <p style="margin:0 0 16px 0;color:var(--muted);line-height:1.6;">${escapeHtml(g.texto)}</p>
+                  ${g.url ? `<a class="btn sm" target="_blank" href="${g.url}" style="display:inline-flex;align-items:center;gap:6px;">Abrir guía completa <span>→</span></a>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalContent);
+    } catch (err) {
+      console.error('Error loading all guias:', err);
+      toast('Error al cargar las guías', 'error');
+    }
+  };
+  
   await renderAnunciosMain();
   await renderGuiasMain();
 

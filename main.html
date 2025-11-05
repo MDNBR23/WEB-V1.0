@@ -42,7 +42,13 @@
       <main>
         <div class="grid-2col">
           <section class="card glass"><h3>Anuncios</h3><div id="anunciosList" class="stack"></div></section>
-          <aside class="card glass"><h3>Guías de pediatría & neonatología</h3><div id="guiasList" class="stack"></div></aside>
+          <aside class="card glass guias-featured">
+            <div class="guias-header">
+              <h3>📚 Guías de Pediatría & Neonatología</h3>
+              <button class="btn-ver-todas" onclick="verTodasGuias()" type="button">Ver todas las guías →</button>
+            </div>
+            <div id="guiasList" class="stack"></div>
+          </aside>
         </div>
         <footer class="app-footer">
           <h4>Aviso Legal</h4>

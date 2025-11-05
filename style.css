@@ -368,10 +368,19 @@ a.btn:hover{
 }
 
 .header{
+  position:sticky;
+  top:0;
+  z-index:100;
   display:flex;
   align-items:center;
   gap:12px;
   margin-bottom:18px;
+  padding:16px 0;
+  background:linear-gradient(135deg,rgba(0,139,139,0.95),rgba(0,128,128,0.95));
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-radius:0 0 16px 16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
 }
 
 .header h2{
@@ -1012,6 +1021,55 @@ textarea{
   position: relative;
   pointer-events: auto;
   z-index: 2;
+}
+
+.guias-featured {
+  position: relative;
+  overflow: visible;
+}
+
+.guias-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.guias-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-ver-todas {
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+  white-space: nowrap;
+}
+
+.btn-ver-todas:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.4);
+}
+
+.btn-ver-todas:active {
+  transform: translateY(0);
 }
 
 .anuncio-header {
