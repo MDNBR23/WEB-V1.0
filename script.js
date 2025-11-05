@@ -885,7 +885,8 @@
         const roleText = (u.role||'user').toUpperCase();
         
         const isAdmin = u.username === 'admin';
-        return `<tr><td>${u.username}</td><td>${u.name||''}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}' ${isAdmin?'disabled':''}>Aprobar</button><button class='btn sm warning' data-reject='${u.username}' ${isAdmin?'disabled':''}>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me||isAdmin?'disabled':''}>Eliminar</button></div></td></tr>`;
+        const fullName = (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : (u.name || '');
+        return `<tr><td>${u.username}</td><td>${fullName}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}' ${isAdmin?'disabled':''}>Aprobar</button><button class='btn sm warning' data-reject='${u.username}' ${isAdmin?'disabled':''}>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me||isAdmin?'disabled':''}>Eliminar</button></div></td></tr>`;
       }).join('');
       
       await updateUsuariosPendientesCounter();
@@ -898,7 +899,8 @@
         if(!u) return;
         
         document.getElementById('u_username').value=u.username;
-        document.getElementById('u_name').value=u.name||'';
+        document.getElementById('u_firstName').value=u.firstName||'';
+        document.getElementById('u_lastName').value=u.lastName||'';
         document.getElementById('u_email').value=u.email||'';
         document.getElementById('u_phone').value=u.phone||'';
         document.getElementById('u_inst').value=u.institucion||'';
@@ -984,7 +986,8 @@
         await api(`/users/${username}`, {
           method: 'PUT',
           body: JSON.stringify({
-            name: document.getElementById('u_name').value.trim(),
+            firstName: document.getElementById('u_firstName').value.trim(),
+            lastName: document.getElementById('u_lastName').value.trim(),
             email: document.getElementById('u_email').value.trim(),
             phone: document.getElementById('u_phone').value.trim(),
             institucion: document.getElementById('u_inst').value.trim(),

@@ -270,14 +270,16 @@
     <div class="modal glass">
       <header><h3 style="margin:0;">Editar usuario</h3><button class="btn secondary sm" type="button" data-close-user>✕</button></header>
       <form id="userForm">
-        <div class="grid">
+        <div class="grid" style="grid-template-columns:1fr 1fr;">
           <div class="field"><label>Usuario</label><input id="u_username" type="text" disabled></div>
-          <div class="field"><label>Nombre</label><input id="u_name" type="text"></div>
-          <div class="field"><label>Categoría</label>
-            <select id="u_cat"><option>Estudiante</option><option>Interno</option><option>Médico General</option><option>Residente</option><option>Pediatra</option></select>
-          </div>
+          <div class="field"></div>
+          <div class="field"><label>Nombre</label><input id="u_firstName" type="text"></div>
+          <div class="field"><label>Apellido</label><input id="u_lastName" type="text"></div>
           <div class="field"><label>Correo</label><input id="u_email" type="email"></div>
           <div class="field"><label>Teléfono</label><input id="u_phone" type="text"></div>
+          <div class="field"><label>Categoría</label>
+            <select id="u_cat"><option>Estudiante</option><option>Interno</option><option>Médico General</option><option>Residente</option><option>Pediatra</option><option>Fisioterapeuta</option></select>
+          </div>
           <div class="field"><label>Institución</label><input id="u_inst" type="text"></div>
           <div class="field"><label>Rol</label><select id="u_role"><option value="user">USER</option><option value="admin">ADMIN</option></select></div>
           <div class="field"><label>Estado</label><select id="u_status"><option value="pendiente">PENDIENTE</option><option value="aprobado">APROBADO</option><option value="rechazado">RECHAZADO</option><option value="suspendido">SUSPENDIDO</option></select></div>

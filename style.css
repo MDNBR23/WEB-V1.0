@@ -59,6 +59,8 @@ body{
   color:var(--text);
   opacity:0;
   transition:opacity .25s cubic-bezier(0.4, 0, 0.2, 1);
+  display:flex;
+  flex-direction:column;
 }
 
 body.loaded{
@@ -116,13 +118,13 @@ html.preload *{
 }
 
 .auth-box{
-  max-width:500px;
+  max-width:640px;
   width:100%;
   padding:40px;
   margin:0;
-  box-shadow:0 10px 40px rgba(0,0,0,0.2);
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
   backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,0.15);
+  border:1px solid var(--glass-stroke);
 }
 
 .auth-title{
@@ -292,17 +294,20 @@ a.btn:hover{
 
 .logo{
   font-weight:800;
-  font-size:18px;
+  font-size:20px;
   color:#fff;
   letter-spacing:.5px;
   margin-bottom:20px;
-  padding:8px 10px;
+  padding:12px 10px;
   text-shadow:0 1px 4px rgba(0,0,0,.2);
   white-space:nowrap;
   transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align:left;
   border-radius:10px;
   background:rgba(255,255,255,0.08);
+  display:flex;
+  align-items:center;
+  min-height:44px;
 }
 
 .logo .logo-full{

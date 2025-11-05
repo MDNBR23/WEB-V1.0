@@ -854,24 +854,56 @@ html[data-theme="dark"] #medicationSelect {
           </a>
           
           <section class="card glass tool-section">
-            <h3>IA Médica - Consulta Evidencia</h3>
-            <p class="text-muted">Busca información médica basada en evidencia científica.</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0;">🤖 Asistente de IA Médica</h3>
+                <p class="text-muted" style="margin:4px 0 0 0;">Modelo: <strong>phi3:mini</strong> - Especializado en Pediatría y Neonatología</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="iaStatus" style="font-size:12px;color:var(--muted);display:none;">●</span>
+                <a href="https://www.openevidence.com/" target="_blank" class="btn sm secondary" style="text-decoration: none;">Open Evidence</a>
+              </div>
+            </div>
+            
+            <div style="background: rgba(251,191,36,0.1); border-left: 4px solid #fbbf24; padding: 16px; border-radius: 6px; margin: 16px 0;">
+              <p style="margin: 0; font-size: 14px; color: var(--text);">
+                <strong>⚠️ Importante:</strong> Esta herramienta es de apoyo clínico y no sustituye el criterio profesional. La información debe ser verificada con fuentes médicas actualizadas y guías clínicas oficiales.
+              </p>
+            </div>
             
             <div style="margin-top: 16px;">
               <div class="field">
-                <label>Pregunta o búsqueda</label>
-                <textarea id="iaQuery" rows="3" placeholder="Ej: ¿Cuál es el tratamiento de primera línea para neumonía adquirida en la comunidad en pediatría?"></textarea>
+                <label>Tu consulta médica</label>
+                <textarea id="iaPrompt" rows="4" placeholder="Ejemplo: ¿Cuáles son las indicaciones de surfactante pulmonar en neonatos prematuros? ¿Cuál es el tratamiento de primera línea para neumonía adquirida en la comunidad en pediatría?" style="font-size:15px;"></textarea>
               </div>
-              <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
-                <button class="btn primary" onclick="buscarIA()">Buscar</button>
-                <button class="btn" onclick="limpiarIA()">Limpiar</button>
-                <a href="https://www.openevidence.com/" target="_blank" class="btn secondary" style="text-decoration: none;">Ir a Open Evidence</a>
+              
+              <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn primary" id="btnConsultarIA" onclick="consultarIAMedica()">
+                  <span id="btnIAText">🔍 Consultar IA</span>
+                </button>
+                <button class="btn" onclick="limpiarIA()">🗑️ Limpiar</button>
+                <button class="btn secondary" onclick="nuevaConsultaIA()" style="display:none;" id="btnNuevaConsulta">Nueva Consulta</button>
               </div>
             </div>
 
-            <div id="iaResult" style="display:none; margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 6px; border-left: 4px solid var(--primary);">
-              <h4 style="margin: 0 0 12px 0; color: var(--primary);">Información</h4>
-              <div id="iaResultContent"></div>
+            <div id="iaResponse" style="display:none; margin-top: 20px;">
+              <div style="background:var(--card);border-radius:12px;padding:20px;border:2px solid var(--primary);box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                  <h4 style="margin:0;color:var(--primary);font-size:18px;">💡 Respuesta de IA Médica</h4>
+                  <button class="btn sm success" onclick="copiarRespuestaIA()" title="Copiar respuesta">📋 Copiar</button>
+                </div>
+                <div id="iaResponseContent" style="white-space:pre-wrap;line-height:1.8;font-size:15px;color:var(--text);"></div>
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                  <small class="text-muted">
+                    <strong>Nota:</strong> Esta información es de referencia general. Siempre consulta fuentes médicas actualizadas, guías clínicas oficiales y aplica tu criterio profesional.
+                  </small>
+                </div>
+              </div>
+            </div>
+            
+            <div id="iaError" style="display:none; margin-top: 16px; padding: 16px; background: rgba(220,38,38,0.1); border-left: 4px solid #dc2626; border-radius: 6px;">
+              <h4 style="margin: 0 0 8px 0; color: #dc2626;">⚠️ Error</h4>
+              <div id="iaErrorContent" style="color:var(--text);"></div>
             </div>
           </section>
         </div>
@@ -3130,44 +3162,95 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('opsSecTipo').value = 'guardia';
     }
 
-    function buscarIA() {
-      const query = document.getElementById('iaQuery').value.trim();
+    let iaContext = [];
+
+    async function consultarIAMedica() {
+      const prompt = document.getElementById('iaPrompt').value.trim();
+      const responseDiv = document.getElementById('iaResponse');
+      const errorDiv = document.getElementById('iaError');
+      const btnConsultar = document.getElementById('btnConsultarIA');
+      const btnText = document.getElementById('btnIAText');
       
-      if (!query) {
-        alert('Por favor, ingresa una pregunta o búsqueda');
+      if (!prompt) {
+        alert('Por favor ingresa una consulta médica');
         return;
       }
-
-      document.getElementById('iaResultContent').innerHTML = `
-        <p>Para obtener información médica basada en evidencia sobre "${query}", por favor visita:</p>
-        <ul style="margin-top: 12px;">
-          <li style="margin: 8px 0;">
-            <a href="https://www.openevidence.com/" target="_blank" style="color: var(--primary); font-weight: 600;">
-              Open Evidence - IA médica especializada
-            </a>
-          </li>
-          <li style="margin: 8px 0;">
-            <a href="https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(query)}" target="_blank" style="color: var(--primary); font-weight: 600;">
-              PubMed - Búsqueda: "${query}"
-            </a>
-          </li>
-          <li style="margin: 8px 0;">
-            <a href="https://www.uptodate.com/contents/search?search=${encodeURIComponent(query)}" target="_blank" style="color: var(--primary); font-weight: 600;">
-              UpToDate - Búsqueda: "${query}"
-            </a>
-          </li>
-        </ul>
-        <p style="margin-top: 16px; font-size: 13px; color: var(--muted);">
-          <strong>Nota:</strong> Estas son plataformas confiables para información médica. Open Evidence utiliza IA para resumir evidencia científica de manera precisa.
-        </p>
-      `;
       
-      document.getElementById('iaResult').style.display = 'block';
+      try {
+        errorDiv.style.display = 'none';
+        responseDiv.style.display = 'none';
+        btnConsultar.disabled = true;
+        btnText.textContent = '⏳ Consultando IA...';
+        
+        const data = await api('/ai', {
+          method: 'POST',
+          body: JSON.stringify({ prompt, context: iaContext })
+        });
+        
+        iaContext = data.context || [];
+        
+        document.getElementById('iaResponseContent').textContent = data.response;
+        responseDiv.style.display = 'block';
+        document.getElementById('btnNuevaConsulta').style.display = 'inline-flex';
+        
+        btnText.textContent = '✓ Consulta completada';
+        setTimeout(() => {
+          btnText.textContent = '🔍 Consultar IA';
+        }, 2000);
+      } catch (err) {
+        console.error('Error al consultar IA:', err);
+        errorDiv.style.display = 'block';
+        
+        let errorMessage = err.message || 'Error desconocido';
+        
+        if (errorMessage.includes('Servicio de IA no configurado') || errorMessage.includes('503')) {
+          document.getElementById('iaErrorContent').innerHTML = `
+            <p><strong>Servicio de IA no disponible</strong></p>
+            <p style="margin-top:8px;">El servicio de IA médica requiere configuración adicional del administrador del sistema.</p>
+            <p style="margin-top:8px;">Mientras tanto, puedes consultar en:</p>
+            <ul style="margin-top:8px;padding-left:20px;">
+              <li><a href="https://www.openevidence.com/" target="_blank" style="color:var(--primary);">Open Evidence</a></li>
+              <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" style="color:var(--primary);">PubMed</a></li>
+            </ul>
+          `;
+        } else {
+          document.getElementById('iaErrorContent').textContent = 'Error al procesar la consulta: ' + errorMessage;
+        }
+        
+        btnText.textContent = '🔍 Consultar IA';
+      } finally {
+        btnConsultar.disabled = false;
+      }
     }
 
     function limpiarIA() {
-      document.getElementById('iaQuery').value = '';
-      document.getElementById('iaResult').style.display = 'none';
+      document.getElementById('iaPrompt').value = '';
+      document.getElementById('iaResponse').style.display = 'none';
+      document.getElementById('iaError').style.display = 'none';
+      document.getElementById('btnNuevaConsulta').style.display = 'none';
+      iaContext = [];
+    }
+    
+    function nuevaConsultaIA() {
+      document.getElementById('iaPrompt').value = '';
+      document.getElementById('iaResponse').style.display = 'none';
+      document.getElementById('iaError').style.display = 'none';
+      document.getElementById('btnNuevaConsulta').style.display = 'none';
+      iaContext = [];
+      document.getElementById('iaPrompt').focus();
+    }
+    
+    function copiarRespuestaIA() {
+      const content = document.getElementById('iaResponseContent').textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        toast('Respuesta copiada al portapapeles', 'success');
+      }).catch(() => {
+        toast('Error al copiar', 'error');
+      });
+    }
+    
+    function buscarIA() {
+      consultarIAMedica();
     }
 
     let medicamentosInteraction = [];
