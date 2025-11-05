@@ -438,6 +438,8 @@
   if(registerForm){
     registerForm.addEventListener('submit',async (e)=>{
       e.preventDefault();
+      const firstName=document.getElementById('registerFirstName').value.trim();
+      const lastName=document.getElementById('registerLastName').value.trim();
       const username=document.getElementById('registerUser').value.trim();
       const email=document.getElementById('registerEmail').value.trim();
       const cat=document.getElementById('registerCat').value;
@@ -451,7 +453,7 @@
       try {
         const data = await api('/register', {
           method: 'POST',
-          body: JSON.stringify({username, email, cat, phone, institucion, password})
+          body: JSON.stringify({firstName, lastName, username, email, cat, phone, institucion, password})
         });
         
         localStorage.setItem('nbr_pending_toast', JSON.stringify({

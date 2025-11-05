@@ -12,8 +12,8 @@ const nodemailer = require('nodemailer');
 
 async function sendEmail(message) {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.error('SMTP credentials not configured');
-    throw new Error('Configuración de email no disponible');
+    console.warn('SMTP credentials not configured - email not sent');
+    return { success: false, error: 'SMTP_NOT_CONFIGURED' };
   }
 
   const transporter = nodemailer.createTransport({
@@ -40,7 +40,7 @@ async function sendEmail(message) {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Error sending email:', error);
-    throw new Error('Error al enviar el correo electrónico');
+    return { success: false, error: error.message };
   }
 }
 
@@ -200,9 +200,9 @@ async function initializeData() {
 
 app.post('/api/register', async (req, res) => {
   try {
-    const {username, email, cat, phone, institucion, password} = req.body;
+    const {firstName, lastName, username, email, cat, phone, institucion, password} = req.body;
     
-    if (!username || !password || !email) {
+    if (!username || !password || !email || !firstName || !lastName) {
       return res.status(400).json({error: 'Datos incompletos'});
     }
     
@@ -214,9 +214,13 @@ app.post('/api/register', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    const fullName = `${firstName} ${lastName}`;
+    
     users.push({
       username,
-      name: username,
+      name: fullName,
+      firstName: firstName,
+      lastName: lastName,
       password: hashedPassword,
       email,
       phone: phone || '',
@@ -322,8 +326,7 @@ app.post('/api/reset-password-request', async (req, res) => {
     
     await writeJSON('users.json', users);
     
-    try {
-      const emailContent = `Hola ${user.name || user.username},
+    const emailContent = `Hola ${user.name || user.username},
 
 Has solicitado restablecer tu contraseña en Med Tools Hub.
 
@@ -336,7 +339,7 @@ Si no solicitaste este cambio, puedes ignorar este mensaje.
 Saludos,
 Med Tools Hub`;
 
-      const htmlContent = `
+    const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -370,23 +373,23 @@ Med Tools Hub`;
 </body>
 </html>`;
 
-      await sendEmail({
-        to: email,
-        subject: 'Código de Recuperación - Med Tools Hub',
-        text: emailContent,
-        html: htmlContent
-      });
+    const emailResult = await sendEmail({
+      to: email,
+      subject: 'Código de Recuperación - Med Tools Hub',
+      text: emailContent,
+      html: htmlContent
+    });
 
+    if (emailResult.success) {
       res.json({
         success: true,
         message: `Código de recuperación enviado a ${email}. Revisa tu bandeja de entrada.`
       });
-    } catch (emailError) {
-      console.error('Error sending email:', emailError);
+    } else {
       res.json({
         success: true,
         token: resetToken,
-        message: 'Código generado pero no se pudo enviar el email. Aquí está tu código de recuperación.'
+        message: 'Código generado. No se pudo enviar por email, pero aquí está tu código de recuperación.'
       });
     }
   } catch (err) {
