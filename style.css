@@ -283,13 +283,14 @@ a.btn:hover{
   padding:16px 12px;
   position:sticky;
   top:0;
-  height:100vh;
+  align-self:flex-start;
+  max-height:100vh;
+  overflow-y:auto;
   color:var(--sidebar-text);
   background:var(--sidebar-bg);
   backdrop-filter:blur(16px);
   border-right:1px solid rgba(0,0,0,0.05);
   transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow:hidden;
 }
 
 .logo{
@@ -317,6 +318,7 @@ a.btn:hover{
 .logo .logo-short{
   display:none;
 }
+
 
 .sidebar.collapsed .logo{
   text-align:center;
@@ -403,7 +405,7 @@ a.btn:hover{
 }
 
 .content{
-  padding:16px 20px;
+  padding:16px;
   min-height:100vh;
   background:linear-gradient(135deg,var(--g1),var(--g2)) fixed;
 }
@@ -542,7 +544,7 @@ tbody tr:hover{
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:50;
+  z-index:200;
   padding:20px;
 }
 
@@ -554,7 +556,7 @@ tbody tr:hover{
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:50;
+  z-index:200;
   padding:20px;
   animation:fadeIn 0.2s ease-out;
 }

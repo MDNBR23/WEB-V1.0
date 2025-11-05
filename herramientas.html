@@ -853,57 +853,45 @@ html[data-theme="dark"] #medicationSelect {
             <span>Volver al menú</span>
           </a>
           
-          <section class="card glass tool-section">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <div>
-                <h3 style="margin:0;">🤖 Asistente de IA Médica</h3>
-                <p class="text-muted" style="margin:4px 0 0 0;">Modelo: <strong>phi3:mini</strong> - Especializado en Pediatría y Neonatología</p>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span id="iaStatus" style="font-size:12px;color:var(--muted);display:none;">●</span>
-                <a href="https://www.openevidence.com/" target="_blank" class="btn sm secondary" style="text-decoration: none;">Open Evidence</a>
-              </div>
-            </div>
-            
-            <div style="background: rgba(251,191,36,0.1); border-left: 4px solid #fbbf24; padding: 16px; border-radius: 6px; margin: 16px 0;">
-              <p style="margin: 0; font-size: 14px; color: var(--text);">
-                <strong>⚠️ Importante:</strong> Esta herramienta es de apoyo clínico y no sustituye el criterio profesional. La información debe ser verificada con fuentes médicas actualizadas y guías clínicas oficiales.
-              </p>
-            </div>
-            
-            <div style="margin-top: 16px;">
-              <div class="field">
-                <label>Tu consulta médica</label>
-                <textarea id="iaPrompt" rows="4" placeholder="Ejemplo: ¿Cuáles son las indicaciones de surfactante pulmonar en neonatos prematuros? ¿Cuál es el tratamiento de primera línea para neumonía adquirida en la comunidad en pediatría?" style="font-size:15px;"></textarea>
-              </div>
-              
-              <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button class="btn primary" id="btnConsultarIA" onclick="consultarIAMedica()">
-                  <span id="btnIAText">🔍 Consultar IA</span>
-                </button>
-                <button class="btn" onclick="limpiarIA()">🗑️ Limpiar</button>
-                <button class="btn secondary" onclick="nuevaConsultaIA()" style="display:none;" id="btnNuevaConsulta">Nueva Consulta</button>
+          <section class="card glass tool-section" style="display:flex;flex-direction:column;height:calc(100vh - 180px);padding:0;overflow:hidden;">
+            <div style="padding:20px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <h3 style="margin:0;display:flex;align-items:center;gap:8px;">
+                    <span>🤖</span>
+                    <span>Asistente de IA Médica</span>
+                  </h3>
+                  <p class="text-muted" style="margin:4px 0 0 0;font-size:13px;">Powered by <strong>GPT-5</strong> • Especializado en Pediatría y Neonatología</p>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn sm secondary" onclick="limpiarChatIA()" title="Nueva conversación">🗑️ Limpiar</button>
+                  <a href="https://www.openevidence.com/" target="_blank" class="btn sm secondary" style="text-decoration:none;">📚 Evidence</a>
+                </div>
               </div>
             </div>
 
-            <div id="iaResponse" style="display:none; margin-top: 20px;">
-              <div style="background:var(--card);border-radius:12px;padding:20px;border:2px solid var(--primary);box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                  <h4 style="margin:0;color:var(--primary);font-size:18px;">💡 Respuesta de IA Médica</h4>
-                  <button class="btn sm success" onclick="copiarRespuestaIA()" title="Copiar respuesta">📋 Copiar</button>
-                </div>
-                <div id="iaResponseContent" style="white-space:pre-wrap;line-height:1.8;font-size:15px;color:var(--text);"></div>
-                <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-                  <small class="text-muted">
-                    <strong>Nota:</strong> Esta información es de referencia general. Siempre consulta fuentes médicas actualizadas, guías clínicas oficiales y aplica tu criterio profesional.
-                  </small>
-                </div>
-              </div>
+            <div style="background:rgba(251,191,36,0.1);border-bottom:1px solid #fbbf24;padding:12px 20px;">
+              <p style="margin:0;font-size:13px;color:var(--text);">
+                <strong>⚠️ Importante:</strong> Herramienta de apoyo clínico. No sustituye el criterio profesional. Verifica con fuentes actualizadas.
+              </p>
             </div>
             
-            <div id="iaError" style="display:none; margin-top: 16px; padding: 16px; background: rgba(220,38,38,0.1); border-left: 4px solid #dc2626; border-radius: 6px;">
-              <h4 style="margin: 0 0 8px 0; color: #dc2626;">⚠️ Error</h4>
-              <div id="iaErrorContent" style="color:var(--text);"></div>
+            <div id="iaChatMessages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+              <div style="text-align:center;color:var(--muted);padding:40px 20px;">
+                <div style="font-size:48px;margin-bottom:12px;">💬</div>
+                <h4 style="margin:0 0 8px 0;color:var(--text);">¿En qué puedo ayudarte hoy?</h4>
+                <p style="margin:0;font-size:14px;">Pregúntame sobre pediatría, neonatología, tratamientos, diagnósticos o guías clínicas.</p>
+              </div>
+            </div>
+
+            <div style="padding:20px;border-top:1px solid var(--border);background:var(--card);">
+              <div style="display:flex;gap:8px;align-items:flex-end;">
+                <textarea id="iaChatInput" rows="1" placeholder="Escribe tu consulta médica..." style="flex:1;resize:none;min-height:44px;max-height:120px;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:14px;line-height:1.5;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensajeIA();}" oninput="this.style.height='44px';this.style.height=this.scrollHeight+'px';"></textarea>
+                <button class="btn primary" id="btnEnviarIA" onclick="enviarMensajeIA()" style="padding:12px 20px;height:44px;border-radius:12px;">
+                  <span id="btnEnviarIAText">Enviar</span>
+                </button>
+              </div>
+              <p style="margin:8px 0 0 0;font-size:11px;color:var(--muted);text-align:center;">La IA puede cometer errores. Verifica la información con fuentes médicas confiables.</p>
             </div>
           </section>
         </div>
@@ -3162,95 +3150,122 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('opsSecTipo').value = 'guardia';
     }
 
-    let iaContext = [];
+    let chatMessages = [];
 
-    async function consultarIAMedica() {
-      const prompt = document.getElementById('iaPrompt').value.trim();
-      const responseDiv = document.getElementById('iaResponse');
-      const errorDiv = document.getElementById('iaError');
-      const btnConsultar = document.getElementById('btnConsultarIA');
-      const btnText = document.getElementById('btnIAText');
+    function agregarMensajeChat(role, content, streaming = false) {
+      const messagesContainer = document.getElementById('iaChatMessages');
+      const welcomeMsg = messagesContainer.querySelector('div[style*="text-align:center"]');
+      if (welcomeMsg) welcomeMsg.remove();
       
-      if (!prompt) {
-        alert('Por favor ingresa una consulta médica');
-        return;
+      const messageDiv = document.createElement('div');
+      messageDiv.style.cssText = `display:flex;gap:12px;${role === 'user' ? 'justify-content:flex-end;' : ''}`;
+      
+      const avatar = document.createElement('div');
+      avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;' + (role === 'user' ? 'background:linear-gradient(135deg,var(--g1),var(--g2));' : 'background:var(--card);border:2px solid var(--primary);');
+      avatar.textContent = role === 'user' ? '👨‍⚕️' : '🤖';
+      
+      const bubble = document.createElement('div');
+      bubble.style.cssText = `max-width:75%;padding:12px 16px;border-radius:16px;${role === 'user' ? 'border-bottom-right-radius:4px;' : 'border-bottom-left-radius:4px;'}background:${role === 'user' ? 'linear-gradient(135deg,var(--g1),var(--g2))' : 'var(--card)'};color:${role === 'user' ? '#ffffff' : 'var(--text)'};${role === 'assistant' ? 'border:1px solid var(--border);' : ''}line-height:1.6;font-size:14px;white-space:pre-wrap;word-wrap:break-word;`;
+      bubble.textContent = content;
+      
+      if (role === 'user') {
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(avatar);
+      } else {
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
       }
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      return bubble;
+    }
+
+    async function enviarMensajeIA() {
+      const input = document.getElementById('iaChatInput');
+      const prompt = input.value.trim();
+      const btnEnviar = document.getElementById('btnEnviarIA');
+      const btnText = document.getElementById('btnEnviarIAText');
+      
+      if (!prompt) return;
+      
+      chatMessages.push({role: 'user', content: prompt});
+      agregarMensajeChat('user', prompt);
+      input.value = '';
+      input.style.height = '44px';
+      
+      btnEnviar.disabled = true;
+      btnText.textContent = '●●●';
       
       try {
-        errorDiv.style.display = 'none';
-        responseDiv.style.display = 'none';
-        btnConsultar.disabled = true;
-        btnText.textContent = '⏳ Consultando IA...';
+        const bubble = agregarMensajeChat('assistant', '');
+        let fullResponse = '';
         
-        const data = await api('/ai', {
+        const response = await fetch('/api/ai/stream', {
           method: 'POST',
-          body: JSON.stringify({ prompt, context: iaContext })
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({messages: chatMessages})
         });
         
-        iaContext = data.context || [];
-        
-        document.getElementById('iaResponseContent').textContent = data.response;
-        responseDiv.style.display = 'block';
-        document.getElementById('btnNuevaConsulta').style.display = 'inline-flex';
-        
-        btnText.textContent = '✓ Consulta completada';
-        setTimeout(() => {
-          btnText.textContent = '🔍 Consultar IA';
-        }, 2000);
-      } catch (err) {
-        console.error('Error al consultar IA:', err);
-        errorDiv.style.display = 'block';
-        
-        let errorMessage = err.message || 'Error desconocido';
-        
-        if (errorMessage.includes('Servicio de IA no configurado') || errorMessage.includes('503')) {
-          document.getElementById('iaErrorContent').innerHTML = `
-            <p><strong>Servicio de IA no disponible</strong></p>
-            <p style="margin-top:8px;">El servicio de IA médica requiere configuración adicional del administrador del sistema.</p>
-            <p style="margin-top:8px;">Mientras tanto, puedes consultar en:</p>
-            <ul style="margin-top:8px;padding-left:20px;">
-              <li><a href="https://www.openevidence.com/" target="_blank" style="color:var(--primary);">Open Evidence</a></li>
-              <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" style="color:var(--primary);">PubMed</a></li>
-            </ul>
-          `;
-        } else {
-          document.getElementById('iaErrorContent').textContent = 'Error al procesar la consulta: ' + errorMessage;
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
         
-        btnText.textContent = '🔍 Consultar IA';
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim());
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.substring(6);
+              if (data === '[DONE]') continue;
+              
+              try {
+                const json = JSON.parse(data);
+                if (json.error) {
+                  throw new Error(json.error);
+                }
+                if (json.content) {
+                  fullResponse += json.content;
+                  bubble.textContent = fullResponse;
+                  const container = document.getElementById('iaChatMessages');
+                  container.scrollTop = container.scrollHeight;
+                }
+              } catch (e) {
+                if (!e.message.includes('Unexpected')) console.error('Parse error:', e);
+              }
+            }
+          }
+        }
+        
+        chatMessages.push({role: 'assistant', content: fullResponse});
+      } catch (err) {
+        console.error('Error en chat IA:', err);
+        agregarMensajeChat('assistant', `⚠️ Error: ${err.message}. Por favor, verifica que OPENAI_API_KEY esté configurado correctamente.`);
       } finally {
-        btnConsultar.disabled = false;
+        btnEnviar.disabled = false;
+        btnText.textContent = 'Enviar';
+        input.focus();
       }
     }
 
-    function limpiarIA() {
-      document.getElementById('iaPrompt').value = '';
-      document.getElementById('iaResponse').style.display = 'none';
-      document.getElementById('iaError').style.display = 'none';
-      document.getElementById('btnNuevaConsulta').style.display = 'none';
-      iaContext = [];
-    }
-    
-    function nuevaConsultaIA() {
-      document.getElementById('iaPrompt').value = '';
-      document.getElementById('iaResponse').style.display = 'none';
-      document.getElementById('iaError').style.display = 'none';
-      document.getElementById('btnNuevaConsulta').style.display = 'none';
-      iaContext = [];
-      document.getElementById('iaPrompt').focus();
-    }
-    
-    function copiarRespuestaIA() {
-      const content = document.getElementById('iaResponseContent').textContent;
-      navigator.clipboard.writeText(content).then(() => {
-        toast('Respuesta copiada al portapapeles', 'success');
-      }).catch(() => {
-        toast('Error al copiar', 'error');
-      });
-    }
-    
-    function buscarIA() {
-      consultarIAMedica();
+    function limpiarChatIA() {
+      chatMessages = [];
+      const messagesContainer = document.getElementById('iaChatMessages');
+      messagesContainer.innerHTML = `
+        <div style="text-align:center;color:var(--muted);padding:40px 20px;">
+          <div style="font-size:48px;margin-bottom:12px;">💬</div>
+          <h4 style="margin:0 0 8px 0;color:var(--text);">¿En qué puedo ayudarte hoy?</h4>
+          <p style="margin:0;font-size:14px;">Pregúntame sobre pediatría, neonatología, tratamientos, diagnósticos o guías clínicas.</p>
+        </div>
+      `;
     }
 
     let medicamentosInteraction = [];

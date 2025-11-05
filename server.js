@@ -1377,152 +1377,65 @@ app.delete('/api/backup/:filename', async (req, res) => {
   }
 });
 
-app.post('/api/ai', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({error: 'No autorizado'});
-  }
-  
-  try {
-    const { prompt, context } = req.body;
-    
-    if (!prompt) {
-      return res.status(400).json({error: 'Prompt requerido'});
-    }
-    
-    if (!process.env.OLLAMA_HOST) {
-      return res.status(503).json({error: 'Servicio de IA no configurado. Configure OLLAMA_HOST en variables de entorno.'});
-    }
-    
-    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
-1. No diagnostiques pacientes específicos
-2. Proporciona información general basada en guías clínicas
-3. Recomienda consultar con profesionales de salud para casos individuales
-4. Usa lenguaje técnico cuando sea apropiado
-5. Cita evidencia cuando sea posible
-6. Responde en español de manera clara y profesional`;
-    
-    const fullPrompt = systemPrompt + "\n\nConsulta: " + prompt;
-    
-    const response = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL || 'phi3:mini',
-        prompt: fullPrompt,
-        context: context || [],
-        stream: false
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    res.json({
-      response: data.response,
-      context: data.context
-    });
-  } catch (err) {
-    console.error('Error calling Ollama:', err);
-    res.status(500).json({error: 'Error al procesar la consulta médica: ' + err.message});
-  }
-});
-
 app.post('/api/ai/stream', async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({error: 'No autorizado'});
   }
   
   try {
-    const { prompt, context } = req.body;
+    const { messages } = req.body;
     
-    if (!prompt) {
-      return res.status(400).json({error: 'Prompt requerido'});
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({error: 'Messages array requerido'});
     }
     
-    if (!process.env.OLLAMA_HOST) {
-      return res.status(503).json({error: 'Servicio de IA no configurado'});
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({error: 'Servicio de IA no configurado. Configure OPENAI_API_KEY en variables de entorno.'});
     }
     
-    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    
+    const systemMessage = {
+      role: 'system',
+      content: `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
+
 1. No diagnostiques pacientes específicos
-2. Proporciona información general basada en guías clínicas
+2. Proporciona información general basada en guías clínicas actualizadas
 3. Recomienda consultar con profesionales de salud para casos individuales
-4. Usa lenguaje técnico cuando sea apropiado
-5. Cita evidencia cuando sea posible
-6. Responde en español de manera clara y profesional`;
-    
-    const fullPrompt = systemPrompt + "\n\nConsulta: " + prompt;
+4. Usa lenguaje técnico médico cuando sea apropiado
+5. Cita evidencia científica cuando sea posible
+6. Responde en español de manera clara, profesional y estructurada
+7. Si mencionas medicamentos, incluye dosis pediátricas cuando sea relevante
+8. Prioriza la seguridad del paciente en todas tus respuestas
+
+Estructura tus respuestas de forma clara con viñetas o listas cuando sea apropiado.`
+    };
     
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     
-    const response = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL || 'phi3:mini',
-        prompt: fullPrompt,
-        context: context || [],
-        stream: true
-      })
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-5',
+      messages: [systemMessage, ...messages],
+      max_completion_tokens: 8192,
+      stream: true
     });
     
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
-    }
-    
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-      
-      for (const line of lines) {
-        try {
-          const json = JSON.parse(line);
-          res.write(`data: ${JSON.stringify(json)}\n\n`);
-        } catch (e) {
-        }
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        res.write(`data: ${JSON.stringify({content})}\n\n`);
       }
     }
     
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Error streaming from Ollama:', err);
+    console.error('Error streaming from OpenAI:', err);
     res.write(`data: ${JSON.stringify({error: err.message})}\n\n`);
     res.end();
-  }
-});
-
-app.get('/api/ai/models', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({error: 'No autorizado'});
-  }
-  
-  try {
-    if (!process.env.OLLAMA_HOST) {
-      return res.status(503).json({error: 'Servicio de IA no configurado'});
-    }
-    
-    const response = await fetch(`${process.env.OLLAMA_HOST}/api/tags`);
-    
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    res.json({models: data.models || []});
-  } catch (err) {
-    console.error('Error fetching models:', err);
-    res.status(500).json({error: 'Error al obtener modelos: ' + err.message});
   }
 });
 
