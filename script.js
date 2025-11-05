@@ -886,11 +886,61 @@
         
         const isAdmin = u.username === 'admin';
         const fullName = (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : (u.name || '');
-        return `<tr><td>${u.username}</td><td>${fullName}</td><td>${u.cat||''}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.institucion||''}</td><td>${roleText}</td><td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm info' data-edit-user='${u.username}'>Editar</button><button class='btn sm success' data-approve='${u.username}' ${isAdmin?'disabled':''}>Aprobar</button><button class='btn sm warning' data-reject='${u.username}' ${isAdmin?'disabled':''}>Rechazar</button><button class='btn sm danger' data-del-user='${u.username}' ${u.username===me||isAdmin?'disabled':''}>Eliminar</button></div></td></tr>`;
+        const canDelete = u.username !== me && !isAdmin;
+        const canModify = !isAdmin;
+        
+        return `<tr>
+          <td>${u.username}</td>
+          <td>${fullName}</td>
+          <td>${u.cat||''}</td>
+          <td>${u.email||''}</td>
+          <td>${u.phone||''}</td>
+          <td>${u.institucion||''}</td>
+          <td>${roleText}</td>
+          <td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td>
+          <td>
+            <div class="action-menu">
+              <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
+              <div class="action-menu-dropdown" data-menu="${u.username}">
+                <div class="action-menu-item info" data-edit-user="${u.username}">
+                  <span class="action-menu-icon">✏️</span>
+                  <span>Editar</span>
+                </div>
+                <div class="action-menu-item success ${!canModify?'disabled':''}" data-approve="${u.username}">
+                  <span class="action-menu-icon">✓</span>
+                  <span>Aprobar</span>
+                </div>
+                <div class="action-menu-item warning ${!canModify?'disabled':''}" data-reject="${u.username}">
+                  <span class="action-menu-icon">✗</span>
+                  <span>Rechazar</span>
+                </div>
+                <div class="action-menu-item danger ${!canDelete?'disabled':''}" data-del-user="${u.username}">
+                  <span class="action-menu-icon">🗑️</span>
+                  <span>Eliminar</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
       }).join('');
       
       await updateUsuariosPendientesCounter();
       await updateAdminNotifications();
+      
+      tb.querySelectorAll('[data-menu-toggle]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const username = btn.getAttribute('data-menu-toggle');
+          const dropdown = tb.querySelector(`[data-menu="${username}"]`);
+          const isOpen = dropdown.classList.contains('show');
+          
+          tb.querySelectorAll('.action-menu-dropdown').forEach(d => d.classList.remove('show'));
+          
+          if (!isOpen) {
+            dropdown.classList.add('show');
+          }
+        });
+      });
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-edit-user');
@@ -975,7 +1025,16 @@
     }
   }
   
-  if(adminUsersTable) await renderUsers();
+  if(adminUsersTable) {
+    await renderUsers();
+    
+    document.addEventListener('click', () => {
+      const tb = adminUsersTable?.querySelector('tbody');
+      if (tb) {
+        tb.querySelectorAll('.action-menu-dropdown').forEach(d => d.classList.remove('show'));
+      }
+    });
+  }
   
   if(userForm){
     userForm.addEventListener('submit',async(e)=>{

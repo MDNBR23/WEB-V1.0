@@ -91,5 +91,20 @@
     "cat": "Fisioterapeuta",
     "avatar": "",
     "createdAt": "2025-11-03T04:06:43.062Z"
+  },
+  {
+    "username": "Luisa123",
+    "name": "Luisa Fernanda Perez De La Ossa",
+    "firstName": "",
+    "lastName": "",
+    "password": "$2b$10$/5BwotO7.WsTt.hgPZ.27.jpoJdkqKvZ5kmS8VIdW5eC6J9sYXKMK",
+    "email": "Luisafernanda_0101@hotmail.com",
+    "phone": "3146797958",
+    "institucion": "Universidad metropolitana",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Residente",
+    "avatar": "",
+    "createdAt": "2025-11-05T16:55:28.447Z"
   }
 ]

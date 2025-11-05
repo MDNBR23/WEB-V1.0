@@ -433,6 +433,8 @@ app.get('/api/users', async (req, res) => {
     const sanitized = users.map(u => ({
       username: u.username,
       name: u.name,
+      firstName: u.firstName,
+      lastName: u.lastName,
       email: u.email,
       phone: u.phone,
       institucion: u.institucion,
@@ -473,6 +475,12 @@ app.put('/api/users/:username', async (req, res) => {
         user[key] = updates[key];
       }
     });
+    
+    if (updates.firstName || updates.lastName) {
+      const firstName = updates.firstName || user.firstName || '';
+      const lastName = updates.lastName || user.lastName || '';
+      user.name = `${firstName} ${lastName}`.trim();
+    }
     
     await writeJSON('users.json', users);
     res.json({success: true});

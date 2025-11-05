@@ -338,8 +338,8 @@ html[data-theme="dark"] #medicationSelect {
           
           <div class="card glass tool-card" onclick="showTool('ia')">
             <span class="tool-card-icon">🤖</span>
-            <h3>IA Médica</h3>
-            <p>Consulta evidencia médica con IA especializada</p>
+            <h3>Asistente de IA</h3>
+            <p>Consulta y obtén respuestas con inteligencia artificial</p>
           </div>
           
           <div class="card glass tool-card" onclick="showTool('interacciones')">
@@ -859,9 +859,9 @@ html[data-theme="dark"] #medicationSelect {
                 <div>
                   <h3 style="margin:0;display:flex;align-items:center;gap:8px;">
                     <span>🤖</span>
-                    <span>Asistente de IA Médica</span>
+                    <span>Asistente de IA</span>
                   </h3>
-                  <p class="text-muted" style="margin:4px 0 0 0;font-size:13px;">Powered by <strong>GPT-5</strong> • Especializado en Pediatría y Neonatología</p>
+                  <p class="text-muted" style="margin:4px 0 0 0;font-size:13px;">Powered by <strong>TinyLlama</strong></p>
                 </div>
                 <div style="display:flex;gap:8px;">
                   <button class="btn sm secondary" onclick="limpiarChatIA()" title="Nueva conversación">🗑️ Limpiar</button>
@@ -880,13 +880,13 @@ html[data-theme="dark"] #medicationSelect {
               <div style="text-align:center;color:var(--muted);padding:40px 20px;">
                 <div style="font-size:48px;margin-bottom:12px;">💬</div>
                 <h4 style="margin:0 0 8px 0;color:var(--text);">¿En qué puedo ayudarte hoy?</h4>
-                <p style="margin:0;font-size:14px;">Pregúntame sobre pediatría, neonatología, tratamientos, diagnósticos o guías clínicas.</p>
+                <p style="margin:0;font-size:14px;">Pregúntame sobre tratamientos, diagnósticos, guías clínicas o cualquier tema de salud.</p>
               </div>
             </div>
 
             <div style="padding:20px;border-top:1px solid var(--border);background:var(--card);">
               <div style="display:flex;gap:8px;align-items:flex-end;">
-                <textarea id="iaChatInput" rows="1" placeholder="Escribe tu consulta médica..." style="flex:1;resize:none;min-height:44px;max-height:120px;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:14px;line-height:1.5;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensajeIA();}" oninput="this.style.height='44px';this.style.height=this.scrollHeight+'px';"></textarea>
+                <textarea id="iaChatInput" rows="1" placeholder="Escribe lo que quieras..." style="flex:1;resize:none;min-height:44px;max-height:120px;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:14px;line-height:1.5;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensajeIA();}" oninput="this.style.height='44px';this.style.height=this.scrollHeight+'px';"></textarea>
                 <button class="btn primary" id="btnEnviarIA" onclick="enviarMensajeIA()" style="padding:12px 20px;height:44px;border-radius:12px;">
                   <span id="btnEnviarIAText">Enviar</span>
                 </button>
@@ -3248,7 +3248,7 @@ html[data-theme="dark"] #medicationSelect {
         chatMessages.push({role: 'assistant', content: fullResponse});
       } catch (err) {
         console.error('Error en chat IA:', err);
-        agregarMensajeChat('assistant', `⚠️ Error: ${err.message}. Por favor, verifica que OPENAI_API_KEY esté configurado correctamente.`);
+        agregarMensajeChat('assistant', `⚠️ Error: ${err.message}. Por favor, verifica la configuración de la IA.`);
       } finally {
         btnEnviar.disabled = false;
         btnText.textContent = 'Enviar';
@@ -3263,7 +3263,7 @@ html[data-theme="dark"] #medicationSelect {
         <div style="text-align:center;color:var(--muted);padding:40px 20px;">
           <div style="font-size:48px;margin-bottom:12px;">💬</div>
           <h4 style="margin:0 0 8px 0;color:var(--text);">¿En qué puedo ayudarte hoy?</h4>
-          <p style="margin:0;font-size:14px;">Pregúntame sobre pediatría, neonatología, tratamientos, diagnósticos o guías clínicas.</p>
+          <p style="margin:0;font-size:14px;">Pregúntame sobre tratamientos, diagnósticos, guías clínicas o cualquier tema de salud.</p>
         </div>
       `;
     }
