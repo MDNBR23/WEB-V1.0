@@ -447,8 +447,13 @@
       const institucion=document.getElementById('registerInst').value.trim();
       const password=document.getElementById('registerPass').value;
       const password2=document.getElementById('registerPassConfirm').value;
+      const acceptTerms=document.getElementById('acceptTerms');
       
       if(password!==password2) return alert('Las contraseñas no coinciden');
+      
+      if(!acceptTerms || !acceptTerms.checked) {
+        return alert('Debes aceptar la Política de Privacidad y los Términos y Condiciones para continuar');
+      }
       
       try {
         const data = await api('/register', {

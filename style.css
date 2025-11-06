@@ -1136,10 +1136,48 @@ textarea{
   margin-top: 2px;
 }
 
+.footer-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 16px 0;
+  padding: 0;
+}
+
+.footer-links a {
+  color: rgba(255,255,255,.75);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.footer-links a:hover {
+  color: rgba(255,255,255,1);
+  background: rgba(255,255,255,.1);
+}
+
+.footer-links .separator {
+  color: rgba(255,255,255,.4);
+  pointer-events: none;
+}
+
 @media (max-width: 768px) {
   .app-footer {
     font-size: 12px;
     padding: 20px 16px;
+  }
+  
+  .footer-links {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .footer-links .separator {
+    display: none;
   }
 }
 
