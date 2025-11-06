@@ -144,13 +144,15 @@
 }
 .text-editor {
   width: 100%;
-  min-height: 300px;
+  min-height: 120px;
+  max-height: 400px;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-family: monospace;
   font-size: 14px;
   margin-top: 12px;
+  resize: vertical;
 }
 .back-btn {
   display: inline-flex;
@@ -1011,9 +1013,6 @@ html[data-theme="dark"] #medicationSelect {
           </section>
         </div>
         <footer class="app-footer">
-          <h4>Aviso Legal</h4>
-          <p>Las herramientas de Med Tools Hub son de apoyo clínico y no sustituyen el criterio profesional.</p>
-          <p>El uso y aplicación de los resultados son responsabilidad exclusiva de cada profesional de la salud.</p>
           <div class="footer-links">
             <a href="privacidad.html">Política de Privacidad</a>
             <span class="separator">|</span>
