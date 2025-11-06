@@ -72,6 +72,14 @@ app.use(session({
   }
 }));
 
+app.use(express.static('.', {
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+}));
+
 async function ensureDataDir() {
   try {
     await fs.mkdir(DATA_DIR, {recursive: true});
@@ -1446,14 +1454,6 @@ Estructura tus respuestas de forma clara con viñetas o listas cuando sea apropi
     res.end();
   }
 });
-
-app.use(express.static('.', {
-  setHeaders: (res) => {
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-  }
-}));
 
 Promise.all([
   initializeDatabase(),
