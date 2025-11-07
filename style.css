@@ -172,7 +172,7 @@ html.preload *{
   padding:12px 14px;
   color:#1a202c;
   font-family:inherit;
-  font-size:15px;
+  font-size:16px;
 }
 
 html[data-theme="dark"] .field input,

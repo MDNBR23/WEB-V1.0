@@ -133,11 +133,13 @@
   window.checkSession = checkSession;
 
   const path=location.pathname;
-  const isAuth=/(^|\/)index\.html$/.test(path)||path.endsWith('/');
-  const isReg=path.endsWith('register.html');
-  const isReset=path.endsWith('reset-password.html');
+  const isAuth=/(^|\/)index(\.html)?$/.test(path)||path.endsWith('/')||path==='/index';
+  const isReg=path.endsWith('register.html')||path.endsWith('/register')||path==='/register';
+  const isReset=path.endsWith('reset-password.html')||path.endsWith('/reset-password')||path==='/reset-password';
+  const isVerify=path.includes('verify-email');
+  const isPublicPage=path.includes('privacidad')||path.includes('terminos')||path.includes('aviso-legal')||path.includes('cookies');
   
-  if(!(isAuth||isReg||isReset)){
+  if(!(isAuth||isReg||isReset||isVerify||isPublicPage)){
     const session = await checkSession();
     if(!session){
       location.replace('index.html');

@@ -12,8 +12,9 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 ### UI/UX Decisions
 - **Design:** Modern teal/cyan theme with enhanced contrast, clear typography, and accessible color palettes (WCAG AA compliant). Features a redesigned authentication box with modern styling and responsive design.
 - **Navigation:** Smooth page transitions, a collapsible sidebar with persistent icons and title, and a modern circular toggle button.
-- **Responsiveness:** Optimized for various screen sizes, ensuring a consistent user experience.
+- **Responsiveness:** Optimized for various screen sizes, ensuring a consistent user experience. All input fields use 16px font-size to prevent automatic zoom on mobile devices (iOS/Android).
 - **Theming:** Supports both light and dark modes with smooth CSS transitions.
+- **Mobile Optimization:** Safe area insets for iPhone notches, touch-optimized scrolling, and proper viewport configuration for iOS and Android devices.
 
 ### Technical Implementations
 - **Frontend:** Pure HTML5, CSS3, and vanilla JavaScript for a lightweight and fast client-side experience.
@@ -54,6 +55,8 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ Fixed mobile zoom issue: All input fields now use 16px font-size to prevent automatic zoom on iOS/Android devices
+- ✅ Fixed infinite reload loops: Updated route detection to support clean URLs (without .html extension)
 - ✅ Added email notifications for password changes (security feature)
 - ✅ Migrated AI integration from OpenAI to TinyLlama via Ollama for local, cost-free operation
 - ✅ Implemented clean URL system (removes .html extensions from all pages)
