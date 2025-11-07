@@ -20,11 +20,11 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Backend:** Node.js with Express.js implementing a RESTful API.
 - **Authentication:** Session-based authentication using `express-session`, secure password hashing with `bcrypt` (10 rounds), and role-based access control (admin/user).
 - **Data Isolation:** User-specific data (announcements, guides) is isolated, while global content (medications, admin-created guides/announcements) is shared.
-- **Email Service:** Integrated SMTP email service using Hostinger for account verification, password recovery, user approval notifications, and account deletion confirmations. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration. All email URLs are dynamically generated from request context to ensure compatibility across all deployment environments.
+- **Email Service:** Integrated SMTP email service using Hostinger for account verification, password recovery, password change notifications, user approval notifications, and account deletion confirmations. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration. All email URLs are dynamically generated from request context to ensure compatibility across all deployment environments. Users receive security notifications when their password is changed.
 - **Medical Tools:** Includes a text space corrector, an interactive arterial blood gas analyzer, a template system for clinical evolution notes, an infusion calculator, a drug interaction checker, and an interactive shift calendar.
 - **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units with automatic unit conversion and precise medical orders. Uses exclusively admin-managed medications.
 - **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence. Includes a shift exchange system.
-- **AI Medical Integration:** Open Evidence integration for accessing medical research and evidence-based medicine resources. Documentation for Ollama AI integration is prepared for future implementation.
+- **AI Medical Integration:** TinyLlama integration via Ollama for local, privacy-focused medical AI assistance. Supports streaming responses for real-time interaction. Configured through OLLAMA_HOST and OLLAMA_MODEL environment variables. Open Evidence integration for accessing medical research and evidence-based medicine resources. See CONFIGURACION_TINYLLAMA.md for setup instructions.
 
 ### Feature Specifications
 - **Authentication:** User registration with email verification (with separate first and last names), login with email verification check, logout, password reset, and session management. New registrations require:
@@ -46,7 +46,14 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 ### System Design Choices
 - **Data Storage:** File-based JSON storage (`data/` directory) for simplicity and rapid prototyping, designed to be scalable to a PostgreSQL database if needed.
 - **API Endpoints:** Comprehensive set of RESTful API endpoints for authentication, user management, and content manipulation.
+- **URL Structure:** Professional clean URLs without .html extensions using Express middleware with automatic 301 redirects. All HTML pages are accessible without file extensions (e.g., /main instead of /main.html). Visiting /page.html automatically redirects to /page for a more professional appearance.
 - **Deployment:** Optimized for Replit's autoscale deployment.
 
 ## External Dependencies
-- **Hostinger SMTP:** Used for sending password reset emails and other notifications via secure SMTP connection.
+- **Hostinger SMTP:** Used for sending password reset emails, password change notifications, and other security/account notifications via secure SMTP connection.
+- **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
+
+## Recent Changes (November 2025)
+- ✅ Added email notifications for password changes (security feature)
+- ✅ Migrated AI integration from OpenAI to TinyLlama via Ollama for local, cost-free operation
+- ✅ Implemented clean URL system (removes .html extensions from all pages)

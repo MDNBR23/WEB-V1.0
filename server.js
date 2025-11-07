@@ -74,13 +74,54 @@ app.use(session({
   }
 }));
 
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  if (req.path.endsWith('.html')) {
+    const cleanPath = req.path.replace(/\.html$/, '');
+    return res.redirect(301, cleanPath + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''));
+  }
+  
+  next();
+});
+
 app.use(express.static('.', {
   setHeaders: (res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
-  }
+  },
+  extensions: ['html']
 }));
+
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  if (path.extname(req.path) === '') {
+    const normalized = req.path.replace(/^\/+/, '');
+    
+    if (normalized) {
+      const htmlPath = path.join(__dirname, `${normalized}.html`);
+      try {
+        await fs.access(htmlPath);
+        return res.sendFile(htmlPath);
+      } catch (err) {
+        const indexPath = path.join(__dirname, normalized, 'index.html');
+        try {
+          await fs.access(indexPath);
+          return res.sendFile(indexPath);
+        } catch (err2) {
+          return next();
+        }
+      }
+    }
+  }
+  next();
+});
 
 async function ensureDataDir() {
   try {
@@ -919,6 +960,66 @@ app.post('/api/change-password', async (req, res) => {
     user.password = hashedPassword;
     
     await writeJSON('users.json', users);
+    
+    if (user.email) {
+      const emailContent = `Hola ${user.name || user.username},
+
+Tu contraseña en Med Tools Hub ha sido cambiada exitosamente.
+
+Fecha y hora del cambio: ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}
+
+Si no fuiste tú quien realizó este cambio, por favor contacta inmediatamente con el soporte o restablece tu contraseña.
+
+Saludos,
+Med Tools Hub`;
+
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; }
+    .container { background: white; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #008B8B, #008080); padding: 20px; border-radius: 8px 8px 0 0; color: white; text-align: center; }
+    .content { padding: 30px; }
+    .alert { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0; color: #856404; }
+    .info { background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; padding: 15px; margin: 20px 0; color: #0c5460; }
+    .footer { color: #666; font-size: 12px; margin-top: 30px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Med Tools Hub</h1>
+      <p>Notificación de Seguridad</p>
+    </div>
+    <div class="content">
+      <p>Hola <strong>${user.name || user.username}</strong>,</p>
+      <p>Tu contraseña en Med Tools Hub ha sido cambiada exitosamente.</p>
+      <div class="info">
+        <strong>📅 Fecha y hora del cambio:</strong><br>
+        ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}
+      </div>
+      <div class="alert">
+        <strong>⚠️ Importante:</strong><br>
+        Si no fuiste tú quien realizó este cambio, por favor contacta inmediatamente con el soporte o restablece tu contraseña.
+      </div>
+    </div>
+    <div class="footer">
+      <p>Este es un mensaje automático, por favor no responder.</p>
+      <p>contacto@medtoolshub.cloud</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+      await sendEmail({
+        to: user.email,
+        subject: 'Contraseña Cambiada - Med Tools Hub',
+        text: emailContent,
+        html: htmlContent
+      });
+    }
     
     res.json({success: true, message: 'Contraseña actualizada correctamente'});
   } catch (err) {
@@ -1814,16 +1915,11 @@ app.post('/api/ai/stream', async (req, res) => {
       return res.status(400).json({error: 'Messages array requerido'});
     }
     
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(503).json({error: 'Servicio de IA no configurado. Configure OPENAI_API_KEY en variables de entorno.'});
+    if (!process.env.OLLAMA_HOST) {
+      return res.status(503).json({error: 'Servicio de IA no configurado. Configure OLLAMA_HOST en variables de entorno.'});
     }
     
-    const OpenAI = require('openai');
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
-    const systemMessage = {
-      role: 'system',
-      content: `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
+    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
 
 1. No diagnostiques pacientes específicos
 2. Proporciona información general basada en guías clínicas actualizadas
@@ -1834,31 +1930,71 @@ app.post('/api/ai/stream', async (req, res) => {
 7. Si mencionas medicamentos, incluye dosis pediátricas cuando sea relevante
 8. Prioriza la seguridad del paciente en todas tus respuestas
 
-Estructura tus respuestas de forma clara con viñetas o listas cuando sea apropiado.`
-    };
+Estructura tus respuestas de forma clara con viñetas o listas cuando sea apropiado.`;
+    
+    let conversationPrompt = systemPrompt + '\n\n';
+    for (const msg of messages) {
+      if (msg.role === 'user') {
+        conversationPrompt += `Usuario: ${msg.content}\n\n`;
+      } else if (msg.role === 'assistant') {
+        conversationPrompt += `Asistente: ${msg.content}\n\n`;
+      }
+    }
+    conversationPrompt += 'Asistente: ';
     
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-5',
-      messages: [systemMessage, ...messages],
-      max_completion_tokens: 8192,
-      stream: true
+    const ollamaModel = process.env.OLLAMA_MODEL || 'tinyllama';
+    
+    const response = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: ollamaModel,
+        prompt: conversationPrompt,
+        stream: true,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          top_k: 40
+        }
+      })
     });
     
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
-        res.write(`data: ${JSON.stringify({content})}\n\n`);
+    if (!response.ok) {
+      throw new Error(`Ollama error: ${response.status} ${response.statusText}`);
+    }
+    
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(line => line.trim());
+      
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line);
+          if (json.response) {
+            res.write(`data: ${JSON.stringify({content: json.response})}\n\n`);
+          }
+          if (json.done) {
+            res.write('data: [DONE]\n\n');
+          }
+        } catch (e) {
+          console.error('Error parsing Ollama chunk:', e);
+        }
       }
     }
     
-    res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('Error streaming from OpenAI:', err);
+    console.error('Error streaming from Ollama:', err);
     res.write(`data: ${JSON.stringify({error: err.message})}\n\n`);
     res.end();
   }
