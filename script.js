@@ -499,20 +499,14 @@
         });
         
         if(data.success) {
-          if(data.token) {
-            tokenDisplay.innerHTML = `<strong>Código de recuperación:</strong><br><code style="font-size:14px;user-select:all;">${data.token}</code><br><small style="color:var(--text-muted);margin-top:8px;display:block;">Guarda este código. Lo necesitarás para restablecer tu contraseña.</small>`;
-            tokenDisplay.style.display = 'block';
-            document.getElementById('resetToken').value = data.token;
-          } else {
-            tokenDisplay.innerHTML = `<strong>✓ Email enviado</strong><br><small style="color:var(--text-muted);margin-top:8px;display:block;">${data.message}</small>`;
-            tokenDisplay.style.display = 'block';
-          }
+          tokenDisplay.innerHTML = `<strong>✓ Email enviado</strong><br><small style="color:var(--text-muted);margin-top:8px;display:block;">${data.message}</small>`;
+          tokenDisplay.style.display = 'block';
           requestBox.style.display = 'none';
           resetBox.style.display = 'block';
           toast(data.message, 'success');
         }
       } catch (err) {
-        alert(err.message);
+        toast(err.message || 'Error al solicitar recuperación de contraseña', 'error');
       }
     });
   }

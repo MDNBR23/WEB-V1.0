@@ -20,7 +20,7 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Backend:** Node.js with Express.js implementing a RESTful API.
 - **Authentication:** Session-based authentication using `express-session`, secure password hashing with `bcrypt` (10 rounds), and role-based access control (admin/user).
 - **Data Isolation:** User-specific data (announcements, guides) is isolated, while global content (medications, admin-created guides/announcements) is shared.
-- **Email Service:** Integrated for password recovery, capable of operating with or without SMTP credentials.
+- **Email Service:** Integrated SMTP email service using Hostinger for password recovery. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration for enhanced security and usability.
 - **Medical Tools:** Includes a text space corrector, an interactive arterial blood gas analyzer, a template system for clinical evolution notes, an infusion calculator, a drug interaction checker, and an interactive shift calendar.
 - **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units with automatic unit conversion and precise medical orders. Uses exclusively admin-managed medications.
 - **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence. Includes a shift exchange system.
@@ -44,4 +44,4 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Deployment:** Optimized for Replit's autoscale deployment.
 
 ## External Dependencies
-- **Replit Mail:** Used for sending password reset emails and other notifications.
+- **Hostinger SMTP:** Used for sending password reset emails and other notifications via secure SMTP connection.

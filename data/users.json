@@ -11,22 +11,29 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-07T03:29:52.909Z",
+    "lastLogin": "2025-11-07T04:14:54.530Z",
     "isOnline": true,
-    "lastHeartbeat": "2025-11-07T03:31:59.720Z"
+    "lastHeartbeat": "2025-11-07T04:14:54.530Z"
   },
   {
     "username": "usuario",
     "password": "$2b$10$sl4uJNWLYvNAvWNAudKsf.Xz/H0xxbB0OY/FP.plc5bcseVl2Z9qm",
-    "name": "Usuario de Prueba",
-    "email": "usuario@test.local",
+    "name": "Neil Briñez",
+    "email": "neileduard10@gmail.com",
     "phone": "",
     "institucion": "Hospital Test",
     "role": "user",
     "status": "aprobado",
-    "cat": "Pediatra",
+    "cat": "Médico General",
     "avatar": "",
-    "createdAt": "2025-10-14T00:00:00.000Z"
+    "createdAt": "2025-10-14T00:00:00.000Z",
+    "firstName": "Neil",
+    "lastName": "Briñez",
+    "resetToken": "700303",
+    "resetExpiry": 1762489072651,
+    "lastLogin": "2025-11-07T04:09:42.797Z",
+    "lastHeartbeat": "2025-11-07T04:12:18.582Z",
+    "isOnline": true
   },
   {
     "username": "BabillaSincelejana1998",
