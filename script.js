@@ -878,16 +878,26 @@
     const searchTerm = document.getElementById('searchUsers')?.value.toLowerCase() || '';
     const filterRole = document.getElementById('filterRol')?.value || '';
     const filterStat = document.getElementById('filterEstado')?.value || '';
+    const filterEmail = document.getElementById('filterEmail')?.value || '';
     
     const filtered = allUsers.filter(u => {
       const matchesSearch = !searchTerm || 
         (u.username||'').toLowerCase().includes(searchTerm) ||
-        (u.name||'').toLowerCase().includes(searchTerm);
+        (u.name||'').toLowerCase().includes(searchTerm) ||
+        (u.firstName||'').toLowerCase().includes(searchTerm) ||
+        (u.lastName||'').toLowerCase().includes(searchTerm);
       
       const matchesRole = !filterRole || (u.role === filterRole);
       const matchesStat = !filterStat || (u.status === filterStat);
       
-      return matchesSearch && matchesRole && matchesStat;
+      let matchesEmail = true;
+      if (filterEmail === 'verified') {
+        matchesEmail = u.emailVerified === true;
+      } else if (filterEmail === 'notverified') {
+        matchesEmail = !u.emailVerified;
+      }
+      
+      return matchesSearch && matchesRole && matchesStat && matchesEmail;
     });
     
     displayUsers(filtered);
@@ -946,12 +956,19 @@
           else lastLoginText = loginDate.toLocaleDateString();
         }
         
-        const emailVerified = u.emailVerified || false;
-        const verificationStatus = emailVerified ? 
-          '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">✅</span><span>Email verificado</span></div>' : 
-          '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">⚠️</span><span>Email sin verificar</span></div>';
+        const emailVerified = u.emailVerified === true;
+        const emailVerifiedExists = u.hasOwnProperty('emailVerified');
         
-        const resendEmailOption = !emailVerified ? 
+        let verificationStatus = '';
+        if (emailVerified) {
+          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">✅</span><span>Email verificado</span></div>';
+        } else if (!emailVerifiedExists) {
+          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.6;"><span class="action-menu-icon">ℹ️</span><span>Usuario antiguo (sin sistema de verificación)</span></div>';
+        } else {
+          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">⚠️</span><span>Email sin verificar</span></div>';
+        }
+        
+        const resendEmailOption = (!emailVerified && emailVerifiedExists) ? 
           `<div class="action-menu-item info" data-resend-email="${u.username}">
             <span class="action-menu-icon">📧</span>
             <span>Reenviar verificación</span>
@@ -963,6 +980,7 @@
           <td><span class='chip' style='font-size:11px;padding:4px 10px;background:var(--primary-light);color:var(--primary);'>${roleText}</span></td>
           <td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td>
           <td>${onlineIndicator}</td>
+          <td style="font-size:13px;color:var(--muted);">${lastLoginText}</td>
           <td style="text-align:center;">
             <div class="action-menu">
               <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
@@ -1101,6 +1119,22 @@
     }
   }
   
+  function updateDashboardMetrics(users) {
+    const totalCount = document.getElementById('totalUsersCount');
+    const pendingCount = document.getElementById('pendingUsersCount');
+    const onlineCount = document.getElementById('onlineUsersCount');
+    
+    if (totalCount) totalCount.textContent = users.length;
+    if (pendingCount) {
+      const pending = users.filter(u => u.status === 'pendiente').length;
+      pendingCount.textContent = pending;
+    }
+    if (onlineCount) {
+      const online = users.filter(u => u.isOnline).length;
+      onlineCount.textContent = online;
+    }
+  }
+
   async function renderUsers(){
     const tb=adminUsersTable?.querySelector('tbody');
     if(!tb) return;
@@ -1108,6 +1142,18 @@
     try {
       allUsers = await api('/users');
       await displayUsers(allUsers);
+      updateDashboardMetrics(allUsers);
+      
+      const indicator = document.getElementById('lastUpdateIndicator');
+      if (indicator) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        indicator.textContent = `🔄 Actualizado: ${timeStr}`;
+        indicator.style.opacity = '1';
+        setTimeout(() => {
+          if (indicator) indicator.style.opacity = '0.6';
+        }, 2000);
+      }
     } catch (err) {
       console.error('Error loading users:', err);
     }
@@ -1115,6 +1161,12 @@
   
   if(adminUsersTable) {
     await renderUsers();
+    
+    setInterval(async () => {
+      if(document.getElementById('adminUsersTable')) {
+        await renderUsers();
+      }
+    }, 30000);
     
     document.addEventListener('click', () => {
       const tb = adminUsersTable?.querySelector('tbody');
@@ -2009,6 +2061,12 @@
     try {
       const data = await api('/sugerencias/count');
       const count = data.count || 0;
+      
+      const totalSugerenciasCount = document.getElementById('totalSugerenciasCount');
+      if (totalSugerenciasCount) {
+        const allSugerencias = await api('/sugerencias');
+        totalSugerenciasCount.textContent = allSugerencias.length || 0;
+      }
 
       if(count > 0) {
         sugerenciasCounter.textContent = count;
