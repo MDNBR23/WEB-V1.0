@@ -11,9 +11,9 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-07T07:11:15.508Z",
-    "isOnline": true,
-    "lastHeartbeat": "2025-11-07T07:31:42.028Z",
+    "lastLogin": "2025-11-07T08:52:10.700Z",
+    "isOnline": false,
+    "lastHeartbeat": "2025-11-07T08:54:00.618Z",
     "emailVerified": true
   },
   {
@@ -114,8 +114,8 @@
     "emailVerified": true,
     "verificationToken": null,
     "createdAt": "2025-11-07T06:10:44.404Z",
-    "lastLogin": "2025-11-07T06:13:50.730Z",
-    "lastHeartbeat": "2025-11-07T06:13:50.730Z",
-    "isOnline": false
+    "lastLogin": "2025-11-07T08:57:15.309Z",
+    "lastHeartbeat": "2025-11-07T08:57:15.309Z",
+    "isOnline": true
   }
 ]

@@ -8,6 +8,49 @@
 <title>Med Tools Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<style>
+  .config-tab {
+    color: var(--muted);
+    position: relative;
+  }
+  .config-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary) !important;
+  }
+  .config-tab:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: linear-gradient(135deg, var(--primary), #006666);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .stat-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .stat-card p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
@@ -40,57 +83,180 @@
         </div>
       </header>
       <main>
-        <section class="card glass">
-          <h3>Perfil</h3>
-          <form id="cfgForm">
-            <div class="grid-2col" style="grid-template-columns:280px 1fr;">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-                <div class="field" style="width:100%;"><label>Imagen de Perfil</label><img id="avatarTopPreview" src="" alt="" class="profile-preview" style="margin:0 auto;display:block;"></div>
-                <div style="display:flex;gap:6px;width:100%;">
-                  <button class="btn grow" type="button" style="font-size:12px;padding:8px 12px;" onclick="document.getElementById('cfgAvatarFile').click()">Añadir imagen</button>
-                  <button class="btn secondary grow" type="button" style="font-size:12px;padding:8px 12px;" id="cfgAvatarClear">Quitar imagen</button>
-                  <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
+        <!-- Profile Stats -->
+        <div class="profile-stats">
+          <div class="stat-card">
+            <h4 id="memberSinceDays">-</h4>
+            <p>Días de miembro</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="userRoleBadge">-</h4>
+            <p>Rol</p>
+          </div>
+          <div class="stat-card">
+            <h4 id="accountStatusBadge">✓</h4>
+            <p>Estado de cuenta</p>
+          </div>
+        </div>
+
+        <!-- Modern Tabs Navigation -->
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="config-tab active" data-tab="perfil" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              👤 Perfil
+            </button>
+            <button class="config-tab" data-tab="seguridad" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🔒 Seguridad
+            </button>
+            <button class="config-tab" data-tab="preferencias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🎨 Preferencias
+            </button>
+            <button class="config-tab" data-tab="cuenta" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ⚠️ Cuenta
+            </button>
+          </div>
+
+          <!-- Tab Content -->
+          <div style="padding:24px;">
+            <!-- PERFIL TAB -->
+            <div class="tab-content" id="tab-perfil">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Información del Perfil</h3>
+              <form id="cfgForm">
+                <div class="grid-2col" style="grid-template-columns:280px 1fr;gap:24px;">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                    <div class="field" style="width:100%;">
+                      <label style="text-align:center;display:block;margin-bottom:8px;">Imagen de Perfil</label>
+                      <img id="avatarTopPreview" src="" alt="" class="profile-preview" style="margin:0 auto;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                    </div>
+                    <div style="display:flex;gap:6px;width:100%;flex-direction:column;">
+                      <button class="btn grow" type="button" style="font-size:13px;padding:10px 16px;" onclick="document.getElementById('cfgAvatarFile').click()">📷 Cambiar imagen</button>
+                      <button class="btn secondary grow" type="button" style="font-size:13px;padding:10px 16px;" id="cfgAvatarClear">🗑️ Quitar imagen</button>
+                      <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
+                    </div>
+                  </div>
+                  <div>
+                    <div class="field">
+                      <label>👤 Usuario</label>
+                      <input id="cfgUser" type="text" disabled style="background:rgba(0,0,0,0.05);cursor:not-allowed;">
+                    </div>
+                    <div class="field">
+                      <label>✏️ Nombre mostrado</label>
+                      <input id="cfgName" type="text" placeholder="Ingresa tu nombre completo">
+                    </div>
+                    <div class="field">
+                      <label>🎓 Categoría</label>
+                      <select id="cfgCat">
+                        <option value="">(sin especificar)</option>
+                        <option>Estudiante</option>
+                        <option>Interno</option>
+                        <option>Médico General</option>
+                        <option>Residente</option>
+                        <option>Pediatra</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>📧 Correo electrónico</label>
+                      <input id="cfgMail" type="email" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="field">
+                      <label>📱 Teléfono</label>
+                      <input id="cfgPhone" type="text" placeholder="+57 300 123 4567">
+                    </div>
+                    <div class="field">
+                      <label>🏥 Institución</label>
+                      <input id="cfgInst" type="text" placeholder="Hospital o clínica">
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:24px;display:flex;gap:12px;">
+                  <button class="btn grow" type="submit" style="flex:1;">💾 Guardar cambios</button>
+                  <button class="btn secondary" type="button" onclick="location.reload()" style="flex:0;">↻ Cancelar</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- SEGURIDAD TAB -->
+            <div class="tab-content" id="tab-seguridad" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Cambiar Contraseña</h3>
+              <p class="text-muted" style="margin-bottom:24px;">Asegúrate de usar una contraseña segura con al menos 8 caracteres.</p>
+              <form id="cfgPasswordForm">
+                <div style="max-width:600px;">
+                  <div class="field">
+                    <label>🔑 Contraseña actual</label>
+                    <input id="cfgCurrentPass" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña actual" required>
+                  </div>
+                  <div class="field">
+                    <label>🔐 Nueva contraseña</label>
+                    <input id="cfgNewPass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required>
+                  </div>
+                  <div class="field">
+                    <label>✓ Confirmar nueva contraseña</label>
+                    <input id="cfgConfirmPass" type="password" autocomplete="new-password" placeholder="Confirma tu nueva contraseña" required>
+                  </div>
+                </div>
+                <div style="margin-top:24px;display:flex;gap:12px;">
+                  <button class="btn grow" type="submit">🔒 Actualizar contraseña</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PREFERENCIAS TAB -->
+            <div class="tab-content" id="tab-preferencias" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Preferencias de la Aplicación</h3>
+              <div style="max-width:600px;">
+                <div class="card glass" style="padding:20px;margin-bottom:16px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <h4 style="margin:0 0 4px 0;font-size:15px;">🌙 Modo oscuro</h4>
+                      <p class="text-muted" style="margin:0;font-size:13px;">Cambia entre tema claro y oscuro</p>
+                    </div>
+                    <label class="switch">
+                      <input class="theme-toggle" type="checkbox">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="card glass" style="padding:20px;">
+                  <div>
+                    <h4 style="margin:0 0 4px 0;font-size:15px;">ℹ️ Información del sistema</h4>
+                    <p class="text-muted" style="margin:8px 0 0 0;font-size:13px;">Versión: <strong>2.0.0</strong></p>
+                    <p class="text-muted" style="margin:4px 0 0 0;font-size:13px;">Última actualización: <strong>Noviembre 2025</strong></p>
+                  </div>
                 </div>
               </div>
-              <div>
-                <div class="field"><label>Usuario</label><input id="cfgUser" type="text" disabled></div>
-                <div class="field"><label>Nombre mostrado</label><input id="cfgName" type="text"></div>
-                <div class="field"><label>Categoría</label>
-                  <select id="cfgCat"><option value="">(sin especificar)</option><option>Estudiante</option><option>Interno</option><option>Médico General</option><option>Residente</option><option>Pediatra</option></select>
-                </div>
-                <div class="field"><label>Correo</label><input id="cfgMail" type="email"></div>
-                <div class="field"><label>Teléfono</label><input id="cfgPhone" type="text"></div>
-                <div class="field"><label>Institución</label><input id="cfgInst" type="text"></div>
+            </div>
+
+            <!-- CUENTA TAB -->
+            <div class="tab-content" id="tab-cuenta" style="display:none;">
+              <div class="card glass" style="border:2px solid #ff9800;background:rgba(255,152,0,0.05);padding:24px;margin-bottom:24px;">
+                <h3 style="margin:0 0 12px 0;color:#ff9800;display:flex;align-items:center;gap:8px;">
+                  ⚠️ Zona de Precaución
+                </h3>
+                <p class="text-muted" style="margin-bottom:16px;font-size:14px;">
+                  Las acciones en esta sección son importantes y pueden afectar tu cuenta. Por favor, procede con cuidado.
+                </p>
+              </div>
+
+              <div class="card glass" style="border:2px solid #d32f2f;background:rgba(211,47,47,0.05);padding:24px;">
+                <h3 style="margin:0 0 12px 0;color:#d32f2f;display:flex;align-items:center;gap:8px;">
+                  🗑️ Eliminar Cuenta
+                </h3>
+                <p class="text-muted" style="margin-bottom:16px;font-size:14px;">
+                  Una vez que elimines tu cuenta, <strong>no hay vuelta atrás</strong>. Todos tus datos, incluyendo tu perfil, configuraciones y contenido, serán eliminados permanentemente.
+                </p>
+                <ul class="text-muted" style="margin:0 0 20px 20px;font-size:13px;line-height:1.8;">
+                  <li>Se eliminarán todos tus datos personales</li>
+                  <li>Perderás acceso a todas las funciones de la plataforma</li>
+                  <li>Esta acción no se puede deshacer</li>
+                </ul>
+                <button class="btn danger" type="button" id="btnDeleteAccount">
+                  ⚠️ Eliminar mi cuenta permanentemente
+                </button>
               </div>
             </div>
-            <div class="auth-actions" style="margin-top:14px">
-              <button class="btn grow" type="submit">Guardar cambios</button>
-              <label class="switch" title="Modo oscuro" style="margin-left:auto">
-                <input class="theme-toggle" type="checkbox"><span class="slider"></span><span class="label">Oscuro</span>
-              </label>
-            </div>
-          </form>
-        </section>
+          </div>
+        </div>
 
-        <section class="card glass">
-          <h3>Cambiar contraseña</h3>
-          <form id="cfgPasswordForm">
-            <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
-              <div class="field"><label>Contraseña actual</label><input id="cfgCurrentPass" type="password" autocomplete="current-password" required></div>
-              <div class="field"><label>Nueva contraseña</label><input id="cfgNewPass" type="password" autocomplete="new-password" required></div>
-              <div class="field"><label>Confirmar contraseña</label><input id="cfgConfirmPass" type="password" autocomplete="new-password" required></div>
-            </div>
-            <div class="auth-actions" style="margin-top:14px">
-              <button class="btn grow" type="submit">Actualizar contraseña</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card glass" style="border:1px solid rgba(211,47,47,0.3);">
-          <h3 style="color:#d32f2f;">Zona de peligro</h3>
-          <p class="text-muted" style="margin-bottom:16px;">Una vez que elimines tu cuenta, no hay vuelta atrás. Por favor, asegúrate de que realmente deseas hacer esto.</p>
-          <button class="btn danger" type="button" id="btnDeleteAccount">Eliminar mi cuenta</button>
-        </section>
         <footer class="app-footer">
           <div class="footer-links">
             <a href="privacidad.html">Política de Privacidad</a>
@@ -125,4 +291,74 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Tab switching functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.config-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.getAttribute('data-tab');
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          tabContents.forEach(content => {
+            content.style.display = 'none';
+          });
+          
+          document.getElementById('tab-' + targetTab).style.display = 'block';
+        });
+      });
+
+      // Load user stats from API
+      async function loadUserStats() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) throw new Error('Failed to load profile');
+          
+          const userData = await response.json();
+          
+          // Calculate member days
+          if (userData.createdAt) {
+            const created = new Date(userData.createdAt);
+            const now = new Date();
+            const diffTime = Math.abs(now - created);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('memberSinceDays').textContent = diffDays;
+          } else {
+            document.getElementById('memberSinceDays').textContent = '0';
+          }
+          
+          // Set role badge
+          const roleElement = document.getElementById('userRoleBadge');
+          if (userData.role === 'admin') {
+            roleElement.textContent = 'Admin';
+            roleElement.parentElement.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+          } else {
+            roleElement.textContent = 'Usuario';
+          }
+
+          // Set account status
+          const statusElement = document.getElementById('accountStatusBadge');
+          if (userData.status === 'aprobado') {
+            statusElement.textContent = '✓';
+            statusElement.parentElement.querySelector('p').textContent = 'Activa';
+          } else {
+            statusElement.textContent = '⏳';
+            statusElement.parentElement.querySelector('p').textContent = 'Pendiente';
+          }
+        } catch (e) {
+          console.error('Error loading user stats:', e);
+          document.getElementById('memberSinceDays').textContent = '-';
+          document.getElementById('userRoleBadge').textContent = '-';
+          document.getElementById('accountStatusBadge').textContent = '?';
+        }
+      }
+      
+      // Load stats on page load
+      loadUserStats();
+    });
+  </script>
 </body></html>

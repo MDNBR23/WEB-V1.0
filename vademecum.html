@@ -8,6 +8,120 @@
 <title>Med Tools Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<style>
+  .vademecum-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(79,172,254,0.3);
+  }
+  .vademecum-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .vademecum-header p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 15px;
+  }
+  .search-box-container {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--muted);
+  }
+  #drugSearch {
+    width: 100%;
+    padding: 14px 14px 14px 50px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+  }
+  #drugSearch:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0,139,139,0.1);
+  }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .stat-badge {
+    background: linear-gradient(135deg, rgba(0,139,139,0.1), rgba(0,128,128,0.05));
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stat-badge strong {
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .stat-badge span {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .table-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+  #drugTable {
+    margin: 0;
+  }
+  #drugTable thead {
+    background: linear-gradient(135deg, var(--primary), #006666);
+    color: white;
+  }
+  #drugTable thead th {
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+  #drugTable tbody tr {
+    transition: all 0.2s ease;
+  }
+  #drugTable tbody tr:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .coming-soon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .coming-soon h4 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+  }
+  .coming-soon p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 14px;
+  }
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
@@ -40,19 +154,53 @@
         </div>
       </header>
       <main>
+        <!-- Header Banner -->
+        <div class="vademecum-header">
+          <h2><span>💊</span> Vademecum Pediátrico</h2>
+          <p>Consulta rápida de medicamentos y diluciones para pediatría y neonatología</p>
+        </div>
+
         <section class="card glass">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-            <h3 style="margin:0;">Listado</h3>
-            <input id="drugSearch" type="search" placeholder="Buscar fármaco…" style="margin-left:auto;width:260px;">
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-badge">
+              <strong id="totalDrugs">0</strong>
+              <span>medicamentos</span>
+            </div>
+            <div class="stat-badge">
+              <strong id="filteredDrugs">0</strong>
+              <span>resultados</span>
+            </div>
           </div>
+
+          <!-- Search -->
+          <div class="search-box-container">
+            <span class="search-icon">🔍</span>
+            <input id="drugSearch" type="search" placeholder="Buscar por nombre de fármaco o grupo..." autocomplete="off">
+          </div>
+
+          <!-- Table -->
           <div class="table-wrap">
             <table id="drugTable">
-              <thead><tr><th>Fármaco</th><th>Grupo</th><th>Dilución sugerida</th><th>Comentarios</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Fármaco</th>
+                  <th>Grupo</th>
+                  <th>Dilución sugerida</th>
+                  <th>Comentarios</th>
+                </tr>
+              </thead>
               <tbody></tbody>
             </table>
           </div>
-          <p class="text-muted mt12">Próximamente agregaremos cálculo y fórmulas automáticas.</p>
+
+          <!-- Coming Soon Banner -->
+          <div class="coming-soon">
+            <h4>🚀 Próximamente</h4>
+            <p>Agregaremos cálculos automáticos de dosis, fórmulas interactivas y más funcionalidades</p>
+          </div>
         </section>
+
         <footer class="app-footer">
           <div class="footer-links">
             <a href="privacidad.html">Política de Privacidad</a>
@@ -70,4 +218,40 @@
     </div>
   </div>
   <script src="script.js"></script>
+  <script>
+    // Update stats when table loads
+    const originalRenderDrugs = window.renderDrugsTable;
+    if (typeof originalRenderDrugs === 'function') {
+      window.renderDrugsTable = function(drugs) {
+        originalRenderDrugs(drugs);
+        document.getElementById('totalDrugs').textContent = window.allDrugs ? window.allDrugs.length : 0;
+        updateFilteredCount();
+      };
+    }
+
+    // Update filtered count
+    function updateFilteredCount() {
+      const tbody = document.querySelector('#drugTable tbody');
+      const visibleRows = tbody ? tbody.querySelectorAll('tr:not([style*="display: none"])').length : 0;
+      document.getElementById('filteredDrugs').textContent = visibleRows;
+    }
+
+    // Monitor search to update filtered count
+    const searchInput = document.getElementById('drugSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        setTimeout(updateFilteredCount, 100);
+      });
+    }
+
+    // Initial count
+    setTimeout(function() {
+      const totalEl = document.getElementById('totalDrugs');
+      const filteredEl = document.getElementById('filteredDrugs');
+      if (window.allDrugs) {
+        totalEl.textContent = window.allDrugs.length;
+        filteredEl.textContent = window.allDrugs.length;
+      }
+    }, 500);
+  </script>
 </body></html>

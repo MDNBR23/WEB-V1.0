@@ -4,7 +4,7 @@
   const savedTheme = localStorage.getItem('theme')||'light'; 
   html.setAttribute('data-theme', savedTheme);
   
-  const isConfig = location.pathname.endsWith('configuracion.html');
+  const isConfig = location.pathname.endsWith('configuracion.html') || location.pathname.endsWith('configuracion') || location.pathname === '/configuracion';
   if(isConfig) {
     document.querySelectorAll('.theme-toggle').forEach(t=>{
       t.checked=(savedTheme==='dark');

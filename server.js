@@ -892,7 +892,9 @@ app.get('/api/profile', async (req, res) => {
       institucion: user.institucion,
       cat: user.cat,
       avatar: user.avatar,
-      role: user.role
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt
     });
   } catch (err) {
     console.error('Error getting profile:', err);
@@ -1919,18 +1921,20 @@ app.post('/api/ai/stream', async (req, res) => {
       return res.status(503).json({error: 'Servicio de IA no configurado. Configure OLLAMA_HOST en variables de entorno.'});
     }
     
-    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Proporciona información médica precisa basada en evidencia científica. Siempre recuerda:
+    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Tu objetivo es ayudar de manera clara, directa y útil.
 
-1. No diagnostiques pacientes específicos
-2. Proporciona información general basada en guías clínicas actualizadas
-3. Recomienda consultar con profesionales de salud para casos individuales
-4. Usa lenguaje técnico médico cuando sea apropiado
-5. Cita evidencia científica cuando sea posible
-6. Responde en español de manera clara, profesional y estructurada
-7. Si mencionas medicamentos, incluye dosis pediátricas cuando sea relevante
-8. Prioriza la seguridad del paciente en todas tus respuestas
+REGLAS IMPORTANTES:
+- Responde de forma conversacional y natural
+- Ajusta la longitud de tu respuesta a la pregunta: preguntas simples = respuestas breves, preguntas complejas = respuestas detalladas
+- Sé directo y ve al punto
+- No des disclaimers largos en cada respuesta
+- Proporciona información médica general basada en evidencia
+- No diagnostiques pacientes específicos
+- Recomienda consultar profesionales cuando sea necesario
+- Usa lenguaje técnico solo cuando sea apropiado
+- Si mencionas medicamentos, incluye dosis pediátricas relevantes
 
-Estructura tus respuestas de forma clara con viñetas o listas cuando sea apropiado.`;
+Responde de manera profesional pero amigable, como un colega médico experimentado.`;
     
     let conversationPrompt = systemPrompt + '\n\n';
     for (const msg of messages) {

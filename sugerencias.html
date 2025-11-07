@@ -8,6 +8,104 @@
 <title>Med Tools Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<style>
+  .suggestion-tab {
+    color: var(--muted);
+    position: relative;
+  }
+  .suggestion-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary) !important;
+  }
+  .suggestion-tab:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .info-banner {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .info-banner-icon {
+    font-size: 48px;
+  }
+  .info-banner-content h3 {
+    margin: 0 0 6px 0;
+    font-size: 20px;
+    color: white;
+  }
+  .info-banner-content p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 14px;
+  }
+  .suggestion-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+  }
+  .suggestion-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0,139,139,0.1);
+  }
+  .suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .suggestion-meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .suggestion-text {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .suggestion-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-pendiente {
+    background: rgba(255,140,0,0.1);
+    color: #ff8c00;
+  }
+  .status-respondida {
+    background: rgba(67,233,123,0.1);
+    color: #43e97b;
+  }
+  .char-counter {
+    text-align: right;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .char-counter.warning {
+    color: #ff8c00;
+  }
+  .char-counter.limit {
+    color: #d32f2f;
+    font-weight: 600;
+  }
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
@@ -40,28 +138,54 @@
         </div>
       </header>
       <main>
-        <section class="card glass">
-          <h3>Envía tus sugerencias</h3>
-          <p style="color:var(--muted);margin-bottom:16px;">Ayúdanos a mejorar la plataforma reportando errores o sugiriendo nuevas funcionalidades.</p>
-          
-          <form id="sugerenciaForm">
-            <div class="field">
-              <label>Mensaje</label>
-              <textarea id="sugerenciaTexto" maxlength="155" rows="4" placeholder="Describe tu sugerencia o reporte de error..." required></textarea>
-              <small style="color:var(--muted);display:block;margin-top:4px;">
-                <span id="charCount">0</span>/155 caracteres
-              </small>
-            </div>
-            <div class="auth-actions" style="margin-top:14px;">
-              <button class="btn grow" type="submit">Enviar sugerencia</button>
-            </div>
-          </form>
-        </section>
+        <!-- Info Banner -->
+        <div class="info-banner">
+          <div class="info-banner-icon">💡</div>
+          <div class="info-banner-content">
+            <h3>Tu opinión nos importa</h3>
+            <p>Ayúdanos a mejorar Med Tools Hub reportando errores o sugiriendo nuevas funcionalidades</p>
+          </div>
+        </div>
 
-        <section class="card glass" style="margin-top:16px;">
-          <h3>Mis sugerencias enviadas</h3>
-          <div id="misSugerenciasList"></div>
-        </section>
+        <!-- Tabs -->
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="suggestion-tab active" data-tab="nueva" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ✏️ Nueva Sugerencia
+            </button>
+            <button class="suggestion-tab" data-tab="enviadas" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📋 Mis Sugerencias
+            </button>
+          </div>
+
+          <div style="padding:24px;">
+            <!-- NUEVA SUGERENCIA TAB -->
+            <div class="tab-content" id="tab-nueva">
+              <h3 style="margin:0 0 16px 0;">Envía tu sugerencia</h3>
+              <p class="text-muted" style="margin-bottom:20px;">Describe tu idea o reporta un problema. Revisaremos tu mensaje y te responderemos lo antes posible.</p>
+              
+              <form id="sugerenciaForm">
+                <div class="field">
+                  <label>💬 Mensaje</label>
+                  <textarea id="sugerenciaTexto" maxlength="155" rows="5" placeholder="Ejemplo: Sería útil agregar una calculadora de dosis de paracetamol..." required style="resize:vertical;"></textarea>
+                  <div class="char-counter">
+                    <span id="charCount">0</span>/155 caracteres
+                  </div>
+                </div>
+                <div style="margin-top:20px;">
+                  <button class="btn grow" type="submit">📤 Enviar sugerencia</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- MIS SUGERENCIAS TAB -->
+            <div class="tab-content" id="tab-enviadas" style="display:none;">
+              <h3 style="margin:0 0 16px 0;">Mis sugerencias enviadas</h3>
+              <div id="misSugerenciasList"></div>
+            </div>
+          </div>
+        </div>
+
         <footer class="app-footer">
           <div class="footer-links">
             <a href="privacidad.html">Política de Privacidad</a>
@@ -79,4 +203,43 @@
     </div>
   </div>
   <script src="script.js"></script>
+  <script>
+    // Tab switching
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.suggestion-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.getAttribute('data-tab');
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          tabContents.forEach(content => {
+            content.style.display = 'none';
+          });
+          
+          document.getElementById('tab-' + targetTab).style.display = 'block';
+        });
+      });
+
+      // Character counter
+      const textarea = document.getElementById('sugerenciaTexto');
+      const charCount = document.getElementById('charCount');
+      const charCounter = textarea.parentElement.querySelector('.char-counter');
+      
+      textarea.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        
+        charCounter.classList.remove('warning', 'limit');
+        if (count >= 155) {
+          charCounter.classList.add('limit');
+        } else if (count >= 130) {
+          charCounter.classList.add('warning');
+        }
+      });
+    });
+  </script>
 </body></html>

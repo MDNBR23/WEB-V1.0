@@ -8,6 +8,128 @@
 <title>Med Tools Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<style>
+  .welcome-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+  }
+  .welcome-banner h2 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .welcome-banner p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 15px;
+  }
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .quick-action-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  .quick-action-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 20px rgba(0,139,139,0.15);
+  }
+  .quick-action-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .quick-action-card h4 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .quick-action-card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text);
+  }
+  .anuncio-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+  }
+  .anuncio-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .anuncio-card h4 {
+    margin: 0 0 8px 0;
+    color: var(--text);
+    font-size: 18px;
+  }
+  .anuncio-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .anuncio-text {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .guia-card {
+    background: linear-gradient(135deg, rgba(0,139,139,0.05), rgba(0,128,128,0.05));
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .guia-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,139,139,0.1);
+  }
+  .guia-card h4 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .guia-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
@@ -40,16 +162,55 @@
         </div>
       </header>
       <main>
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <h2 id="welcomeTitle">¡Bienvenido a Med Tools Hub!</h2>
+          <p>Tu plataforma integral de herramientas médicas para pediatría y neonatología</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <div class="quick-action-card" onclick="location.href='vademecum.html'">
+            <span class="quick-action-icon">💊</span>
+            <h4>Vademecum</h4>
+            <p>Consulta medicamentos</p>
+          </div>
+          <div class="quick-action-card" onclick="location.href='herramientas.html'">
+            <span class="quick-action-icon">🔧</span>
+            <h4>Herramientas</h4>
+            <p>Calculadoras médicas</p>
+          </div>
+          <div class="quick-action-card" onclick="location.href='herramientas.html#asistente'">
+            <span class="quick-action-icon">🤖</span>
+            <h4>Asistente IA</h4>
+            <p>Consulta inteligente</p>
+          </div>
+          <div class="quick-action-card" onclick="location.href='sugerencias.html'">
+            <span class="quick-action-icon">💬</span>
+            <h4>Sugerencias</h4>
+            <p>Envía tu feedback</p>
+          </div>
+        </div>
+
         <div class="grid-2col">
-          <section class="card glass"><h3>Anuncios</h3><div id="anunciosList" class="stack"></div></section>
-          <aside class="card glass guias-featured">
-            <div class="guias-header">
-              <h3>📚 Guías de Pediatría & Neonatología</h3>
-              <button class="btn-ver-todas" onclick="verTodasGuias()" type="button">Ver todas las guías →</button>
+          <!-- Anuncios Section -->
+          <section class="card glass">
+            <div class="section-header">
+              <h3>📢 Anuncios</h3>
             </div>
-            <div id="guiasList" class="stack"></div>
+            <div id="anunciosList"></div>
+          </section>
+
+          <!-- Guías Section -->
+          <aside class="card glass">
+            <div class="section-header">
+              <h3>📚 Guías Destacadas</h3>
+              <button class="btn sm" onclick="verTodasGuias()" type="button">Ver todas →</button>
+            </div>
+            <div id="guiasList"></div>
           </aside>
         </div>
+
         <footer class="app-footer">
           <div class="footer-links">
             <a href="privacidad.html">Política de Privacidad</a>
@@ -67,4 +228,22 @@
     </div>
   </div>
   <script src="script.js"></script>
+  <script>
+    // Personalize welcome message
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        const session = await checkSession();
+        if (session) {
+          const profile = await api('/profile');
+          const name = profile.name || profile.username;
+          const welcomeTitle = document.getElementById('welcomeTitle');
+          if (welcomeTitle) {
+            welcomeTitle.textContent = `¡Bienvenido(a), ${name}!`;
+          }
+        }
+      } catch (e) {
+        console.log('Could not personalize welcome');
+      }
+    });
+  </script>
 </body></html>
