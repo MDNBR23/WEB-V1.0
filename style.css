@@ -108,15 +108,16 @@ html.preload *{
 
 .auth-wrapper{
   width:100%;
-  min-height:100vh;
+  height:100vh;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   padding:24px;
   background:linear-gradient(135deg,var(--g1),var(--g2)) fixed;
-  overflow:auto;
+  overflow:hidden;
   box-sizing:border-box;
+  position:relative;
 }
 
 .auth-box{
@@ -1112,6 +1113,16 @@ textarea{
   font-size: 13px;
   color: rgba(255,255,255,.7);
   line-height: 1.6;
+}
+
+.auth-wrapper + .app-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-top: 0;
+  border-top: none;
+  background: transparent;
 }
 
 .app-footer h4 {

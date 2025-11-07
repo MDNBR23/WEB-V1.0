@@ -876,22 +876,18 @@
   
   window.filterUsers = function() {
     const searchTerm = document.getElementById('searchUsers')?.value.toLowerCase() || '';
-    const filterCat = document.getElementById('filterCategoria')?.value || '';
     const filterRole = document.getElementById('filterRol')?.value || '';
     const filterStat = document.getElementById('filterEstado')?.value || '';
     
     const filtered = allUsers.filter(u => {
       const matchesSearch = !searchTerm || 
         (u.username||'').toLowerCase().includes(searchTerm) ||
-        (u.name||'').toLowerCase().includes(searchTerm) ||
-        (u.email||'').toLowerCase().includes(searchTerm) ||
-        (u.institucion||'').toLowerCase().includes(searchTerm);
+        (u.name||'').toLowerCase().includes(searchTerm);
       
-      const matchesCat = !filterCat || (u.cat === filterCat);
       const matchesRole = !filterRole || (u.role === filterRole);
       const matchesStat = !filterStat || (u.status === filterStat);
       
-      return matchesSearch && matchesCat && matchesRole && matchesStat;
+      return matchesSearch && matchesRole && matchesStat;
     });
     
     displayUsers(filtered);
@@ -950,25 +946,33 @@
           else lastLoginText = loginDate.toLocaleDateString();
         }
         
+        const emailVerified = u.emailVerified || false;
+        const verificationStatus = emailVerified ? 
+          '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">✅</span><span>Email verificado</span></div>' : 
+          '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">⚠️</span><span>Email sin verificar</span></div>';
+        
+        const resendEmailOption = !emailVerified ? 
+          `<div class="action-menu-item info" data-resend-email="${u.username}">
+            <span class="action-menu-icon">📧</span>
+            <span>Reenviar verificación</span>
+          </div>` : '';
+        
         return `<tr>
-          <td>${u.username}</td>
+          <td><strong>${u.username}</strong></td>
           <td>${fullName}</td>
-          <td>${u.cat||''}</td>
-          <td>${u.email||''}</td>
-          <td>${u.phone||''}</td>
-          <td>${u.institucion||''}</td>
-          <td>${roleText}</td>
+          <td><span class='chip' style='font-size:11px;padding:4px 10px;background:var(--primary-light);color:var(--primary);'>${roleText}</span></td>
           <td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td>
           <td>${onlineIndicator}</td>
-          <td style="font-size:13px;">${lastLoginText}</td>
-          <td>
+          <td style="text-align:center;">
             <div class="action-menu">
               <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
               <div class="action-menu-dropdown" data-menu="${u.username}">
+                ${verificationStatus}
                 <div class="action-menu-item info" data-edit-user="${u.username}">
                   <span class="action-menu-icon">✏️</span>
                   <span>Editar</span>
                 </div>
+                ${resendEmailOption}
                 <div class="action-menu-item success ${!canModify?'disabled':''}" data-approve="${u.username}">
                   <span class="action-menu-icon">✓</span>
                   <span>Aprobar</span>
@@ -1069,6 +1073,27 @@
           toast(`Usuario ${username} eliminado.`,'info');
         } catch (err) {
           toast('Error al eliminar usuario.','error');
+        }
+      }));
+      
+      tb.querySelectorAll('[data-resend-email]').forEach(b=>b.addEventListener('click',async()=>{
+        const username=b.getAttribute('data-resend-email');
+        if(!confirm(`¿Reenviar correo de verificación a ${username}?`))return;
+        try {
+          const result = await api('/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({username})
+          });
+          
+          if(result.alreadyVerified) {
+            toast('El correo ya está verificado.','info');
+          } else {
+            toast('Correo de verificación enviado exitosamente.','success');
+          }
+          
+          await renderUsers();
+        } catch (err) {
+          toast('Error al reenviar correo de verificación.','error');
         }
       }));
     } catch (err) {

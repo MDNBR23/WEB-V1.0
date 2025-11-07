@@ -11,9 +11,10 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-07T04:14:54.530Z",
+    "lastLogin": "2025-11-07T05:58:17.200Z",
     "isOnline": true,
-    "lastHeartbeat": "2025-11-07T04:14:54.530Z"
+    "lastHeartbeat": "2025-11-07T06:01:02.403Z",
+    "emailVerified": true
   },
   {
     "username": "usuario",
@@ -33,7 +34,8 @@
     "resetExpiry": 1762489072651,
     "lastLogin": "2025-11-07T04:09:42.797Z",
     "lastHeartbeat": "2025-11-07T04:12:18.582Z",
-    "isOnline": true
+    "isOnline": false,
+    "verificationToken": "9dace1e466ffe17e78dec847a89823947ba50917fe9309b5ceb4ab17942807e2"
   },
   {
     "username": "BabillaSincelejana1998",

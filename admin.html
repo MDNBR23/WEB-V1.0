@@ -45,22 +45,10 @@
             <h3 style="margin:0;">Usuarios <span id="usuariosPendientesCounter" class="chip" style="display:none;margin-left:8px;background:#ff8c00;color:#fff;">0</span></h3><div class="grow"></div><span class="accordion-icon">▼</span>
           </div>
           <div class="accordion-content" id="usuarios" style="display:none;margin-top:10px;">
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;">
               <div class="field" style="margin:0;">
                 <label>🔍 Buscar usuario</label>
-                <input id="searchUsers" type="text" placeholder="Buscar por usuario, nombre, correo o institución..." oninput="filterUsers()">
-              </div>
-              <div class="field" style="margin:0;">
-                <label>Categoría</label>
-                <select id="filterCategoria" onchange="filterUsers()">
-                  <option value="">Todas</option>
-                  <option>Estudiante</option>
-                  <option>Interno</option>
-                  <option>Médico General</option>
-                  <option>Residente</option>
-                  <option>Pediatra</option>
-                  <option>Fisioterapeuta</option>
-                </select>
+                <input id="searchUsers" type="text" placeholder="Buscar por usuario o nombre..." oninput="filterUsers()">
               </div>
               <div class="field" style="margin:0;">
                 <label>Rol</label>
@@ -84,7 +72,7 @@
             <div class="table-wrap">
               <table id="adminUsersTable">
                 <thead><tr>
-                  <th>Usuario</th><th>Nombre</th><th>Categoría</th><th>Correo</th><th>Teléfono</th><th>Institución</th><th>Rol</th><th>Estado</th><th style="width:90px;">Online</th><th style="width:140px;">Último Login</th><th style="width:60px;text-align:center;">Acciones</th>
+                  <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th style="width:80px;">Online</th><th style="width:100px;text-align:center;">Acciones</th>
                 </tr></thead><tbody></tbody>
               </table>
             </div>
@@ -265,7 +253,7 @@
             <a href="cookies.html">Cookies</a>
           </div>
           <p class="trademark">NBR® 2025 | Med Tools Hub</p>
-          <p class="contact">administrador@medtoolshub.cloud</p>
+          <p class="contact">contacto@medtoolshub.cloud</p>
         </footer>
       </main>
     </div>

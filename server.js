@@ -444,6 +444,85 @@ app.get('/api/verify-email', async (req, res) => {
   }
 });
 
+app.post('/api/resend-verification', async (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.status(403).json({error: 'No autorizado'});
+  }
+  
+  try {
+    const {username} = req.body;
+    
+    if (!username) {
+      return res.status(400).json({error: 'Usuario requerido'});
+    }
+    
+    const users = await readJSON('users.json', []);
+    const user = users.find(u => u.username === username);
+    
+    if (!user) {
+      return res.status(404).json({error: 'Usuario no encontrado'});
+    }
+    
+    if (user.emailVerified) {
+      return res.json({
+        success: true,
+        message: 'El correo ya está verificado.',
+        alreadyVerified: true
+      });
+    }
+    
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = verificationToken;
+    
+    await writeJSON('users.json', users);
+    
+    const protocol = req.get('host').includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${req.get('host')}`;
+    const verificationLink = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+    
+    const emailResult = await sendEmail({
+      to: user.email,
+      subject: 'Verificación de correo electrónico - Med Tools Hub',
+      text: `Hola ${user.name || user.username},\n\nPor favor verifica tu correo electrónico haciendo clic en el siguiente enlace:\n${verificationLink}\n\nSaludos,\nEl equipo de Med Tools Hub`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <div style="background:linear-gradient(135deg,#008B8B,#20B2AA);color:#fff;padding:30px;border-radius:12px 12px 0 0;text-align:center;">
+            <h1 style="margin:0;font-size:28px;">Med Tools Hub</h1>
+          </div>
+          <div style="background:#fff;padding:30px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
+            <h2 style="color:#1f2937;margin-top:0;">Verificación de correo electrónico</h2>
+            <p style="color:#4b5563;line-height:1.6;">Hola <strong>${user.name || user.username}</strong>,</p>
+            <p style="color:#4b5563;line-height:1.6;">Se ha solicitado reenviar el enlace de verificación de tu correo electrónico. Por favor haz clic en el botón a continuación para verificar tu cuenta:</p>
+            <div style="text-align:center;margin:30px 0;">
+              <a href="${verificationLink}" style="display:inline-block;background:#008B8B;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;">Verificar mi correo</a>
+            </div>
+            <p style="color:#6b7280;font-size:14px;line-height:1.6;">Si no solicitaste este correo, puedes ignorarlo de forma segura.</p>
+            <p style="color:#4b5563;margin-top:30px;">
+              Saludos,<br>
+              <strong>El equipo de Med Tools Hub</strong>
+            </p>
+          </div>
+        </div>
+      `
+    });
+    
+    if (emailResult.success) {
+      res.json({
+        success: true,
+        message: 'Correo de verificación enviado exitosamente.'
+      });
+    } else {
+      res.status(500).json({
+        error: 'No se pudo enviar el correo de verificación.',
+        details: emailResult.error
+      });
+    }
+  } catch (err) {
+    console.error('Error in resend-verification:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
 app.post('/api/heartbeat', async (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({error: 'No autenticado'});
