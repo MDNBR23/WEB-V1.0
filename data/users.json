@@ -11,9 +11,9 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-07T08:52:10.700Z",
-    "isOnline": false,
-    "lastHeartbeat": "2025-11-07T08:54:00.618Z",
+    "lastLogin": "2025-11-07T23:41:55.541Z",
+    "isOnline": true,
+    "lastHeartbeat": "2025-11-07T23:41:55.541Z",
     "emailVerified": true
   },
   {
@@ -29,7 +29,8 @@
     "avatar": "",
     "createdAt": "2025-11-03T01:54:48.896Z",
     "resetToken": "8d7860027b744971932ee5b6d9af077d8164412c449165f7c034215113e4e1f6",
-    "resetExpiry": 1762138736475
+    "resetExpiry": 1762138736475,
+    "emailVerified": true
   },
   {
     "username": "Telmvane",
@@ -42,7 +43,8 @@
     "status": "aprobado",
     "cat": "Residente",
     "avatar": "",
-    "createdAt": "2025-11-03T03:26:56.901Z"
+    "createdAt": "2025-11-03T03:26:56.901Z",
+    "emailVerified": true
   },
   {
     "username": "gabrielabrinez",
@@ -55,7 +57,8 @@
     "status": "aprobado",
     "cat": "Estudiante",
     "avatar": "",
-    "createdAt": "2025-11-03T03:27:20.817Z"
+    "createdAt": "2025-11-03T03:27:20.817Z",
+    "emailVerified": true
   },
   {
     "username": "Wrock",
@@ -68,7 +71,8 @@
     "status": "aprobado",
     "cat": "Pediatra",
     "avatar": "",
-    "createdAt": "2025-11-03T03:28:22.814Z"
+    "createdAt": "2025-11-03T03:28:22.814Z",
+    "emailVerified": true
   },
   {
     "username": "Ginapaovelasco",
@@ -81,7 +85,8 @@
     "status": "aprobado",
     "cat": "Fisioterapeuta",
     "avatar": "",
-    "createdAt": "2025-11-03T04:06:43.062Z"
+    "createdAt": "2025-11-03T04:06:43.062Z",
+    "emailVerified": true
   },
   {
     "username": "Luisa123",
@@ -96,7 +101,8 @@
     "status": "aprobado",
     "cat": "Residente",
     "avatar": "",
-    "createdAt": "2025-11-05T16:55:28.447Z"
+    "createdAt": "2025-11-05T16:55:28.447Z",
+    "emailVerified": true
   },
   {
     "username": "usuario",
@@ -116,6 +122,6 @@
     "createdAt": "2025-11-07T06:10:44.404Z",
     "lastLogin": "2025-11-07T08:57:15.309Z",
     "lastHeartbeat": "2025-11-07T08:57:15.309Z",
-    "isOnline": true
+    "isOnline": false
   }
 ]

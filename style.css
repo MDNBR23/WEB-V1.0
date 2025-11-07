@@ -1,20 +1,20 @@
 
 :root{
-  --g1:#008B8B;
-  --g2:#008080;
+  --g1:#475569;
+  --g2:#64748b;
   --card:rgba(255,255,255,.92);
   --glass-stroke:rgba(255,255,255,.5);
   --shadow-lg:0 20px 60px rgba(0,0,0,.35);
   --text:#0f172a;
-  --muted:#475569;
+  --muted:#64748b;
   --border:rgba(148,163,184,.3);
   --sidebar-bg:rgba(255,255,255,.15);
-  --sidebar-text:#f0f9ff;
+  --sidebar-text:#f8fafc;
   --sidebar-active:#ffffff;
-  --chip:#e0f2fe;
-  --primary:#008080;
-  --primary-rgb:0,128,128;
-  --primary-600:#006666;
+  --chip:#f1f5f9;
+  --primary:#475569;
+  --primary-rgb:71,85,105;
+  --primary-600:#334155;
   --danger:#dc2626;
   --success:#1a6b1a;
   --warning:#B85C00;
@@ -434,12 +434,12 @@ a.btn:hover{
   -webkit-backdrop-filter:blur(12px);
   border-radius:12px;
   box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  border:1px solid rgba(0,139,139,0.1);
+  border:1px solid rgba(71,85,105,0.1);
 }
 
 html[data-theme="dark"] .header{
   background:rgba(20,25,42,.92);
-  border:1px solid rgba(0,139,139,0.2);
+  border:1px solid rgba(148,163,184,0.2);
   box-shadow:0 2px 12px rgba(0,0,0,0.25);
 }
 
