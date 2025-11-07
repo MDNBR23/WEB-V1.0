@@ -27,7 +27,7 @@ async function sendEmail(message) {
   });
 
   const mailOptions = {
-    from: `"Med Tools Hub" <${process.env.SMTP_USER}>`,
+    from: `"Med Tools Hub Soporte" <soporte@medtoolshub.cloud>`,
     to: message.to,
     subject: message.subject,
     text: message.text,
