@@ -29,11 +29,12 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 ### Feature Specifications
 - **Authentication:** User registration (with separate first and last names), login, logout, password reset, and session management.
 - **User Management (Admin):** Approve/reject registrations, edit user profiles/roles, manage user status, and view all users. The primary admin account is protected.
+- **User Activity Tracking:** Real-time tracking of user online status and last login timestamp. Automatic timeout of inactive sessions (5-minute window) with heartbeat mechanism (2-minute interval). Admin panel displays online indicators (green dot) and relative time since last login.
 - **Content Management:** Create, edit, and delete announcements and clinical guides (global or personal).
 - **Medication Database:** Shared database with real-time search, editable by administrators, and consolidated to a single source (`data/medications.json`).
 - **Profile Customization:** User profile updates with avatar upload.
 - **Template System:** Global and personal templates for clinical notes, with category filtering and full-text search.
-- **Admin Notifications:** Badges for pending actions (user approvals, suggestions) with real-time updates and sound notifications.
+- **Admin Notifications:** Badges for pending actions (user approvals, suggestions) with real-time updates and sound notifications. Intelligent notification system that marks suggestions as "seen" when viewed, preventing persistent notifications for already-answered suggestions.
 - **Maintenance Mode:** Admin-controlled system-wide maintenance mode with backend persistence, custom messages, and admin-only access.
 - **Legal Footer:** Comprehensive legal disclaimer across all pages.
 

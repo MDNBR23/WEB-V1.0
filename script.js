@@ -317,6 +317,14 @@
     
     const session = await checkSession();
     if(session) {
+      setInterval(async () => {
+        try {
+          await api('/heartbeat', {method: 'POST'});
+        } catch (err) {
+          console.error('Heartbeat error:', err);
+        }
+      }, 120000);
+      
       if(session.role !== 'admin') {
         await updateUserSugerenciasNotifications();
         setInterval(updateUserSugerenciasNotifications, 10000);
@@ -894,6 +902,27 @@
         const canDelete = u.username !== me && !isAdmin;
         const canModify = !isAdmin;
         
+        const isOnline = u.isOnline || false;
+        const onlineIndicator = isOnline ? 
+          '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;box-shadow:0 0 8px #16a34a;"></span>Online</span>' : 
+          '<span style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);"><span style="display:inline-block;width:10px;height:10px;background:#cbd5e1;border-radius:50%;"></span>Offline</span>';
+        
+        let lastLoginText = '-';
+        if (u.lastLogin) {
+          const loginDate = new Date(u.lastLogin);
+          const now = new Date();
+          const diffMs = now - loginDate;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMins / 60);
+          const diffDays = Math.floor(diffHours / 24);
+          
+          if (diffMins < 1) lastLoginText = 'Ahora';
+          else if (diffMins < 60) lastLoginText = `Hace ${diffMins}m`;
+          else if (diffHours < 24) lastLoginText = `Hace ${diffHours}h`;
+          else if (diffDays < 7) lastLoginText = `Hace ${diffDays}d`;
+          else lastLoginText = loginDate.toLocaleDateString();
+        }
+        
         return `<tr>
           <td>${u.username}</td>
           <td>${fullName}</td>
@@ -903,6 +932,8 @@
           <td>${u.institucion||''}</td>
           <td>${roleText}</td>
           <td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td>
+          <td>${onlineIndicator}</td>
+          <td style="font-size:13px;">${lastLoginText}</td>
           <td>
             <div class="action-menu">
               <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
@@ -1881,6 +1912,7 @@
         </div>
       `).join('');
       
+      await api('/sugerencias/mark-seen', {method: 'PATCH'});
       await updateUserSugerenciasNotifications();
     } catch (err) {
       console.error('Error rendering mis sugerencias:', err);

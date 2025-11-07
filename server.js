@@ -280,6 +280,12 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({error: 'Contraseña incorrecta'});
     }
     
+    const now = new Date().toISOString();
+    user.lastLogin = now;
+    user.lastHeartbeat = now;
+    user.isOnline = true;
+    await writeJSON('users.json', users);
+    
     req.session.user = {
       username: user.username,
       role: user.role,
@@ -302,9 +308,23 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-app.post('/api/logout', (req, res) => {
-  req.session.destroy();
-  res.json({success: true});
+app.post('/api/logout', async (req, res) => {
+  try {
+    if (req.session.user) {
+      const users = await readJSON('users.json', []);
+      const user = users.find(u => u.username === req.session.user.username);
+      if (user) {
+        user.isOnline = false;
+        await writeJSON('users.json', users);
+      }
+    }
+    req.session.destroy();
+    res.json({success: true});
+  } catch (err) {
+    console.error('Error in logout:', err);
+    req.session.destroy();
+    res.json({success: true});
+  }
 });
 
 app.get('/api/session', (req, res) => {
@@ -312,6 +332,28 @@ app.get('/api/session', (req, res) => {
     res.json({authenticated: true, user: req.session.user});
   } else {
     res.json({authenticated: false});
+  }
+});
+
+app.post('/api/heartbeat', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    const users = await readJSON('users.json', []);
+    const user = users.find(u => u.username === req.session.user.username);
+    
+    if (user) {
+      user.lastHeartbeat = new Date().toISOString();
+      user.isOnline = true;
+      await writeJSON('users.json', users);
+    }
+    
+    res.json({success: true});
+  } catch (err) {
+    console.error('Error in heartbeat:', err);
+    res.status(500).json({error: 'Error en el servidor'});
   }
 });
 
@@ -438,6 +480,29 @@ app.get('/api/users', async (req, res) => {
   
   try {
     const users = await readJSON('users.json', []);
+    const HEARTBEAT_TIMEOUT = 5 * 60 * 1000;
+    const now = Date.now();
+    let modified = false;
+    
+    users.forEach(u => {
+      if (u.isOnline) {
+        if (!u.lastHeartbeat) {
+          u.isOnline = false;
+          modified = true;
+        } else {
+          const lastHeartbeatTime = new Date(u.lastHeartbeat).getTime();
+          if (isNaN(lastHeartbeatTime) || now - lastHeartbeatTime > HEARTBEAT_TIMEOUT) {
+            u.isOnline = false;
+            modified = true;
+          }
+        }
+      }
+    });
+    
+    if (modified) {
+      await writeJSON('users.json', users);
+    }
+    
     const sanitized = users.map(u => ({
       username: u.username,
       name: u.name,
@@ -450,7 +515,10 @@ app.get('/api/users', async (req, res) => {
       status: u.status,
       cat: u.cat,
       avatar: u.avatar,
-      createdAt: u.createdAt
+      createdAt: u.createdAt,
+      isOnline: u.isOnline || false,
+      lastLogin: u.lastLogin,
+      lastHeartbeat: u.lastHeartbeat
     }));
     res.json(sanitized);
   } catch (err) {
@@ -877,7 +945,8 @@ app.post('/api/sugerencias', async (req, res) => {
       mensaje: req.body.mensaje,
       respuesta: '',
       fecha: new Date().toISOString(),
-      respondida: false
+      respondida: false,
+      vista: false
     };
     
     suggestions.push(newSuggestion);
@@ -905,6 +974,7 @@ app.put('/api/sugerencias/:id', async (req, res) => {
     if (index >= 0) {
       suggestions[index].respuesta = respuesta;
       suggestions[index].respondida = true;
+      suggestions[index].vista = false;
       suggestions[index].fechaRespuesta = new Date().toISOString();
       await writeJSON('sugerencias.json', suggestions);
       res.json({success: true, sugerencia: suggestions[index]});
@@ -931,6 +1001,33 @@ app.delete('/api/sugerencias/:id', async (req, res) => {
     res.json({success: true});
   } catch (err) {
     console.error('Error deleting sugerencia:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.patch('/api/sugerencias/mark-seen', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    const suggestions = await readJSON('sugerencias.json', []);
+    let modified = false;
+    
+    suggestions.forEach(s => {
+      if (s.username === req.session.user.username && s.respondida && !s.vista) {
+        s.vista = true;
+        modified = true;
+      }
+    });
+    
+    if (modified) {
+      await writeJSON('sugerencias.json', suggestions);
+    }
+    
+    res.json({success: true});
+  } catch (err) {
+    console.error('Error marking sugerencias as seen:', err);
     res.status(500).json({error: 'Error en el servidor'});
   }
 });

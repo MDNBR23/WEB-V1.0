@@ -10,7 +10,10 @@
     "status": "aprobado",
     "cat": "",
     "avatar": "",
-    "createdAt": "2025-10-06T23:20:31.601Z"
+    "createdAt": "2025-10-06T23:20:31.601Z",
+    "lastLogin": "2025-11-07T03:29:52.909Z",
+    "isOnline": true,
+    "lastHeartbeat": "2025-11-07T03:31:59.720Z"
   },
   {
     "username": "usuario",
