@@ -831,6 +831,39 @@
     });
   }
 
+  const btnDeleteAccount=document.getElementById('btnDeleteAccount');
+  if(btnDeleteAccount){
+    btnDeleteAccount.addEventListener('click',async()=>{
+      if(!confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente tu cuenta y todos tus datos.\n\n¿Estás absolutamente seguro de que deseas continuar?')){
+        return;
+      }
+      
+      const password=prompt('Para confirmar, ingresa tu contraseña:');
+      if(!password){
+        return;
+      }
+      
+      if(!confirm('Esta es tu última oportunidad para cancelar. ¿Realmente deseas eliminar tu cuenta?\n\nEsta acción NO se puede deshacer.')){
+        return;
+      }
+      
+      try {
+        const response = await api('/delete-account', {
+          method: 'POST',
+          body: JSON.stringify({password})
+        });
+        
+        toast('Tu cuenta ha sido eliminada. Serás redirigido a la página de inicio...','success');
+        
+        setTimeout(()=>{
+          window.location.href='index.html';
+        }, 2000);
+      } catch (err) {
+        toast(err.message||'Error al eliminar cuenta','error');
+      }
+    });
+  }
+
   const adminUsersTable=document.getElementById('adminUsersTable');
   const modalUser=document.getElementById('modalUser');
   const userForm=document.getElementById('userForm');

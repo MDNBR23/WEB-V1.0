@@ -20,15 +20,20 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Backend:** Node.js with Express.js implementing a RESTful API.
 - **Authentication:** Session-based authentication using `express-session`, secure password hashing with `bcrypt` (10 rounds), and role-based access control (admin/user).
 - **Data Isolation:** User-specific data (announcements, guides) is isolated, while global content (medications, admin-created guides/announcements) is shared.
-- **Email Service:** Integrated SMTP email service using Hostinger for password recovery. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration for enhanced security and usability.
+- **Email Service:** Integrated SMTP email service using Hostinger for account verification, password recovery, user approval notifications, and account deletion confirmations. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration. All email URLs are dynamically generated from request context to ensure compatibility across all deployment environments.
 - **Medical Tools:** Includes a text space corrector, an interactive arterial blood gas analyzer, a template system for clinical evolution notes, an infusion calculator, a drug interaction checker, and an interactive shift calendar.
 - **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units with automatic unit conversion and precise medical orders. Uses exclusively admin-managed medications.
 - **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence. Includes a shift exchange system.
 - **AI Medical Integration:** Open Evidence integration for accessing medical research and evidence-based medicine resources. Documentation for Ollama AI integration is prepared for future implementation.
 
 ### Feature Specifications
-- **Authentication:** User registration (with separate first and last names), login, logout, password reset, and session management.
-- **User Management (Admin):** Approve/reject registrations, edit user profiles/roles, manage user status, and view all users. The primary admin account is protected.
+- **Authentication:** User registration with email verification (with separate first and last names), login with email verification check, logout, password reset, and session management. New registrations require:
+  1. Email verification via link sent to user's email address
+  2. Admin approval after email verification
+  3. Email notification upon admin approval
+  Users accept Terms and Conditions upon email verification. Only one email address per account is allowed to prevent spam.
+- **User Management (Admin):** Approve/reject registrations (sends automatic email upon approval), edit user profiles/roles, manage user status, and view all users. The primary admin account is protected.
+- **Account Deletion:** Users can request account deletion from the configuration page. Requires password confirmation and sends a confirmation email. Admin accounts cannot be deleted through this process.
 - **User Activity Tracking:** Real-time tracking of user online status and last login timestamp. Automatic timeout of inactive sessions (5-minute window) with heartbeat mechanism (2-minute interval). Admin panel displays online indicators (green dot) and relative time since last login.
 - **Content Management:** Create, edit, and delete announcements and clinical guides (global or personal).
 - **Medication Database:** Shared database with real-time search, editable by administrators, and consolidated to a single source (`data/medications.json`).

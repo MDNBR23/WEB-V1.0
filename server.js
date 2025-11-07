@@ -49,6 +49,8 @@ const PORT = 5000;
 const HOST = '0.0.0.0';
 const DATA_DIR = path.join(__dirname, 'data');
 
+app.set('trust proxy', true);
+
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -151,6 +153,7 @@ async function initializeData() {
       status: 'aprobado',
       cat: 'Pediatra',
       avatar: '',
+      emailVerified: true,
       createdAt: new Date().toISOString()
     });
     await writeJSON('users.json', users);
@@ -220,11 +223,15 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({error: 'Ese usuario ya existe'});
     }
     
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (users.find(u => u.email === email)) {
+      return res.status(400).json({error: 'Ese correo electrónico ya está registrado'});
+    }
     
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const fullName = `${firstName} ${lastName}`;
     
-    users.push({
+    const newUser = {
       username,
       name: fullName,
       firstName: firstName,
@@ -237,11 +244,71 @@ app.post('/api/register', async (req, res) => {
       status: 'pendiente',
       cat: cat || '',
       avatar: '',
+      emailVerified: false,
+      verificationToken,
       createdAt: new Date().toISOString()
+    };
+    
+    users.push(newUser);
+    await writeJSON('users.json', users);
+    
+    const protocol = req.protocol || 'https';
+    const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
+    const baseUrl = `${protocol}://${host}`;
+    const verificationLink = `${baseUrl}/verify-email.html?token=${verificationToken}`;
+    
+    const emailResult = await sendEmail({
+      to: email,
+      subject: 'Verifica tu correo electrónico - Med Tools Hub',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h1 style="color: #008B8B; margin-top: 0;">¡Bienvenido a Med Tools Hub!</h1>
+            <p style="font-size: 16px; color: #333;">Hola ${fullName},</p>
+            <p style="font-size: 14px; color: #666; line-height: 1.6;">
+              Gracias por registrarte en Med Tools Hub. Para completar tu registro y poder acceder a nuestra plataforma, 
+              necesitas verificar tu correo electrónico haciendo clic en el siguiente botón:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${verificationLink}" 
+                 style="background-color: #008B8B; color: white; padding: 14px 30px; text-decoration: none; 
+                        border-radius: 5px; display: inline-block; font-size: 16px; font-weight: bold;">
+                Verificar mi correo electrónico
+              </a>
+            </div>
+            <p style="font-size: 13px; color: #999; margin-top: 20px;">
+              Si no puedes hacer clic en el botón, copia y pega este enlace en tu navegador:<br>
+              <a href="${verificationLink}" style="color: #008B8B; word-break: break-all;">${verificationLink}</a>
+            </p>
+            <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+            <p style="font-size: 12px; color: #666; line-height: 1.6;">
+              <strong>Al verificar tu correo, aceptas nuestros Términos y Condiciones.</strong><br>
+              Una vez verificado tu correo, tu registro quedará en proceso de aprobación. 
+              Un administrador revisará tu solicitud y te notificaremos por correo cuando tu cuenta sea aprobada y puedas acceder a la plataforma.
+            </p>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">
+              Si no solicitaste este registro, puedes ignorar este correo.
+            </p>
+            <p style="font-size: 12px; color: #666; margin-top: 25px;">
+              Saludos,<br>
+              <strong>El equipo de Med Tools Hub</strong>
+            </p>
+          </div>
+        </div>
+      `
     });
     
-    await writeJSON('users.json', users);
-    res.json({message: 'Registro enviado. Espera aprobación del administrador.'});
+    if (emailResult.success) {
+      res.json({
+        message: 'Registro exitoso. Por favor revisa tu correo electrónico para verificar tu cuenta.',
+        emailSent: true
+      });
+    } else {
+      res.json({
+        message: 'Registro exitoso pero no se pudo enviar el correo de verificación. Por favor contacta al administrador.',
+        emailSent: false
+      });
+    }
   } catch (err) {
     console.error('Error in register:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -259,6 +326,15 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({error: 'Usuario no existe'});
     }
     
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({error: 'Contraseña incorrecta'});
+    }
+    
+    if (!user.emailVerified) {
+      return res.status(401).json({error: 'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.'});
+    }
+    
     if (user.status === 'pendiente') {
       return res.status(401).json({error: 'Tu registro está pendiente de aprobación por el administrador. Te notificaremos cuando sea aprobado.'});
     }
@@ -273,11 +349,6 @@ app.post('/api/login', async (req, res) => {
     
     if (user.status !== 'aprobado') {
       return res.status(401).json({error: 'Tu registro no ha sido aprobado'});
-    }
-    
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({error: 'Contraseña incorrecta'});
     }
     
     const now = new Date().toISOString();
@@ -332,6 +403,44 @@ app.get('/api/session', (req, res) => {
     res.json({authenticated: true, user: req.session.user});
   } else {
     res.json({authenticated: false});
+  }
+});
+
+app.get('/api/verify-email', async (req, res) => {
+  try {
+    const {token} = req.query;
+    
+    if (!token) {
+      return res.status(400).json({error: 'Token de verificación requerido'});
+    }
+    
+    const users = await readJSON('users.json', []);
+    const user = users.find(u => u.verificationToken === token);
+    
+    if (!user) {
+      return res.status(404).json({error: 'Token de verificación inválido o expirado'});
+    }
+    
+    if (user.emailVerified) {
+      return res.json({
+        success: true,
+        message: 'Tu correo electrónico ya había sido verificado anteriormente.',
+        alreadyVerified: true
+      });
+    }
+    
+    user.emailVerified = true;
+    user.verificationToken = null;
+    
+    await writeJSON('users.json', users);
+    
+    res.json({
+      success: true,
+      message: 'Correo electrónico verificado exitosamente. Tu registro está ahora pendiente de aprobación por el administrador.'
+    });
+  } catch (err) {
+    console.error('Error in verify-email:', err);
+    res.status(500).json({error: 'Error en el servidor'});
   }
 });
 
@@ -542,6 +651,8 @@ app.put('/api/users/:username', async (req, res) => {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
     
+    const previousStatus = user.status;
+    
     Object.keys(updates).forEach(key => {
       if (key !== 'username' && key !== 'password') {
         if (username === 'admin' && (key === 'status' || key === 'role')) {
@@ -558,6 +669,58 @@ app.put('/api/users/:username', async (req, res) => {
     }
     
     await writeJSON('users.json', users);
+    
+    if (previousStatus !== 'aprobado' && user.status === 'aprobado' && user.email) {
+      const protocol = req.protocol || 'https';
+      const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
+      const baseUrl = `${protocol}://${host}`;
+      
+      const emailResult = await sendEmail({
+        to: user.email,
+        subject: '¡Tu cuenta ha sido aprobada! - Med Tools Hub',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h1 style="color: #008B8B; margin-top: 0;">¡Bienvenido a Med Tools Hub!</h1>
+              <p style="font-size: 16px; color: #333;">Hola ${user.name || user.username},</p>
+              <p style="font-size: 14px; color: #666; line-height: 1.6;">
+                ¡Excelentes noticias! Tu cuenta ha sido aprobada por nuestro equipo de administración.
+                Ya puedes acceder a todas las funcionalidades de Med Tools Hub.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${baseUrl}" 
+                   style="background-color: #008B8B; color: white; padding: 14px 30px; text-decoration: none; 
+                          border-radius: 5px; display: inline-block; font-size: 16px; font-weight: bold;">
+                  Iniciar Sesión
+                </a>
+              </div>
+              <p style="font-size: 14px; color: #666; line-height: 1.6;">
+                Ahora puedes iniciar sesión con tus credenciales y disfrutar de:
+              </p>
+              <ul style="font-size: 14px; color: #666; line-height: 1.8;">
+                <li>Acceso completo al Vademecum Neonatal y Pediátrico</li>
+                <li>Herramientas de cálculo médico especializadas</li>
+                <li>Guías clínicas actualizadas</li>
+                <li>Comunidad de profesionales de la salud</li>
+              </ul>
+              <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+              <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.
+              </p>
+              <p style="font-size: 12px; color: #666; margin-top: 25px;">
+                Saludos,<br>
+                <strong>El equipo de Med Tools Hub</strong>
+              </p>
+            </div>
+          </div>
+        `
+      });
+      
+      if (!emailResult.success) {
+        console.error('Failed to send approval email to:', user.email);
+      }
+    }
+    
     res.json({success: true});
   } catch (err) {
     console.error('Error updating user:', err);
@@ -681,6 +844,77 @@ app.post('/api/change-password', async (req, res) => {
     res.json({success: true, message: 'Contraseña actualizada correctamente'});
   } catch (err) {
     console.error('Error changing password:', err);
+    res.status(500).json({error: 'Error en el servidor'});
+  }
+});
+
+app.post('/api/delete-account', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({error: 'No autenticado'});
+  }
+  
+  try {
+    const {password} = req.body;
+    
+    if (!password) {
+      return res.status(400).json({error: 'Contraseña requerida para confirmar'});
+    }
+    
+    const username = req.session.user.username;
+    
+    if (username === 'admin') {
+      return res.status(403).json({error: 'No se puede eliminar la cuenta de administrador'});
+    }
+    
+    const users = await readJSON('users.json', []);
+    const user = users.find(u => u.username === username);
+    
+    if (!user) {
+      return res.status(404).json({error: 'Usuario no encontrado'});
+    }
+    
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({error: 'Contraseña incorrecta'});
+    }
+    
+    const filtered = users.filter(u => u.username !== username);
+    await writeJSON('users.json', filtered);
+    
+    if (user.email) {
+      await sendEmail({
+        to: user.email,
+        subject: 'Cuenta eliminada - Med Tools Hub',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
+            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h1 style="color: #008B8B; margin-top: 0;">Cuenta eliminada</h1>
+              <p style="font-size: 16px; color: #333;">Hola ${user.name || user.username},</p>
+              <p style="font-size: 14px; color: #666; line-height: 1.6;">
+                Tu cuenta en Med Tools Hub ha sido eliminada exitosamente según tu solicitud.
+                Todos tus datos personales han sido eliminados de nuestros sistemas.
+              </p>
+              <p style="font-size: 14px; color: #666; line-height: 1.6;">
+                Lamentamos verte partir. Si cambias de opinión en el futuro, siempre serás bienvenido a registrarte nuevamente.
+              </p>
+              <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+              <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                Si no solicitaste esta eliminación, contacta inmediatamente al administrador.
+              </p>
+              <p style="font-size: 12px; color: #666; margin-top: 25px;">
+                Gracias por haber sido parte de Med Tools Hub,<br>
+                <strong>El equipo de Med Tools Hub</strong>
+              </p>
+            </div>
+          </div>
+        `
+      });
+    }
+    
+    req.session.destroy();
+    res.json({success: true, message: 'Tu cuenta ha sido eliminada correctamente'});
+  } catch (err) {
+    console.error('Error deleting account:', err);
     res.status(500).json({error: 'Error en el servidor'});
   }
 });
