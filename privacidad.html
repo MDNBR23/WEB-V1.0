@@ -13,6 +13,32 @@
   margin: 0;
   padding: 0;
 }
+:root {
+  --bg-gradient-start: #008B8B;
+  --bg-gradient-end: #008080;
+  --container-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #666666;
+  --accent-color: #008B8B;
+  --accent-hover: #006666;
+  --border-color: #008B8B;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-gradient-start: #1e293b;
+    --bg-gradient-end: #0f172a;
+    --container-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --accent-color: #22d3ee;
+    --accent-hover: #06b6d4;
+    --border-color: #22d3ee;
+    --shadow: rgba(0, 0, 0, 0.3);
+  }
+}
 html {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -20,44 +46,47 @@ body {
   min-height: 100vh;
   padding: 0;
   margin: 0;
-  background: linear-gradient(135deg, #008B8B, #008080) fixed !important;
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)) fixed !important;
 }
 .legal-container {
   max-width: 900px;
   margin: 40px auto;
   padding: 40px;
-  background: white;
+  background: var(--container-bg);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px var(--shadow);
 }
 .legal-header {
   text-align: center;
   margin-bottom: 40px;
   padding-bottom: 20px;
-  border-bottom: 3px solid #008B8B;
+  border-bottom: 3px solid var(--border-color);
 }
 .legal-header h1 {
-  color: #008B8B;
+  color: var(--accent-color);
   margin-bottom: 10px;
   font-size: 2em;
+}
+.legal-header p {
+  color: var(--text-muted);
 }
 .legal-section {
   margin-bottom: 30px;
 }
 .legal-section h2 {
-  color: #008B8B;
+  color: var(--accent-color);
   margin-top: 25px;
   margin-bottom: 15px;
   font-size: 1.5em;
 }
 .legal-section h3 {
-  color: #333;
+  color: var(--text-primary);
   margin-top: 20px;
   margin-bottom: 10px;
   font-size: 1.2em;
 }
 .legal-section p, .legal-section ul {
-  color: #555;
+  color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 15px;
 }
@@ -67,25 +96,28 @@ body {
 .legal-section li {
   margin-bottom: 8px;
 }
+.legal-section strong {
+  color: var(--text-primary);
+}
 .back-link {
   display: inline-block;
   margin-top: 30px;
   padding: 12px 24px;
-  background: #008B8B;
+  background: var(--accent-color);
   color: white;
   text-decoration: none;
   border-radius: 6px;
   transition: background 0.3s;
 }
 .back-link:hover {
-  background: #006666;
+  background: var(--accent-hover);
 }
 </style>
 </head><body>
   <div class="legal-container">
     <div class="legal-header">
       <h1>🩺 Política de Privacidad</h1>
-      <p style="color: #666;">MedToolsHub.cloud</p>
+      <p>MedToolsHub.cloud</p>
     </div>
 
     <div class="legal-section">

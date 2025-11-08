@@ -961,15 +961,6 @@
         const emailVerified = u.emailVerified === true;
         const emailVerifiedExists = u.hasOwnProperty('emailVerified');
         
-        let verificationStatus = '';
-        if (emailVerified) {
-          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">✅</span><span>Email verificado</span></div>';
-        } else if (!emailVerifiedExists) {
-          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.6;"><span class="action-menu-icon">ℹ️</span><span>Usuario antiguo (sin sistema de verificación)</span></div>';
-        } else {
-          verificationStatus = '<div class="action-menu-item" style="pointer-events:none;opacity:0.8;"><span class="action-menu-icon">⚠️</span><span>Email sin verificar</span></div>';
-        }
-        
         const resendEmailOption = (!emailVerified && emailVerifiedExists) ? 
           `<div class="action-menu-item info" data-resend-email="${u.username}">
             <span class="action-menu-icon">📧</span>
@@ -987,7 +978,6 @@
             <div class="action-menu">
               <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
               <div class="action-menu-dropdown" data-menu="${u.username}">
-                ${verificationStatus}
                 <div class="action-menu-item info" data-edit-user="${u.username}">
                   <span class="action-menu-icon">✏️</span>
                   <span>Editar</span>
@@ -2877,4 +2867,37 @@
   if (typeof window.initHerramientas === 'function') {
     window.initHerramientas();
   }
+
+  function addSmoothPageTransitions() {
+    const currentDomain = window.location.origin;
+    
+    document.addEventListener('click', function(e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) {
+        return;
+      }
+      
+      const link = e.target.closest('a');
+      if (!link) return;
+      
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download')) {
+        return;
+      }
+      
+      const isInternalLink = href.startsWith('/') || href.startsWith('./') || href.startsWith(currentDomain) || 
+                            (!href.includes('://') && !href.startsWith('mailto:') && !href.startsWith('tel:'));
+      
+      if (isInternalLink) {
+        e.preventDefault();
+        
+        document.body.classList.add('page-transition-out');
+        
+        setTimeout(() => {
+          window.location.href = href;
+        }, 250);
+      }
+    });
+  }
+  
+  addSmoothPageTransitions();
 })();
