@@ -69,6 +69,7 @@ html,body{
 html{
   font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   background:linear-gradient(135deg,var(--g1),var(--g2)) fixed;
+  min-height:100vh;
 }
 
 body{
@@ -77,36 +78,51 @@ body{
   color:var(--text);
   display:flex;
   flex-direction:column;
+  min-height:100vh;
   opacity:0;
-  animation:pageLoadFadeIn 0.3s ease-out forwards;
-}
-
-body.loaded{
-  opacity:1;
+  animation:pageLoadFadeIn 0.4s ease-out forwards;
+  will-change:opacity,transform;
 }
 
 body.page-transition-out{
-  animation:pageUnloadFadeOut 0.25s ease-in forwards;
+  animation:pageUnloadFadeOut 0.35s ease-in forwards !important;
+  will-change:opacity,transform;
 }
 
 @keyframes pageLoadFadeIn{
-  from{opacity:0;transform:translateY(8px);}
-  to{opacity:1;transform:translateY(0);}
+  0%{
+    opacity:0;
+    transform:translateY(12px) scale(0.98);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
 }
 
 @keyframes pageUnloadFadeOut{
-  from{opacity:1;}
-  to{opacity:0;}
+  0%{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translateY(-8px) scale(0.98);
+  }
 }
 
 html{
   transition:background-color 0.3s ease, color 0.3s ease;
 }
 
-html.preload,
-html.preload *{
+html.preload *:not(body){
   transition:none!important;
 }
+
+html.preload{
+  transition:background-color 0s!important;
+}
+
 
 .glass{
   background:var(--card);
@@ -313,7 +329,8 @@ a.btn:hover{
   position:fixed;
   top:0;
   left:0;
-  height:100vh;
+  min-height:100vh;
+  height:100%;
   width:280px;
   overflow-y:auto;
   color:var(--sidebar-text);
@@ -863,7 +880,8 @@ textarea{
     left:-280px;
     z-index:100;
     transition:left .3s cubic-bezier(0.4, 0, 0.2, 1);
-    height:100vh;
+    min-height:100vh;
+    height:100%;
     box-shadow:4px 0 20px rgba(0,0,0,0.5);
   }
   

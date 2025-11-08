@@ -116,6 +116,14 @@
   }
   window.api = api;
 
+  function navigateWithTransition(url, delay = 350) {
+    document.body.classList.add('page-transition-out');
+    setTimeout(() => {
+      location.href = url;
+    }, delay);
+  }
+  window.navigateWithTransition = navigateWithTransition;
+
   let currentSession = null;
   
   async function checkSession() {
@@ -123,10 +131,13 @@
       const data = await api('/session');
       if (data.authenticated) {
         currentSession = data.user;
+        localStorage.setItem('userRole', data.user.role);
         return data.user;
       }
+      localStorage.removeItem('userRole');
       return null;
     } catch (err) {
+      localStorage.removeItem('userRole');
       return null;
     }
   }
@@ -142,7 +153,7 @@
   if(!(isAuth||isReg||isReset||isVerify||isPublicPage)){
     const session = await checkSession();
     if(!session){
-      location.replace('index.html');
+      navigateWithTransition('index.html');
       return;
     }
     
@@ -156,7 +167,7 @@
                 <div style="font-size:80px;margin-bottom:24px;">🔧</div>
                 <h1 style="margin:0 0 16px 0;color:#1a202c;font-size:32px;">Modo Mantenimiento</h1>
                 <p style="color:#4a5568;font-size:18px;line-height:1.6;margin:0 0 32px 0;">${maintenance.message}</p>
-                <button onclick="location.replace('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
+                <button onclick="navigateWithTransition('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
               </div>
             </div>
           `;
@@ -345,10 +356,12 @@
     try {
       await api('/logout', {method: 'POST'});
       currentSession = null;
-      location.replace('index.html');
+      localStorage.removeItem('userRole');
+      navigateWithTransition('index.html');
     } catch (err) {
       console.error('Logout error:', err);
-      location.replace('index.html');
+      localStorage.removeItem('userRole');
+      navigateWithTransition('index.html');
     }
   };
 
@@ -403,7 +416,7 @@
                       <div style="font-size:80px;margin-bottom:24px;">🔧</div>
                       <h1 style="margin:0 0 16px 0;color:#1a202c;font-size:32px;">Modo Mantenimiento</h1>
                       <p style="color:#4a5568;font-size:18px;line-height:1.6;margin:0 0 32px 0;">${maintenance.message}</p>
-                      <button onclick="location.replace('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
+                      <button onclick="navigateWithTransition('index.html')" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:white;border:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Volver al inicio</button>
                     </div>
                   </div>
                 `;
@@ -436,7 +449,7 @@
             type:'success',
             sound: true
           }));
-          location.replace('main.html');
+          navigateWithTransition('main.html');
         }
       } catch (err) {
         alert(err.message);
@@ -475,7 +488,7 @@
           msg: data.message,
           type:'info'
         }));
-        location.replace('index.html');
+        navigateWithTransition('index.html');
       } catch (err) {
         alert(err.message);
       }
@@ -535,7 +548,7 @@
             msg: data.message,
             type:'success'
           }));
-          location.replace('index.html');
+          navigateWithTransition('index.html');
         }
       } catch (err) {
         alert(err.message);
@@ -858,7 +871,7 @@
         toast('Tu cuenta ha sido eliminada. Serás redirigido a la página de inicio...','success');
         
         setTimeout(()=>{
-          window.location.href='index.html';
+          navigateWithTransition('index.html');
         }, 2000);
       } catch (err) {
         toast(err.message||'Error al eliminar cuenta','error');
@@ -2894,7 +2907,7 @@
         
         setTimeout(() => {
           window.location.href = href;
-        }, 250);
+        }, 350);
       }
     });
   }
