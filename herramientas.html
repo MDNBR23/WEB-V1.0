@@ -849,8 +849,8 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('gasesTool').style.display = 'none';
       document.getElementById('infusionesTool').style.display = 'none';
       document.getElementById('plantillasTool').style.display = 'none';
-      document.getElementById('turnosTool').style.display = 'none';
       document.getElementById('iaTool').style.display = 'none';
+      document.getElementById('interaccionesTool').style.display = 'none';
     }
 
     let toolsStatusCache = null;
@@ -875,8 +875,8 @@ html[data-theme="dark"] #medicationSelect {
       document.getElementById('gasesTool').style.display = 'none';
       document.getElementById('infusionesTool').style.display = 'none';
       document.getElementById('plantillasTool').style.display = 'none';
-      document.getElementById('turnosTool').style.display = 'none';
       document.getElementById('iaTool').style.display = 'none';
+      document.getElementById('interaccionesTool').style.display = 'none';
       
       if (currentUser && currentUser.role !== 'admin' && toolsStatusCache[tool] && !toolsStatusCache[tool].enabled) {
         alert(`⚠️ La herramienta "${toolsStatusCache[tool].name}" no está disponible temporalmente. Estamos trabajando en mejoras.`);
@@ -893,11 +893,10 @@ html[data-theme="dark"] #medicationSelect {
       } else if (tool === 'plantillas') {
         document.getElementById('plantillasTool').style.display = 'block';
         cargarDocumentos();
-      } else if (tool === 'turnos') {
-        document.getElementById('turnosTool').style.display = 'block';
-        cargarTurnos();
       } else if (tool === 'ia') {
         document.getElementById('iaTool').style.display = 'block';
+      } else if (tool === 'interacciones') {
+        document.getElementById('interaccionesTool').style.display = 'block';
       }
     }
 

@@ -1571,13 +1571,15 @@
     document.getElementById('summaryByPaymentType').innerHTML = `
       <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
         <div class="summary-card-value">${opsShifts.length}</div>
-        <div class="summary-card-label">Turnos OPS</div>
+        <div class="summary-card-label">Turnos OPS (Individual)</div>
         <div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">$${opsTotal.toFixed(2)}</div>
+        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago por turno</div>
       </div>
       <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
         <div class="summary-card-value">${nominaShifts.length}</div>
-        <div class="summary-card-label">Turnos Nómina</div>
+        <div class="summary-card-label">Turnos Nómina (Mensual)</div>
         <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">$${nominaTotal.toFixed(2)}</div>
+        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago único consolidado</div>
       </div>
     `;
     
@@ -1619,20 +1621,35 @@
       const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
       const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
 
-      const shiftsTableBody = monthShifts.map(shift => {
-        const paymentType = getPaymentType(shift);
+      const shiftsTableBody = [];
+      
+      opsShifts.forEach(shift => {
         const startTime = getStartTime(shift);
-        return [
+        shiftsTableBody.push([
           { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
           { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
           { text: shift.shift_type, fontSize: 9 },
           { text: startTime || '-', fontSize: 9, alignment: 'center' },
-          { text: paymentType.toUpperCase(), fontSize: 9, alignment: 'center', color: paymentType === 'ops' ? '#ef4444' : '#3b82f6' },
+          { text: 'OPS', fontSize: 9, alignment: 'center', color: '#ef4444' },
           { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
           { text: `$${parseFloat(shift.hourly_rate).toFixed(2)}`, fontSize: 9, alignment: 'right' },
           { text: `$${(parseFloat(shift.hours) * parseFloat(shift.hourly_rate)).toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true }
-        ]
+        ]);
       });
+      
+      if (nominaShifts.length > 0) {
+        const nominaHours = nominaShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+        shiftsTableBody.push([
+          { text: `Mes completo (${nominaShifts.length} turnos)`, fontSize: 9, colSpan: 4, bold: true },
+          {},
+          {},
+          {},
+          { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6', bold: true },
+          { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center' },
+          { text: '-', fontSize: 9, alignment: 'right' },
+          { text: `$${nominaTotal.toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6' }
+        ]);
+      }
 
       const docDefinition = {
         pageSize: 'A4',

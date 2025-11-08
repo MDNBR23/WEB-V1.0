@@ -155,7 +155,7 @@ async function writeJSON(filename, data) {
 
 async function initializeDatabase() {
   try {
-    const createTableQuery = `
+    const createPlantillasQuery = `
       CREATE TABLE IF NOT EXISTS plantillas (
         id SERIAL PRIMARY KEY,
         nombre VARCHAR(255) NOT NULL,
@@ -170,8 +170,56 @@ async function initializeDatabase() {
       )
     `;
     
-    await pool.query(createTableQuery);
+    const createShiftsQuery = `
+      CREATE TABLE IF NOT EXISTS shifts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        entity_name VARCHAR(255) NOT NULL,
+        shift_date DATE NOT NULL,
+        shift_type VARCHAR(100) NOT NULL,
+        hours DECIMAL(10, 2) DEFAULT 0,
+        hourly_rate DECIMAL(10, 2) DEFAULT 0,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    const createShiftConfigQuery = `
+      CREATE TABLE IF NOT EXISTS shift_config (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL UNIQUE,
+        ops_entity_name VARCHAR(255),
+        ops_frequency_days INTEGER DEFAULT 6,
+        ops_hours DECIMAL(10, 2) DEFAULT 12,
+        ops_hourly_rate DECIMAL(10, 2) DEFAULT 0,
+        last_ops_date DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    const createShiftsIndexQuery = `
+      CREATE INDEX IF NOT EXISTS idx_shifts_user_id ON shifts(user_id);
+      CREATE INDEX IF NOT EXISTS idx_shifts_date ON shifts(shift_date);
+    `;
+    
+    const createShiftConfigIndexQuery = `
+      CREATE INDEX IF NOT EXISTS idx_shift_config_user_id ON shift_config(user_id);
+    `;
+    
+    await pool.query(createPlantillasQuery);
     console.log('Database table "plantillas" initialized successfully');
+    
+    await pool.query(createShiftsQuery);
+    console.log('Database table "shifts" initialized successfully');
+    
+    await pool.query(createShiftConfigQuery);
+    console.log('Database table "shift_config" initialized successfully');
+    
+    await pool.query(createShiftsIndexQuery);
+    await pool.query(createShiftConfigIndexQuery);
+    console.log('Database indexes created successfully');
   } catch (err) {
     console.error('Error initializing database:', err);
   }
@@ -1689,7 +1737,7 @@ app.get('/api/backup/export', async (req, res) => {
   
   try {
     const backup = {
-      version: '1.0',
+      version: '1.1',
       timestamp: new Date().toISOString(),
       jsonFiles: {},
       database: {}
@@ -1703,6 +1751,12 @@ app.get('/api/backup/export', async (req, res) => {
     
     const plantillasResult = await pool.query('SELECT * FROM plantillas ORDER BY created_at DESC');
     backup.database.plantillas = plantillasResult.rows;
+    
+    const shiftsResult = await pool.query('SELECT * FROM shifts ORDER BY shift_date DESC');
+    backup.database.shifts = shiftsResult.rows;
+    
+    const shiftConfigResult = await pool.query('SELECT * FROM shift_config ORDER BY id');
+    backup.database.shift_config = shiftConfigResult.rows;
     
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="medtools-backup-${new Date().toISOString().slice(0,10)}.json"`);
@@ -1761,6 +1815,67 @@ app.post('/api/backup/import', async (req, res) => {
       }
     }
     
+    if (backup.database && backup.database.shifts) {
+      await pool.query('DELETE FROM shifts');
+      
+      for (const shift of backup.database.shifts) {
+        const query = `
+          INSERT INTO shifts (id, user_id, entity_name, shift_date, shift_type, hours, hourly_rate, notes, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          ON CONFLICT (id) DO UPDATE SET
+            user_id = EXCLUDED.user_id,
+            entity_name = EXCLUDED.entity_name,
+            shift_date = EXCLUDED.shift_date,
+            shift_type = EXCLUDED.shift_type,
+            hours = EXCLUDED.hours,
+            hourly_rate = EXCLUDED.hourly_rate,
+            notes = EXCLUDED.notes,
+            updated_at = EXCLUDED.updated_at
+        `;
+        await pool.query(query, [
+          shift.id,
+          shift.user_id,
+          shift.entity_name,
+          shift.shift_date,
+          shift.shift_type,
+          shift.hours || 0,
+          shift.hourly_rate || 0,
+          shift.notes || '',
+          shift.created_at,
+          shift.updated_at || shift.created_at
+        ]);
+      }
+    }
+    
+    if (backup.database && backup.database.shift_config) {
+      await pool.query('DELETE FROM shift_config');
+      
+      for (const config of backup.database.shift_config) {
+        const query = `
+          INSERT INTO shift_config (id, user_id, ops_entity_name, ops_frequency_days, ops_hours, ops_hourly_rate, last_ops_date, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ON CONFLICT (user_id) DO UPDATE SET
+            ops_entity_name = EXCLUDED.ops_entity_name,
+            ops_frequency_days = EXCLUDED.ops_frequency_days,
+            ops_hours = EXCLUDED.ops_hours,
+            ops_hourly_rate = EXCLUDED.ops_hourly_rate,
+            last_ops_date = EXCLUDED.last_ops_date,
+            updated_at = EXCLUDED.updated_at
+        `;
+        await pool.query(query, [
+          config.id,
+          config.user_id,
+          config.ops_entity_name || null,
+          config.ops_frequency_days || 6,
+          config.ops_hours || 12,
+          config.ops_hourly_rate || 0,
+          config.last_ops_date || null,
+          config.created_at,
+          config.updated_at || config.created_at
+        ]);
+      }
+    }
+    
     res.json({success: true, message: 'Backup importado exitosamente'});
   } catch (err) {
     console.error('Error importing backup:', err);
@@ -1777,7 +1892,7 @@ app.post('/api/backup/create', async (req, res) => {
   
   try {
     const backup = {
-      version: '1.0',
+      version: '1.1',
       timestamp: new Date().toISOString(),
       jsonFiles: {},
       database: {}
@@ -1791,6 +1906,12 @@ app.post('/api/backup/create', async (req, res) => {
     
     const plantillasResult = await pool.query('SELECT * FROM plantillas ORDER BY created_at DESC');
     backup.database.plantillas = plantillasResult.rows;
+    
+    const shiftsResult = await pool.query('SELECT * FROM shifts ORDER BY shift_date DESC');
+    backup.database.shifts = shiftsResult.rows;
+    
+    const shiftConfigResult = await pool.query('SELECT * FROM shift_config ORDER BY id');
+    backup.database.shift_config = shiftConfigResult.rows;
     
     await fs.mkdir(BACKUP_DIR, { recursive: true });
     
