@@ -31,6 +31,14 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
   - Export to PDF and text formats with professional formatting
   - Automatic OPS (Obra Social Provincial) shift generation with configurable frequency
   - Database persistence with PostgreSQL backend
+  - **7 Integrated Tabs in turnos.html:**
+    1. 📋 Lista de Turnos (shift list with date filters)
+    2. 📊 Resumen (statistics and summary)
+    3. ⚙️ Configuración OPS (OPS configuration)
+    4. 📅 Calendario (interactive month-by-month calendar view with API integration)
+    5. 💰 Nómina (monthly salary with recurring work days)
+    6. 🔄 Secuencias OPS (automatic OPS shift sequence generation)
+    7. 🔄 Cambios de Turno (shift exchanges with colleagues using localStorage)
 - **AI Medical Integration:** TinyLlama integration via Ollama for local, privacy-focused medical AI assistance. Supports streaming responses for real-time interaction. Configured through OLLAMA_HOST and OLLAMA_MODEL environment variables. Open Evidence integration for accessing medical research and evidence-based medicine resources. See CONFIGURACION_TINYLLAMA.md for setup instructions.
 
 ### Feature Specifications
@@ -61,6 +69,10 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ **Consolidated shift management:** Integrated all 4 additional tabs (Calendario, Nómina, Secuencias OPS, Cambios de Turno) into turnos.html sidebar version with unified API-based data flow
+  - Refactored all calendar functions to use API instead of localStorage/global variables
+  - All generation functions (payroll, OPS sequences, calendar shifts) now reload data after creating records
+  - Removed duplicate turno section from herramientas.html to avoid redundancy
 - ✅ Implemented PDF export functionality for shift management system with professional formatting
 - ✅ Enhanced shift management with complete CRUD operations and PostgreSQL backend
 - ✅ Added automatic OPS shift generation with configurable frequency settings
