@@ -34,21 +34,23 @@
     margin-bottom: 24px;
   }
   .stat-card {
-    background: linear-gradient(135deg, var(--primary), #006666);
-    color: white;
+    background: rgba(var(--primary-rgb), 0.08);
+    color: var(--text);
     padding: 20px;
     border-radius: 12px;
     text-align: center;
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
   }
   .stat-card h4 {
     margin: 0 0 8px 0;
     font-size: 28px;
     font-weight: 700;
+    color: var(--primary);
   }
   .stat-card p {
     margin: 0;
     font-size: 13px;
-    opacity: 0.9;
+    color: var(--muted);
   }
 </style>
 <script>
@@ -83,22 +85,6 @@
         </div>
       </header>
       <main>
-        <!-- Profile Stats -->
-        <div class="profile-stats">
-          <div class="stat-card">
-            <h4 id="memberSinceDays">-</h4>
-            <p>Días de miembro</p>
-          </div>
-          <div class="stat-card">
-            <h4 id="userRoleBadge">-</h4>
-            <p>Rol</p>
-          </div>
-          <div class="stat-card">
-            <h4 id="accountStatusBadge">✓</h4>
-            <p>Estado de cuenta</p>
-          </div>
-        </div>
-
         <!-- Modern Tabs Navigation -->
         <div class="card glass" style="padding:0;overflow:hidden;">
           <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
@@ -121,6 +107,23 @@
             <!-- PERFIL TAB -->
             <div class="tab-content" id="tab-perfil">
               <h3 style="margin:0 0 20px 0;color:var(--text);">Información del Perfil</h3>
+              
+              <!-- Profile Stats -->
+              <div class="profile-stats" style="margin-bottom:24px;">
+                <div class="stat-card">
+                  <h4 id="memberSinceDays">-</h4>
+                  <p>Días siendo miembro</p>
+                </div>
+                <div class="stat-card">
+                  <h4 id="userRoleBadge">-</h4>
+                  <p>Rol</p>
+                </div>
+                <div class="stat-card">
+                  <h4 id="accountStatusBadge">✓</h4>
+                  <p>Estado de cuenta</p>
+                </div>
+              </div>
+
               <form id="cfgForm">
                 <div class="grid-2col" style="grid-template-columns:280px 1fr;gap:24px;">
                   <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
@@ -335,7 +338,7 @@
           const roleElement = document.getElementById('userRoleBadge');
           if (userData.role === 'admin') {
             roleElement.textContent = 'Admin';
-            roleElement.parentElement.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+            // Keep subtle styling from CSS - no override needed
           } else {
             roleElement.textContent = 'Usuario';
           }

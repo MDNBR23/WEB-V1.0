@@ -10,12 +10,13 @@
 <link rel="stylesheet" href="style.css">
 <style>
 .tools-header {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
+  background: rgba(var(--warning-rgb), 0.08);
+  color: var(--text);
   padding: 32px;
   border-radius: 16px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(240,147,251,0.3);
+  box-shadow: 0 4px 12px rgba(var(--warning-rgb), 0.1);
+  border: 1px solid rgba(var(--warning-rgb), 0.2);
 }
 .tools-header h2 {
   margin: 0 0 8px 0;
@@ -24,11 +25,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  color: var(--warning);
 }
 .tools-header p {
   margin: 0;
-  opacity: 0.95;
+  opacity: 0.85;
   font-size: 15px;
+  color: var(--text);
 }
 .tool-menu {
   display: grid;
@@ -145,20 +148,22 @@
 }
 .gsa-result {
   padding: 20px;
-  background: linear-gradient(135deg, var(--g1), var(--g2));
-  color: white;
+  background: rgba(var(--success-rgb), 0.08);
+  color: var(--text);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(var(--success-rgb), 0.1);
+  border: 1px solid rgba(var(--success-rgb), 0.2);
 }
 .gsa-result h4 {
   margin: 0 0 12px 0;
-  color: white;
+  color: var(--success);
   font-size: 18px;
 }
 .gsa-result p {
   margin: 8px 0;
   font-size: 15px;
   line-height: 1.6;
+  color: var(--text);
 }
 .doc-list {
   margin-top: 16px;
@@ -235,22 +240,24 @@
   gap: 12px;
 }
 .infusion-result {
-  background: linear-gradient(135deg, var(--g1), var(--g2));
-  color: white;
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--text);
   padding: 16px;
   border-radius: 8px;
   margin-top: 12px;
   transition: all 0.3s ease;
   animation: fadeInScale 0.4s ease;
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
 }
 .infusion-result h5 {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: white;
+  color: var(--primary);
 }
 .infusion-result p {
   margin: 4px 0;
   font-size: 14px;
+  color: var(--text);
 }
 .infusion-result.updating {
   animation: pulse 0.5s ease;

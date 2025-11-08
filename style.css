@@ -1,25 +1,32 @@
 
 :root{
-  --g1:#475569;
-  --g2:#64748b;
-  --card:rgba(255,255,255,.92);
-  --glass-stroke:rgba(255,255,255,.5);
-  --shadow-lg:0 20px 60px rgba(0,0,0,.35);
+  --g1:#e0f2fe;
+  --g2:#bae6fd;
+  --card:rgba(255,255,255,.98);
+  --glass-stroke:rgba(255,255,255,.8);
+  --shadow-lg:0 20px 60px rgba(0,0,0,.15);
   --text:#0f172a;
   --muted:#64748b;
-  --border:rgba(148,163,184,.3);
-  --sidebar-bg:rgba(255,255,255,.15);
-  --sidebar-text:#f8fafc;
-  --sidebar-active:#ffffff;
-  --chip:#f1f5f9;
-  --primary:#475569;
-  --primary-rgb:71,85,105;
-  --primary-600:#334155;
+  --border:rgba(148,163,184,.2);
+  --sidebar-bg:rgba(255,255,255,.25);
+  --sidebar-text:#334155;
+  --sidebar-active:#0f172a;
+  --chip:#f0f9ff;
+  --primary:#0284c7;
+  --primary-rgb:2,132,199;
+  --primary-600:#0369a1;
   --danger:#dc2626;
-  --success:#1a6b1a;
-  --warning:#B85C00;
-  --warning-hover:#994d00;
+  --danger-rgb:220,38,38;
+  --danger-hover:#b91c1c;
+  --success:#16a34a;
+  --success-rgb:22,163,74;
+  --success-hover:#15803d;
+  --warning:#ea580c;
+  --warning-rgb:234,88,12;
+  --warning-hover:#c2410c;
   --info:#2563eb;
+  --info-rgb:37,99,235;
+  --info-hover:#1d4ed8;
 }
 
 html[data-theme="dark"]{
@@ -39,6 +46,17 @@ html[data-theme="dark"]{
   --primary-rgb:155,89,182;
   --primary-600:#8e44ad;
   --danger:#f87171;
+  --danger-rgb:248,113,113;
+  --danger-hover:#ef4444;
+  --success:#4ade80;
+  --success-rgb:74,222,128;
+  --success-hover:#22c55e;
+  --warning:#fb923c;
+  --warning-rgb:251,146,60;
+  --warning-hover:#f97316;
+  --info:#60a5fa;
+  --info-rgb:96,165,250;
+  --info-hover:#3b82f6;
 }
 
 *{box-sizing:border-box}
@@ -228,7 +246,7 @@ a.btn:hover{
 }
 
 .btn.danger:hover{
-  background:#b91c1c;
+  background:var(--danger-hover);
 }
 
 .btn.success{
@@ -236,7 +254,7 @@ a.btn:hover{
 }
 
 .btn.success:hover{
-  background:#155515;
+  background:var(--success-hover);
 }
 
 .btn.warning{
@@ -252,7 +270,7 @@ a.btn:hover{
 }
 
 .btn.info:hover{
-  background:#1d4ed8;
+  background:var(--info-hover);
 }
 
 .btn.sm{
@@ -295,16 +313,16 @@ a.btn:hover{
 .logo{
   font-weight:800;
   font-size:20px;
-  color:#fff;
+  color:var(--sidebar-active);
   letter-spacing:.5px;
   margin-bottom:20px;
   padding:12px 10px;
-  text-shadow:0 1px 4px rgba(0,0,0,.2);
+  text-shadow:0 1px 4px rgba(0,0,0,.15);
   white-space:nowrap;
   transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align:left;
   border-radius:10px;
-  background:rgba(255,255,255,0.08);
+  background:rgba(var(--primary-rgb),0.12);
   display:flex;
   align-items:center;
   min-height:44px;
@@ -347,7 +365,7 @@ a.btn:hover{
   display:flex;
   gap:10px;
   align-items:center;
-  color:rgba(255,255,255,0.75);
+  color:var(--sidebar-text);
   text-decoration:none;
   padding:10px 12px;
   border-radius:10px;
@@ -357,6 +375,7 @@ a.btn:hover{
   font-size:14px;
   line-height:1;
   position:relative;
+  opacity:0.85;
 }
 
 .sidebar a .icon{
@@ -378,15 +397,16 @@ a.btn:hover{
 
 .sidebar a:hover{
   opacity:1;
-  background:rgba(255,255,255,.12);
-  color:rgba(255,255,255,0.95);
+  background:rgba(var(--primary-rgb),.15);
+  color:var(--sidebar-active);
 }
 
 .sidebar a.active{
-  background:rgba(255,255,255,.15);
-  color:#fff;
+  background:rgba(var(--primary-rgb),.2);
+  color:var(--sidebar-active);
   font-weight:600;
   box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  opacity:1;
 }
 
 .sidebar a.active::before{
@@ -1108,10 +1128,10 @@ textarea{
   margin-top: auto;
   padding: 24px 20px;
   text-align: center;
-  border-top: 1px solid rgba(255,255,255,.15);
+  border-top: 1px solid var(--border);
   background: transparent;
   font-size: 13px;
-  color: rgba(255,255,255,.7);
+  color: var(--muted);
   line-height: 1.6;
 }
 
@@ -1129,7 +1149,8 @@ textarea{
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,.9);
+  color: var(--text);
+  opacity: 0.9;
 }
 
 .app-footer p {
@@ -1138,14 +1159,14 @@ textarea{
 
 .app-footer .contact {
   font-size: 12px;
-  color: rgba(255,255,255,.8);
+  color: var(--muted);
   margin-top: 8px;
 }
 
 .app-footer .trademark {
   font-size: 12px;
-  color: rgba(255,255,255,.6);
-  opacity: 0.8;
+  color: var(--muted);
+  opacity: 0.7;
   margin-top: 2px;
 }
 
@@ -1159,7 +1180,7 @@ textarea{
 }
 
 .footer-links a {
-  color: rgba(255,255,255,.75);
+  color: var(--muted);
   text-decoration: none;
   font-size: 12px;
   padding: 4px 8px;
@@ -1169,12 +1190,13 @@ textarea{
 }
 
 .footer-links a:hover {
-  color: rgba(255,255,255,1);
-  background: rgba(255,255,255,.1);
+  color: var(--text);
+  background: rgba(var(--primary-rgb),.1);
 }
 
 .footer-links .separator {
-  color: rgba(255,255,255,.4);
+  color: var(--muted);
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -1529,22 +1551,22 @@ textarea{
 }
 
 .action-menu-item.danger:hover {
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(var(--danger-rgb), 0.1);
   color: var(--danger);
 }
 
 .action-menu-item.success:hover {
-  background: rgba(26, 107, 26, 0.1);
+  background: rgba(var(--success-rgb), 0.1);
   color: var(--success);
 }
 
 .action-menu-item.warning:hover {
-  background: rgba(184, 92, 0, 0.1);
+  background: rgba(var(--warning-rgb), 0.1);
   color: var(--warning);
 }
 
 .action-menu-item.info:hover {
-  background: rgba(37, 99, 235, 0.1);
+  background: rgba(var(--info-rgb), 0.1);
   color: var(--info);
 }
 

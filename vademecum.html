@@ -10,12 +10,13 @@
 <link rel="stylesheet" href="style.css">
 <style>
   .vademecum-header {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
+    background: rgba(var(--info-rgb), 0.08);
+    color: var(--text);
     padding: 32px;
     border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(79,172,254,0.3);
+    box-shadow: 0 4px 12px rgba(var(--info-rgb), 0.1);
+    border: 1px solid rgba(var(--info-rgb), 0.2);
   }
   .vademecum-header h2 {
     margin: 0 0 8px 0;
@@ -24,11 +25,13 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    color: var(--info);
   }
   .vademecum-header p {
     margin: 0;
-    opacity: 0.95;
+    opacity: 0.85;
     font-size: 15px;
+    color: var(--text);
   }
   .search-box-container {
     position: relative;
@@ -62,7 +65,7 @@
     flex-wrap: wrap;
   }
   .stat-badge {
-    background: linear-gradient(135deg, rgba(0,139,139,0.1), rgba(0,128,128,0.05));
+    background: rgba(var(--primary-rgb), 0.08);
     padding: 12px 20px;
     border-radius: 10px;
     border: 2px solid var(--border);
@@ -88,7 +91,7 @@
     margin: 0;
   }
   #drugTable thead {
-    background: linear-gradient(135deg, var(--primary), #006666);
+    background: var(--primary);
     color: white;
   }
   #drugTable thead th {
@@ -105,21 +108,24 @@
     background: rgba(0,139,139,0.05);
   }
   .coming-soon {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
+    background: rgba(var(--warning-rgb), 0.08);
+    color: var(--text);
     padding: 20px;
     border-radius: 12px;
     margin-top: 20px;
     text-align: center;
+    border: 1px solid rgba(var(--warning-rgb), 0.2);
   }
   .coming-soon h4 {
     margin: 0 0 8px 0;
     font-size: 18px;
+    color: var(--warning);
   }
   .coming-soon p {
     margin: 0;
-    opacity: 0.95;
+    opacity: 0.85;
     font-size: 14px;
+    color: var(--text);
   }
 </style>
 <script>
