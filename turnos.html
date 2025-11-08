@@ -16,25 +16,25 @@
 .turnos-header {
   background: rgba(var(--primary-rgb), 0.08);
   color: var(--text);
-  padding: 32px;
-  border-radius: 16px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.08);
   border: 1px solid rgba(var(--primary-rgb), 0.2);
 }
 .turnos-header h2 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
+  margin: 0 0 4px 0;
+  font-size: 20px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   color: var(--primary);
 }
 .turnos-header p {
   margin: 0;
   opacity: 0.85;
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text);
 }
 .turnos-actions {
@@ -80,10 +80,10 @@
 }
 
 .calendar-day {
-  min-height: 100px;
-  padding: 8px;
+  min-height: 70px;
+  padding: 4px;
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   background: var(--card);
   transition: all 0.2s;
@@ -113,15 +113,15 @@
 
 .calendar-day-number {
   font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 4px;
+  font-size: 14px;
+  margin-bottom: 2px;
   color: var(--text);
 }
 
 .calendar-day.today .calendar-day-number {
   color: var(--primary);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .calendar-day.holiday .calendar-day-number {
@@ -138,10 +138,10 @@
 }
 
 .shift-badge {
-  font-size: 9px;
-  padding: 3px 5px;
-  border-radius: 4px;
-  margin: 2px 0;
+  font-size: 8px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin: 1px 0;
   text-align: left;
   font-weight: 600;
   color: white;
@@ -381,7 +381,8 @@
             <!-- TAB: CALENDARIO -->
             <div class="tab-content" id="tab-calendar">
               <div class="turnos-actions">
-                <button class="btn grow" id="btnNewShiftQuick">➕ Agregar Turno</button>
+                <button class="btn" id="btnNewShiftQuick">➕ Nuevo Turno</button>
+                <button class="btn secondary" id="btnBulkShifts">📅 Crear Secuencia</button>
                 <button class="btn secondary" id="btnExportPDF">📄 Exportar PDF</button>
               </div>
 
@@ -510,6 +511,133 @@
                   </div>
                 </form>
               </div>
+
+              <div id="bulkShiftForm" style="display:none;" class="shift-form-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="margin: 0; font-size: 16px;">📅 Crear Secuencia de Turnos</h4>
+                  <button class="btn secondary sm" onclick="closeBulkShiftForm()">✕</button>
+                </div>
+                
+                <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
+                  Crea múltiples turnos de forma rápida
+                </p>
+
+                <form id="bulkShiftFormData" onsubmit="saveBulkShifts(event)">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field">
+                      <label>📅 Fecha Inicio</label>
+                      <input type="date" id="bulkStartDate" required>
+                    </div>
+                    <div class="field">
+                      <label>📅 Fecha Fin</label>
+                      <input type="date" id="bulkEndDate" required>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>🔄 Patrón de repetición</label>
+                    <select id="bulkPatternType" onchange="toggleBulkPattern()">
+                      <option value="weekdays">Días de la semana</option>
+                      <option value="interval">Cada N días</option>
+                    </select>
+                  </div>
+
+                  <div id="bulkWeekdaysSection" class="field" style="margin-top: 10px;">
+                    <label>📋 Días de la semana</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px;">
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayLun" value="1">
+                        <span>Lun</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayMar" value="2">
+                        <span>Mar</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayMie" value="3">
+                        <span>Mié</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayJue" value="4">
+                        <span>Jue</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayVie" value="5">
+                        <span>Vie</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDaySab" value="6">
+                        <span>Sáb</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayDom" value="0">
+                        <span>Dom</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div id="bulkIntervalSection" class="field" style="display:none; margin-top: 10px;">
+                    <label>🔢 Repetir cada cuántos días</label>
+                    <input type="number" id="bulkInterval" min="1" max="30" value="6" placeholder="Ej: 6 para turnos cada 6 días">
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="field">
+                      <label>📋 Tipo de Turno</label>
+                      <select id="bulkShiftType" required onchange="updateBulkTimeDefaults()">
+                        <option value="manana">Mañana</option>
+                        <option value="tarde">Tarde</option>
+                        <option value="corrido">Corrido</option>
+                        <option value="noche">Noche</option>
+                        <option value="consulta">Consulta</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>💼 Tipo de Pago</label>
+                      <select id="bulkPaymentType" required>
+                        <option value="ops">OPS</option>
+                        <option value="nomina">Nómina</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>🏥 Lugar</label>
+                    <input type="text" id="bulkShiftPlace" required placeholder="Hospital, Clínica..." list="placesList">
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="field">
+                      <label>🕐 Hora Inicio</label>
+                      <input type="time" id="bulkShiftStartTime" value="07:00">
+                    </div>
+                    <div class="field">
+                      <label>🕐 Hora Fin</label>
+                      <input type="time" id="bulkShiftEndTime" value="19:00">
+                    </div>
+                    <div class="field">
+                      <label>💵 Valor ($)</label>
+                      <input type="number" id="bulkShiftValue" step="0.01" min="0" value="0">
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>📝 Notas</label>
+                    <textarea id="bulkShiftNotes" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                  </div>
+
+                  <div id="bulkPreview" style="display:none; margin-top: 12px; padding: 10px; background: rgba(var(--primary-rgb), 0.08); border-radius: 6px;">
+                    <h5 style="margin: 0 0 6px 0; color: var(--primary); font-size: 13px;">Vista Previa:</h5>
+                    <div id="bulkPreviewContent" style="font-size: 12px;"></div>
+                  </div>
+
+                  <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn secondary" onclick="previewBulkShifts()">👁️ Vista Previa</button>
+                    <button type="submit" class="btn primary grow">💾 Crear Turnos</button>
+                    <button type="button" class="btn secondary" onclick="closeBulkShiftForm()">Cancelar</button>
+                  </div>
+                </form>
+              </div>
             </div>
 
             <!-- TAB: LISTA -->
@@ -622,26 +750,6 @@
   }
 
   const FESTIVOS_COLOMBIA = {
-    2024: [
-      {fecha: '2024-01-01', nombre: 'Año Nuevo'},
-      {fecha: '2024-01-08', nombre: 'Reyes Magos'},
-      {fecha: '2024-03-25', nombre: 'San José'},
-      {fecha: '2024-03-28', nombre: 'Jueves Santo'},
-      {fecha: '2024-03-29', nombre: 'Viernes Santo'},
-      {fecha: '2024-05-01', nombre: 'Día del Trabajo'},
-      {fecha: '2024-05-13', nombre: 'Ascensión'},
-      {fecha: '2024-06-03', nombre: 'Corpus Christi'},
-      {fecha: '2024-06-10', nombre: 'Sagrado Corazón'},
-      {fecha: '2024-07-01', nombre: 'San Pedro y San Pablo'},
-      {fecha: '2024-07-20', nombre: 'Día de la Independencia'},
-      {fecha: '2024-08-07', nombre: 'Batalla de Boyacá'},
-      {fecha: '2024-08-19', nombre: 'Asunción'},
-      {fecha: '2024-10-14', nombre: 'Día de la Raza'},
-      {fecha: '2024-11-04', nombre: 'Todos los Santos'},
-      {fecha: '2024-11-11', nombre: 'Independencia de Cartagena'},
-      {fecha: '2024-12-08', nombre: 'Inmaculada Concepción'},
-      {fecha: '2024-12-25', nombre: 'Navidad'}
-    ],
     2025: [
       {fecha: '2025-01-01', nombre: 'Año Nuevo'},
       {fecha: '2025-01-06', nombre: 'Reyes Magos'},
@@ -681,6 +789,66 @@
       {fecha: '2026-11-16', nombre: 'Independencia de Cartagena'},
       {fecha: '2026-12-08', nombre: 'Inmaculada Concepción'},
       {fecha: '2026-12-25', nombre: 'Navidad'}
+    ],
+    2027: [
+      {fecha: '2027-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2027-01-11', nombre: 'Reyes Magos'},
+      {fecha: '2027-03-22', nombre: 'San José'},
+      {fecha: '2027-04-01', nombre: 'Jueves Santo'},
+      {fecha: '2027-04-02', nombre: 'Viernes Santo'},
+      {fecha: '2027-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2027-05-17', nombre: 'Ascensión'},
+      {fecha: '2027-06-07', nombre: 'Corpus Christi'},
+      {fecha: '2027-06-14', nombre: 'Sagrado Corazón'},
+      {fecha: '2027-06-28', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2027-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2027-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2027-08-16', nombre: 'Asunción'},
+      {fecha: '2027-10-11', nombre: 'Día de la Raza'},
+      {fecha: '2027-11-01', nombre: 'Todos los Santos'},
+      {fecha: '2027-11-15', nombre: 'Independencia de Cartagena'},
+      {fecha: '2027-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2027-12-25', nombre: 'Navidad'}
+    ],
+    2028: [
+      {fecha: '2028-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2028-01-10', nombre: 'Reyes Magos'},
+      {fecha: '2028-03-20', nombre: 'San José'},
+      {fecha: '2028-04-13', nombre: 'Jueves Santo'},
+      {fecha: '2028-04-14', nombre: 'Viernes Santo'},
+      {fecha: '2028-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2028-05-29', nombre: 'Ascensión'},
+      {fecha: '2028-06-19', nombre: 'Corpus Christi'},
+      {fecha: '2028-06-26', nombre: 'Sagrado Corazón'},
+      {fecha: '2028-07-03', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2028-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2028-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2028-08-21', nombre: 'Asunción'},
+      {fecha: '2028-10-16', nombre: 'Día de la Raza'},
+      {fecha: '2028-11-06', nombre: 'Todos los Santos'},
+      {fecha: '2028-11-13', nombre: 'Independencia de Cartagena'},
+      {fecha: '2028-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2028-12-25', nombre: 'Navidad'}
+    ],
+    2029: [
+      {fecha: '2029-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2029-01-08', nombre: 'Reyes Magos'},
+      {fecha: '2029-03-19', nombre: 'San José'},
+      {fecha: '2029-03-29', nombre: 'Jueves Santo'},
+      {fecha: '2029-03-30', nombre: 'Viernes Santo'},
+      {fecha: '2029-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2029-05-14', nombre: 'Ascensión'},
+      {fecha: '2029-06-04', nombre: 'Corpus Christi'},
+      {fecha: '2029-06-11', nombre: 'Sagrado Corazón'},
+      {fecha: '2029-07-02', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2029-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2029-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2029-08-20', nombre: 'Asunción'},
+      {fecha: '2029-10-15', nombre: 'Día de la Raza'},
+      {fecha: '2029-11-05', nombre: 'Todos los Santos'},
+      {fecha: '2029-11-12', nombre: 'Independencia de Cartagena'},
+      {fecha: '2029-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2029-12-25', nombre: 'Navidad'}
     ]
   };
 
@@ -720,6 +888,7 @@
 
   function setupEventListeners() {
     document.getElementById('btnNewShiftQuick').addEventListener('click', () => openShiftForm());
+    document.getElementById('btnBulkShifts').addEventListener('click', () => openBulkShiftForm());
     document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
     document.getElementById('btnApplyFilter').addEventListener('click', renderShiftsList);
     document.getElementById('btnClearFilter').addEventListener('click', () => {
@@ -1042,6 +1211,222 @@
       renderExchangesList();
     } catch (err) {
       showToast('Error al eliminar turno', 'error');
+    }
+  }
+
+  function openBulkShiftForm() {
+    closeShiftForm();
+    document.getElementById('bulkShiftForm').style.display = 'block';
+    document.getElementById('bulkPreview').style.display = 'none';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('bulkStartDate').value = today;
+    document.getElementById('bulkEndDate').value = today;
+    document.getElementById('bulkShiftForm').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeBulkShiftForm() {
+    document.getElementById('bulkShiftForm').style.display = 'none';
+    document.getElementById('bulkShiftFormData').reset();
+    document.getElementById('bulkPreview').style.display = 'none';
+    document.getElementById('bulkWeekdaysSection').style.display = 'block';
+    document.getElementById('bulkIntervalSection').style.display = 'none';
+  }
+
+  function toggleBulkPattern() {
+    const patternType = document.getElementById('bulkPatternType').value;
+    if (patternType === 'weekdays') {
+      document.getElementById('bulkWeekdaysSection').style.display = 'block';
+      document.getElementById('bulkIntervalSection').style.display = 'none';
+    } else {
+      document.getElementById('bulkWeekdaysSection').style.display = 'none';
+      document.getElementById('bulkIntervalSection').style.display = 'block';
+    }
+    document.getElementById('bulkPreview').style.display = 'none';
+  }
+
+  function updateBulkTimeDefaults() {
+    const type = document.getElementById('bulkShiftType').value;
+    const timeDefaults = {
+      'manana': { start: '07:00', end: '13:00' },
+      'tarde': { start: '13:00', end: '19:00' },
+      'corrido': { start: '07:00', end: '19:00' },
+      'noche': { start: '19:00', end: '07:00' },
+      'consulta': { start: '08:00', end: '12:00' }
+    };
+    
+    const defaults = timeDefaults[type];
+    if (defaults) {
+      document.getElementById('bulkShiftStartTime').value = defaults.start;
+      document.getElementById('bulkShiftEndTime').value = defaults.end;
+    }
+  }
+
+  function getSelectedDays() {
+    const days = [];
+    if (document.getElementById('bulkDayDom').checked) days.push(0);
+    if (document.getElementById('bulkDayLun').checked) days.push(1);
+    if (document.getElementById('bulkDayMar').checked) days.push(2);
+    if (document.getElementById('bulkDayMie').checked) days.push(3);
+    if (document.getElementById('bulkDayJue').checked) days.push(4);
+    if (document.getElementById('bulkDayVie').checked) days.push(5);
+    if (document.getElementById('bulkDaySab').checked) days.push(6);
+    return days;
+  }
+
+  function calculateBulkDates() {
+    const startDate = new Date(document.getElementById('bulkStartDate').value);
+    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const patternType = document.getElementById('bulkPatternType').value;
+    const dates = [];
+    
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) return null;
+      
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        if (selectedDays.includes(currentDate.getDay())) {
+          dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    } else {
+      const interval = parseInt(document.getElementById('bulkInterval').value) || 6;
+      let currentDate = new Date(startDate);
+      
+      while (currentDate <= endDate) {
+        dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + interval);
+      }
+    }
+    
+    return dates;
+  }
+
+  function previewBulkShifts() {
+    const startDate = new Date(document.getElementById('bulkStartDate').value);
+    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const patternType = document.getElementById('bulkPatternType').value;
+    
+    if (startDate > endDate) {
+      showToast('La fecha de inicio debe ser anterior a la fecha de fin', 'warning');
+      return;
+    }
+
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) {
+        showToast('Selecciona al menos un día de la semana', 'warning');
+        return;
+      }
+    }
+
+    const dates = calculateBulkDates();
+    
+    if (!dates || dates.length === 0) {
+      showToast('No hay fechas en el rango seleccionado', 'warning');
+      return;
+    }
+
+    const type = document.getElementById('bulkShiftType').value;
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta'
+    }[type] || type;
+
+    const patternDesc = patternType === 'weekdays' ? 
+      'por días de la semana' : 
+      `cada ${document.getElementById('bulkInterval').value} días`;
+
+    document.getElementById('bulkPreviewContent').innerHTML = `
+      <p><strong>Se crearán ${dates.length} turnos (${patternDesc}):</strong></p>
+      <ul style="margin: 6px 0; padding-left: 20px; max-height: 180px; overflow-y: auto;">
+        ${dates.map(d => {
+          const date = new Date(d + 'T00:00:00');
+          return `<li style="font-size: 11px;">${date.toLocaleDateString('es-CO', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })} - ${displayType}</li>`;
+        }).join('')}
+      </ul>
+    `;
+    document.getElementById('bulkPreview').style.display = 'block';
+  }
+
+  async function saveBulkShifts(event) {
+    event.preventDefault();
+    
+    const startDate = new Date(document.getElementById('bulkStartDate').value);
+    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const patternType = document.getElementById('bulkPatternType').value;
+    
+    if (startDate > endDate) {
+      showToast('La fecha de inicio debe ser anterior a la fecha de fin', 'warning');
+      return;
+    }
+
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) {
+        showToast('Selecciona al menos un día de la semana', 'warning');
+        return;
+      }
+    }
+
+    const dates = calculateBulkDates();
+    
+    if (!dates || dates.length === 0) {
+      showToast('No hay fechas en el rango seleccionado', 'warning');
+      return;
+    }
+
+    const place = document.getElementById('bulkShiftPlace').value;
+    const type = document.getElementById('bulkShiftType').value;
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const startTime = document.getElementById('bulkShiftStartTime').value;
+    const endTime = document.getElementById('bulkShiftEndTime').value;
+    const value = parseFloat(document.getElementById('bulkShiftValue').value) || 0;
+    const notes = document.getElementById('bulkShiftNotes').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours < 0) hours += 24;
+
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta'
+    }[type] || type;
+
+    const notesFormatted = `Tipo pago: ${paymentType} | ${startTime}-${endTime}` + (notes ? ' | ' + notes : '');
+
+    try {
+      let created = 0;
+      for (const date of dates) {
+        const data = {
+          entity_name: place,
+          shift_date: date,
+          shift_type: displayType,
+          hours: hours,
+          hourly_rate: hours > 0 ? (value / hours) : 0,
+          notes: notesFormatted
+        };
+        
+        await api('/shifts', { method: 'POST', body: JSON.stringify(data) });
+        created++;
+      }
+      
+      showToast(`${created} turnos creados exitosamente`, 'success');
+      closeBulkShiftForm();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+    } catch (err) {
+      showToast('Error al crear turnos', 'error');
+      console.error(err);
     }
   }
 

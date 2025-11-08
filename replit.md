@@ -69,6 +69,21 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ **Enhanced Shift Management System (November 8, 2025) - v4:**
+  - **Dual-mode bulk creation:** Two pattern options for shift sequences:
+    * Weekday selection: Choose specific days (Lun, Mar, Mié, etc.) within date range
+    * Interval-based: Create shifts every N days (e.g., every 6 nights for rotating schedules)
+  - **Automatic time defaults:** Selecting shift type auto-populates appropriate start/end times
+    * Mañana: 07:00-13:00 | Tarde: 13:00-19:00 | Corrido: 07:00-19:00
+    * Noche: 19:00-07:00 | Consulta: 08:00-12:00
+  - **Optimized calendar UI:** 
+    * Calendar cells reduced from 80px to 70px for better screen usage
+    * Badge font reduced to 8px with 2px padding
+    * Day numbers reduced to 14px (16px for today)
+  - **Improved form layout:** Compact grid design prevents field overlap
+    * 2-column grid for dates, 4-column for weekdays, 3-column for times
+    * Reduced font sizes (12px) and spacing for better mobile experience
+  - Updated Colombian holidays: Removed 2024, added 2027-2029 (now covers 2025-2029, 5 years)
 - ✅ **Enhanced Shift Management System (November 8, 2025) - v2:**
   - Updated shift types: Mañana, Tarde, Corrido, Noche, Consulta, Cambio de Turno
   - Implemented OPS vs Nómina differentiation with visual badges and color-coded borders
