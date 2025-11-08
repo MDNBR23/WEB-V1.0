@@ -24,7 +24,13 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Email Service:** Integrated SMTP email service using Hostinger for account verification, password recovery, password change notifications, user approval notifications, and account deletion confirmations. Configured with secure credentials stored in environment variables. Password recovery uses 6-digit codes with 10-minute expiration. All email URLs are dynamically generated from request context to ensure compatibility across all deployment environments. Users receive security notifications when their password is changed.
 - **Medical Tools:** Includes a text space corrector, an interactive arterial blood gas analyzer, a template system for clinical evolution notes, an infusion calculator, a drug interaction checker, and an interactive shift calendar.
 - **Infusion Calculator:** Calculates medication volumes, diluent, and flow rates based on patient parameters and medication presentations. Supports multiple dosing units with automatic unit conversion and precise medical orders. Uses exclusively admin-managed medications.
-- **Medical Shift Management:** Integrated shift scheduling tool with reminders, monthly tracking, financial summary, and localStorage persistence. Includes a shift exchange system.
+- **Medical Shift Management:** Integrated shift scheduling tool with comprehensive shift tracking, financial summaries, and automatic OPS shift generation. Features include:
+  - Create, edit, and delete shifts with entity tracking
+  - Filter shifts by date range
+  - Monthly summary with totals by entity
+  - Export to PDF and text formats with professional formatting
+  - Automatic OPS (Obra Social Provincial) shift generation with configurable frequency
+  - Database persistence with PostgreSQL backend
 - **AI Medical Integration:** TinyLlama integration via Ollama for local, privacy-focused medical AI assistance. Supports streaming responses for real-time interaction. Configured through OLLAMA_HOST and OLLAMA_MODEL environment variables. Open Evidence integration for accessing medical research and evidence-based medicine resources. See CONFIGURACION_TINYLLAMA.md for setup instructions.
 
 ### Feature Specifications
@@ -55,6 +61,9 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ Implemented PDF export functionality for shift management system with professional formatting
+- ✅ Enhanced shift management with complete CRUD operations and PostgreSQL backend
+- ✅ Added automatic OPS shift generation with configurable frequency settings
 - ✅ Changed light mode color scheme from teal/cyan to professional slate grey (#475569, #64748b)
 - ✅ Fixed emailVerified field for legacy users: All existing users now have emailVerified: true
 - ✅ Fixed mobile zoom issue: All input fields now use 16px font-size to prevent automatic zoom on iOS/Android devices
