@@ -52,12 +52,12 @@ const DATA_DIR = path.join(__dirname, 'data');
 app.set('trust proxy', true);
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  ssl: { rejectUnauthorized: false }
+  host: process.env.PGHOST || process.env.DB_HOST,
+  port: process.env.PGPORT || process.env.DB_PORT,
+  database: process.env.PGDATABASE || process.env.DB_NAME,
+  user: process.env.PGUSER || process.env.DB_USER,
+  password: process.env.PGPASSWORD || process.env.DB_PASSWORD,
+  ssl: false
 });
 
 app.use(bodyParser.json({limit: '50mb'}));
@@ -2001,6 +2001,265 @@ Responde de manera profesional pero amigable, como un colega médico experimenta
     console.error('Error streaming from Ollama:', err);
     res.write(`data: ${JSON.stringify({error: err.message})}\n\n`);
     res.end();
+  }
+});
+
+app.get('/api/shifts', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { startDate, endDate } = req.query;
+    let query = 'SELECT * FROM shifts WHERE user_id = $1';
+    const params = [req.session.userId];
+    
+    if (startDate && endDate) {
+      query += ' AND shift_date BETWEEN $2 AND $3';
+      params.push(startDate, endDate);
+    }
+    
+    query += ' ORDER BY shift_date DESC';
+    
+    const result = await pool.query(query, params);
+    res.json({ shifts: result.rows });
+  } catch (err) {
+    console.error('Error fetching shifts:', err);
+    res.status(500).json({ error: 'Error al obtener turnos' });
+  }
+});
+
+app.post('/api/shifts', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { entity_name, shift_date, shift_type, hours, hourly_rate, notes } = req.body;
+    
+    const result = await pool.query(
+      `INSERT INTO shifts (user_id, entity_name, shift_date, shift_type, hours, hourly_rate, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [req.session.userId, entity_name, shift_date, shift_type, hours || 0, hourly_rate || 0, notes || '']
+    );
+    
+    res.json({ shift: result.rows[0], success: true });
+  } catch (err) {
+    console.error('Error creating shift:', err);
+    res.status(500).json({ error: 'Error al crear turno' });
+  }
+});
+
+app.put('/api/shifts/:id', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { id } = req.params;
+    const { entity_name, shift_date, shift_type, hours, hourly_rate, notes } = req.body;
+    
+    const result = await pool.query(
+      `UPDATE shifts 
+       SET entity_name = $1, shift_date = $2, shift_type = $3, hours = $4, hourly_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7 AND user_id = $8 RETURNING *`,
+      [entity_name, shift_date, shift_type, hours, hourly_rate, notes, id, req.session.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Turno no encontrado' });
+    }
+    
+    res.json({ shift: result.rows[0], success: true });
+  } catch (err) {
+    console.error('Error updating shift:', err);
+    res.status(500).json({ error: 'Error al actualizar turno' });
+  }
+});
+
+app.delete('/api/shifts/:id', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { id } = req.params;
+    const result = await pool.query(
+      'DELETE FROM shifts WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, req.session.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Turno no encontrado' });
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting shift:', err);
+    res.status(500).json({ error: 'Error al eliminar turno' });
+  }
+});
+
+app.get('/api/shifts/summary', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { startDate, endDate } = req.query;
+    let query = `
+      SELECT 
+        entity_name,
+        COUNT(*) as shift_count,
+        SUM(hours) as total_hours,
+        SUM(hours * hourly_rate) as total_amount,
+        AVG(hourly_rate) as avg_rate
+      FROM shifts 
+      WHERE user_id = $1`;
+    
+    const params = [req.session.userId];
+    
+    if (startDate && endDate) {
+      query += ' AND shift_date BETWEEN $2 AND $3';
+      params.push(startDate, endDate);
+    }
+    
+    query += ' GROUP BY entity_name ORDER BY total_amount DESC';
+    
+    const result = await pool.query(query, params);
+    
+    const totalQuery = `
+      SELECT 
+        COUNT(*) as total_shifts,
+        SUM(hours) as total_hours,
+        SUM(hours * hourly_rate) as total_amount
+      FROM shifts 
+      WHERE user_id = $1` + (startDate && endDate ? ' AND shift_date BETWEEN $2 AND $3' : '');
+    
+    const totalResult = await pool.query(totalQuery, params);
+    
+    res.json({ 
+      byEntity: result.rows,
+      totals: totalResult.rows[0]
+    });
+  } catch (err) {
+    console.error('Error fetching summary:', err);
+    res.status(500).json({ error: 'Error al obtener resumen' });
+  }
+});
+
+app.get('/api/shifts/config', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const result = await pool.query(
+      'SELECT * FROM shift_config WHERE user_id = $1',
+      [req.session.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      const defaultConfig = await pool.query(
+        `INSERT INTO shift_config (user_id, ops_enabled, ops_frequency_days, ops_hours, ops_hourly_rate)
+         VALUES ($1, false, 7, 12, 0) RETURNING *`,
+        [req.session.userId]
+      );
+      return res.json({ config: defaultConfig.rows[0] });
+    }
+    
+    res.json({ config: result.rows[0] });
+  } catch (err) {
+    console.error('Error fetching config:', err);
+    res.status(500).json({ error: 'Error al obtener configuración' });
+  }
+});
+
+app.post('/api/shifts/config', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { ops_enabled, ops_frequency_days, ops_entity_name, ops_hours, ops_hourly_rate } = req.body;
+    
+    const result = await pool.query(
+      `INSERT INTO shift_config (user_id, ops_enabled, ops_frequency_days, ops_entity_name, ops_hours, ops_hourly_rate)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (user_id) 
+       DO UPDATE SET 
+         ops_enabled = $2,
+         ops_frequency_days = $3,
+         ops_entity_name = $4,
+         ops_hours = $5,
+         ops_hourly_rate = $6,
+         updated_at = CURRENT_TIMESTAMP
+       RETURNING *`,
+      [req.session.userId, ops_enabled, ops_frequency_days, ops_entity_name, ops_hours, ops_hourly_rate]
+    );
+    
+    res.json({ config: result.rows[0], success: true });
+  } catch (err) {
+    console.error('Error updating config:', err);
+    res.status(500).json({ error: 'Error al actualizar configuración' });
+  }
+});
+
+app.post('/api/shifts/generate-ops', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const config = await pool.query(
+      'SELECT * FROM shift_config WHERE user_id = $1',
+      [req.session.userId]
+    );
+    
+    if (config.rows.length === 0 || !config.rows[0].ops_enabled) {
+      return res.status(400).json({ error: 'OPS no está habilitado' });
+    }
+    
+    const cfg = config.rows[0];
+    const lastDate = cfg.last_ops_date ? new Date(cfg.last_ops_date) : new Date();
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + cfg.ops_frequency_days);
+    
+    const today = new Date();
+    const shiftsToCreate = [];
+    
+    while (nextDate <= today) {
+      shiftsToCreate.push({
+        user_id: req.session.userId,
+        entity_name: cfg.ops_entity_name || 'OPS',
+        shift_date: nextDate.toISOString().split('T')[0],
+        shift_type: 'OPS',
+        hours: cfg.ops_hours,
+        hourly_rate: cfg.ops_hourly_rate,
+        notes: 'Generado automáticamente'
+      });
+      nextDate.setDate(nextDate.getDate() + cfg.ops_frequency_days);
+    }
+    
+    if (shiftsToCreate.length > 0) {
+      for (const shift of shiftsToCreate) {
+        await pool.query(
+          `INSERT INTO shifts (user_id, entity_name, shift_date, shift_type, hours, hourly_rate, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [shift.user_id, shift.entity_name, shift.shift_date, shift.shift_type, shift.hours, shift.hourly_rate, shift.notes]
+        );
+      }
+      
+      await pool.query(
+        'UPDATE shift_config SET last_ops_date = $1 WHERE user_id = $2',
+        [shiftsToCreate[shiftsToCreate.length - 1].shift_date, req.session.userId]
+      );
+    }
+    
+    res.json({ success: true, generated: shiftsToCreate.length, shifts: shiftsToCreate });
+  } catch (err) {
+    console.error('Error generating OPS shifts:', err);
+    res.status(500).json({ error: 'Error al generar turnos OPS' });
   }
 });
 

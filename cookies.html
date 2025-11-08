@@ -14,29 +14,41 @@
   padding: 0;
 }
 :root {
-  --bg-gradient-start: #008B8B;
-  --bg-gradient-end: #008080;
-  --container-bg: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #555555;
-  --text-muted: #666666;
-  --accent-color: #008B8B;
-  --accent-hover: #006666;
-  --border-color: #008B8B;
-  --shadow: rgba(0, 0, 0, 0.1);
+  --bg-gradient-start: #e0f2fe;
+  --bg-gradient-end: #bae6fd;
+  --container-bg: rgba(255,255,255,.98);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --accent-color: #0284c7;
+  --accent-hover: #0369a1;
+  --border-color: #0284c7;
+  --shadow: rgba(0, 0, 0, 0.15);
+}
+html[data-theme="dark"] {
+  --bg-gradient-start: #1a202c;
+  --bg-gradient-end: #2d3748;
+  --container-bg: rgba(15,20,35,.75);
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e0;
+  --accent-color: #9b59b6;
+  --accent-hover: #8e44ad;
+  --border-color: #9b59b6;
+  --shadow: rgba(0, 0, 0, 0.65);
 }
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg-gradient-start: #1e293b;
-    --bg-gradient-end: #0f172a;
-    --container-bg: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --accent-color: #22d3ee;
-    --accent-hover: #06b6d4;
-    --border-color: #22d3ee;
-    --shadow: rgba(0, 0, 0, 0.3);
+  html:not([data-theme="light"]) {
+    --bg-gradient-start: #1a202c;
+    --bg-gradient-end: #2d3748;
+    --container-bg: rgba(15,20,35,.75);
+    --text-primary: #f7fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #cbd5e0;
+    --accent-color: #9b59b6;
+    --accent-hover: #8e44ad;
+    --border-color: #9b59b6;
+    --shadow: rgba(0, 0, 0, 0.65);
   }
 }
 html {
@@ -53,6 +65,9 @@ body {
   margin: 40px auto;
   padding: 40px;
   background: var(--container-bg);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid rgba(255,255,255,.3);
   border-radius: 12px;
   box-shadow: 0 4px 20px var(--shadow);
 }
@@ -113,6 +128,12 @@ body {
   background: var(--accent-hover);
 }
 </style>
+<script>
+(function(){
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+})();
+</script>
 </head><body>
   <div class="legal-container">
     <div class="legal-header">
@@ -145,7 +166,7 @@ body {
     </div>
 
     <div style="text-align: center;">
-      <a href="#" onclick="history.back(); return false;" class="back-link">← Volver atrás</a>
+      <a href="javascript:history.back()" class="back-link">← Volver atrás</a>
     </div>
   </div>
 </body></html>
