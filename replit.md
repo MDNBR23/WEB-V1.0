@@ -69,6 +69,23 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ **Enhanced Shift Management System (November 8, 2025) - v2:**
+  - Updated shift types: Mañana, Tarde, Corrido, Noche, Consulta, Cambio de Turno
+  - Implemented OPS vs Nómina differentiation with visual badges and color-coded borders
+  - Added dedicated shift exchange system with colleague tracking and exchange details
+  - Multiple shifts per day with time-based sorting and hour display in calendar badges
+  - Separate statistics for OPS (red) and Nómina (blue) with independent totals
+  - New "Cambios de Turno" tab for tracking all shift exchanges
+  - Simplified title to "Gestión de Turnos"
+  - Enhanced PDF export with payment type column and detailed summaries
+- ✅ **Optimized Shift Management System (November 8, 2025) - v1:**
+  - Completely redesigned turnos.html with calendar as the primary view
+  - Integrated Colombian holidays for 2024-2026 with visual indicators
+  - Implemented dynamic color system that adapts to selected theme (light/dark mode)
+  - Simplified interface with tabbed navigation
+  - Added visual legend for shift types with gradient badges
+  - Implemented accent-safe normalization for shift type comparisons
+  - Enhanced UX with larger calendar grid, hover effects, and better mobile responsiveness
 - ✅ **Consolidated shift management:** Integrated all 4 additional tabs (Calendario, Nómina, Secuencias OPS, Cambios de Turno) into turnos.html sidebar version with unified API-based data flow
   - Refactored all calendar functions to use API instead of localStorage/global variables
   - All generation functions (payroll, OPS sequences, calendar shifts) now reload data after creating records

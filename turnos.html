@@ -52,7 +52,7 @@
   border-bottom-color: var(--primary) !important;
 }
 .turnos-tab:hover {
-  background: rgba(0,139,139,0.05);
+  background: rgba(var(--primary-rgb), 0.05);
 }
 .tab-content {
   animation: fadeIn 0.3s ease-in-out;
@@ -61,158 +61,265 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.shifts-grid {
+
+.calendar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 20px 0;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 600;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 8px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--card);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  border-color: var(--primary);
+}
+
+.calendar-day.today {
+  border-color: var(--primary);
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+.calendar-day.holiday {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(220, 38, 38, 0.03));
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.calendar-day.has-shifts {
+  background: rgba(var(--primary-rgb), 0.08);
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.calendar-day.today .calendar-day-number {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.calendar-day.holiday .calendar-day-number {
+  color: #dc2626;
+}
+
+.holiday-name {
+  font-size: 9px;
+  color: #dc2626;
+  font-weight: 600;
+  margin-top: 2px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.shift-badge {
+  font-size: 9px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  margin: 2px 0;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shift-badge.tipo-manana {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.shift-badge.tipo-tarde {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.shift-badge.tipo-corrido {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.7));
+}
+
+.shift-badge.tipo-noche {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.shift-badge.tipo-consulta {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.shift-badge.tipo-cambio {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: 1px dashed white;
+}
+
+.shift-badge.pago-ops {
+  border-left: 3px solid #ef4444;
+}
+
+.shift-badge.pago-nomina {
+  border-left: 3px solid #3b82f6;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.calendar-month-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  flex: 1;
+  text-align: center;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 2px solid rgba(var(--primary-rgb), 0.2);
+}
+
+.summary-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.summary-card-label {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shift-form-container {
+  background: var(--card);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 20px;
   margin-top: 20px;
 }
-.shift-card {
+
+.shifts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.shift-item {
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   transition: all 0.3s;
 }
-.shift-card:hover {
+
+.shift-item:hover {
   box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.15);
   transform: translateY(-4px);
   border-color: var(--primary);
 }
-.shift-card-header {
+
+.legend-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-.shift-entity {
-  font-size: 1.15em;
-  font-weight: 700;
-  color: var(--text);
-}
-.shift-type-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8em;
-  font-weight: 600;
-  background: rgba(var(--primary-rgb), 0.1);
-  color: var(--primary);
-}
-.shift-date {
-  font-size: 0.9em;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-.shift-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 16px 0;
-}
-.shift-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.shift-detail-label {
-  font-size: 0.75em;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.shift-detail-value {
-  font-size: 1em;
-  font-weight: 600;
-  color: var(--text);
-}
-.shift-total {
-  font-size: 1.25em;
-  font-weight: 700;
-  color: var(--success);
-  text-align: right;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 2px solid var(--border);
-}
-.shift-notes {
-  font-size: 0.85em;
-  color: var(--muted);
-  margin-top: 10px;
-  font-style: italic;
-  padding: 8px;
-  background: rgba(var(--primary-rgb), 0.03);
-  border-radius: 6px;
-}
-.shift-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 15px;
-}
-.summary-totals {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin: 24px 0;
-}
-.summary-stat {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  border: 2px solid rgba(var(--primary-rgb), 0.2);
-}
-.summary-stat-label {
-  font-size: 0.9em;
-  color: var(--muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.summary-stat-value {
-  font-size: 2em;
-  font-weight: 700;
-  color: var(--primary);
-}
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--muted);
-}
-.empty-state-icon {
-  font-size: 4em;
-  margin-bottom: 20px;
-  opacity: 0.5;
-}
-.empty-state-text {
-  font-size: 1.2em;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-.filter-bar {
-  display: flex;
-  gap: 12px;
+  gap: 15px;
   flex-wrap: wrap;
-  align-items: flex-end;
-  margin-bottom: 20px;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(var(--primary-rgb), 0.05);
+  border-radius: 8px;
+  margin: 20px 0;
 }
-.ops-toggle {
+
+.legend-item {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
 }
-.ops-fields {
-  display: none;
+
+.legend-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
 }
-.ops-fields.active {
-  display: block;
+
+.payment-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
 }
+
+.payment-type-badge.ops {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.payment-type-badge.nomina {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
 @media (max-width: 768px) {
-  .shifts-grid {
-    grid-template-columns: 1fr;
+  .calendar-grid {
+    gap: 3px;
   }
-  .summary-totals {
-    grid-template-columns: 1fr;
+  .calendar-day {
+    min-height: 70px;
+    padding: 4px;
+  }
+  .calendar-day-number {
+    font-size: 14px;
+  }
+  .shift-badge {
+    font-size: 7px;
+    padding: 2px 3px;
+  }
+  .holiday-name {
+    font-size: 7px;
   }
 }
 </style>
@@ -250,909 +357,946 @@
       </header>
       <main>
         <div class="turnos-header">
-          <h2><span>📅</span> Gestión de Turnos Médicos</h2>
-          <p>Registra y controla tus guardias, turnos y compensaciones económicas</p>
-        </div>
-
-        <div class="turnos-actions">
-          <button class="btn grow" id="btnNewShift">➕ Nuevo Turno</button>
-          <button class="btn secondary" id="btnExportPDF">📄 Exportar PDF</button>
-          <button class="btn secondary" id="btnExportText">📝 Exportar Texto</button>
+          <h2><span>📅</span> Gestión de Turnos</h2>
+          <p>Organiza tus turnos, visualiza festivos colombianos y gestiona cambios con colegas</p>
         </div>
 
         <div class="card glass" style="padding:0;overflow:hidden;">
           <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
-            <button class="turnos-tab active" data-tab="list" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              📋 Lista de Turnos
-            </button>
-            <button class="turnos-tab" data-tab="summary" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              📊 Resumen
-            </button>
-            <button class="turnos-tab" data-tab="config" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              ⚙️ Configuración OPS
-            </button>
-            <button class="turnos-tab" data-tab="calendar" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+            <button class="turnos-tab active" data-tab="calendar" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
               📅 Calendario
             </button>
-            <button class="turnos-tab" data-tab="payroll" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              💰 Nómina
-            </button>
-            <button class="turnos-tab" data-tab="sequences" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              🔄 Secuencias OPS
+            <button class="turnos-tab" data-tab="list" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📋 Lista de Turnos
             </button>
             <button class="turnos-tab" data-tab="exchanges" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
-              🔁 Cambios de Turno
+              🔄 Cambios de Turno
+            </button>
+            <button class="turnos-tab" data-tab="summary" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📊 Estadísticas
             </button>
           </div>
 
           <div style="padding:24px;">
-            <!-- TAB: LISTA -->
-            <div class="tab-content" id="tab-list">
-              <div class="filter-bar">
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Fecha Inicio</label>
-                  <input type="date" id="filterStartDate">
-                </div>
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Fecha Fin</label>
-                  <input type="date" id="filterEndDate">
-                </div>
-                <button class="btn" id="btnApplyFilter" style="align-self:flex-end;">Filtrar</button>
-                <button class="btn secondary" id="btnClearFilter" style="align-self:flex-end;">Limpiar</button>
+            <!-- TAB: CALENDARIO -->
+            <div class="tab-content" id="tab-calendar">
+              <div class="turnos-actions">
+                <button class="btn grow" id="btnNewShiftQuick">➕ Agregar Turno</button>
+                <button class="btn secondary" id="btnExportPDF">📄 Exportar PDF</button>
               </div>
 
-              <div class="card glass" id="shiftForm" style="display:none;margin-bottom:24px;">
-                <h3 id="formTitle" style="margin:0 0 20px 0;">➕ Nuevo Turno</h3>
-                <form id="shiftFormData">
-                  <div class="grid-2col">
-                    <div class="field">
-                      <label>🏥 Entidad / Hospital</label>
-                      <input type="text" id="entityName" required list="entityList">
-                      <datalist id="entityList"></datalist>
-                    </div>
+              <div class="calendar-controls">
+                <button class="btn sm" onclick="cambiarMes(-1)">← Anterior</button>
+                <h3 class="calendar-month-title" id="calendarMonthYear"></h3>
+                <button class="btn sm" onclick="cambiarMes(1)">Siguiente →</button>
+              </div>
+
+              <div class="legend-container">
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);"></div>
+                  <span>Mañana</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #fb923c, #f97316);"></div>
+                  <span>Tarde</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.7));"></div>
+                  <span>Corrido</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #6366f1, #4f46e5);"></div>
+                  <span>Noche</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                  <span>Consulta</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: 1px dashed #666;"></div>
+                  <span>Cambio</span>
+                </div>
+                <div class="legend-item">
+                  <div style="width: 3px; height: 18px; background: #ef4444; border-radius: 1px;"></div>
+                  <span>OPS</span>
+                </div>
+                <div class="legend-item">
+                  <div style="width: 3px; height: 18px; background: #3b82f6; border-radius: 1px;"></div>
+                  <span>Nómina</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="border: 2px solid #dc2626;"></div>
+                  <span>Festivo</span>
+                </div>
+              </div>
+
+              <div class="calendar-grid" id="calendarGrid"></div>
+
+              <div class="summary-cards" id="monthSummary"></div>
+
+              <div id="shiftFormQuick" style="display:none;" class="shift-form-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h4 style="margin: 0;" id="formQuickTitle">Agregar Turno</h4>
+                  <button class="btn secondary sm" onclick="closeShiftForm()">✕</button>
+                </div>
+                
+                <div id="existingShiftsDay" style="display:none; margin-bottom: 16px; padding: 12px; background: rgba(var(--primary-rgb), 0.08); border-radius: 6px;">
+                  <h5 style="margin: 0 0 8px 0; color: var(--primary);">Turnos en este día:</h5>
+                  <div id="existingShiftsList"></div>
+                </div>
+
+                <form id="shiftFormData" onsubmit="saveShift(event)">
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
                     <div class="field">
                       <label>📅 Fecha</label>
                       <input type="date" id="shiftDate" required>
                     </div>
                     <div class="field">
-                      <label>🕐 Tipo de Turno</label>
-                      <select id="shiftType" required>
-                        <option value="Mañana">Mañana</option>
-                        <option value="Tarde">Tarde</option>
-                        <option value="Noche">Noche</option>
-                        <option value="Guardia 12h">Guardia 12h</option>
-                        <option value="Guardia 24h">Guardia 24h</option>
-                        <option value="OPS">OPS</option>
-                        <option value="Otro">Otro</option>
+                      <label>📋 Tipo de Turno</label>
+                      <select id="shiftType" required onchange="toggleExchangeFields()">
+                        <option value="manana">Mañana</option>
+                        <option value="tarde">Tarde</option>
+                        <option value="corrido">Corrido</option>
+                        <option value="noche">Noche</option>
+                        <option value="consulta">Consulta</option>
+                        <option value="cambio">Cambio de Turno</option>
+                      </select>
+                    </div>
+                    <div class="field" id="fieldPaymentType">
+                      <label>💼 Tipo de Pago</label>
+                      <select id="paymentType" required>
+                        <option value="ops">OPS (Prestación de Servicios)</option>
+                        <option value="nomina">Nómina</option>
                       </select>
                     </div>
                     <div class="field">
-                      <label>⏰ Horas</label>
-                      <input type="number" id="hours" step="0.5" min="0" value="12">
+                      <label>🏥 Lugar</label>
+                      <input type="text" id="shiftPlace" required placeholder="Hospital, Clínica..." list="placesList">
+                      <datalist id="placesList"></datalist>
                     </div>
                     <div class="field">
-                      <label>💵 Tarifa por Hora ($)</label>
-                      <input type="number" id="hourlyRate" step="0.01" min="0" value="0">
+                      <label>🕐 Hora Inicio</label>
+                      <input type="time" id="shiftStartTime" value="07:00">
+                    </div>
+                    <div class="field">
+                      <label>🕐 Hora Fin</label>
+                      <input type="time" id="shiftEndTime" value="19:00">
+                    </div>
+                    <div class="field">
+                      <label>💵 Valor Total ($)</label>
+                      <input type="number" id="shiftValue" step="0.01" min="0" value="0">
                     </div>
                   </div>
-                  <div class="field">
-                    <label>📝 Notas</label>
-                    <textarea id="notes" rows="3" style="resize:vertical;"></textarea>
+                  
+                  <div id="exchangeFields" style="display:none; margin-top: 12px; padding: 12px; background: rgba(139, 92, 246, 0.08); border-radius: 6px; border: 2px solid rgba(139, 92, 246, 0.2);">
+                    <h5 style="margin: 0 0 12px 0; color: #8b5cf6;">🔄 Información del Cambio</h5>
+                    <div class="field">
+                      <label>👤 Persona con quien cambió</label>
+                      <input type="text" id="exchangeWith" placeholder="Nombre del colega">
+                    </div>
+                    <div class="field" style="margin-top: 8px;">
+                      <label>📝 Detalles del cambio</label>
+                      <textarea id="exchangeDetails" rows="2" placeholder="Ej: Cambié mi turno de noche del 15 por su turno de mañana del 20"></textarea>
+                    </div>
                   </div>
-                  <div style="display:flex;gap:10px;margin-top:20px;">
-                    <button type="submit" class="btn grow">💾 Guardar</button>
-                    <button type="button" class="btn secondary" id="btnCancelForm">Cancelar</button>
+
+                  <div class="field" style="margin-top: 12px;">
+                    <label>📝 Notas</label>
+                    <textarea id="shiftNotes" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                  </div>
+                  <div style="margin-top: 16px; display: flex; gap: 8px;">
+                    <button type="submit" class="btn primary grow">💾 Guardar</button>
+                    <button type="button" class="btn secondary" onclick="closeShiftForm()">Cancelar</button>
                   </div>
                 </form>
               </div>
+            </div>
 
-              <div id="shiftsList" class="shifts-grid"></div>
-              <div id="emptyState" class="empty-state" style="display:none;">
-                <div class="empty-state-icon">📅</div>
-                <div class="empty-state-text">No hay turnos registrados</div>
-                <p style="color:var(--muted);">Comienza agregando tu primer turno</p>
+            <!-- TAB: LISTA -->
+            <div class="tab-content" id="tab-list" style="display:none;">
+              <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="field" style="margin:0;flex:1;min-width:200px;">
+                  <label>📅 Desde</label>
+                  <input type="date" id="filterStartDate">
+                </div>
+                <div class="field" style="margin:0;flex:1;min-width:200px;">
+                  <label>📅 Hasta</label>
+                  <input type="date" id="filterEndDate">
+                </div>
+                <div class="field" style="margin:0;min-width:150px;">
+                  <label>💼 Tipo de Pago</label>
+                  <select id="filterPaymentType">
+                    <option value="">Todos</option>
+                    <option value="ops">OPS</option>
+                    <option value="nomina">Nómina</option>
+                  </select>
+                </div>
+                <button class="btn" id="btnApplyFilter" style="align-self:flex-end;">Filtrar</button>
+                <button class="btn secondary" id="btnClearFilter" style="align-self:flex-end;">Limpiar</button>
+              </div>
+
+              <div id="shiftsList" class="shifts-list"></div>
+              <div id="emptyState" style="display:none; text-align: center; padding: 60px 20px; color: var(--muted);">
+                <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">📅</div>
+                <div style="font-size: 1.2em; margin-bottom: 10px; font-weight: 600;">No hay turnos registrados</div>
+                <p>Comienza agregando tu primer turno desde el calendario</p>
+              </div>
+            </div>
+
+            <!-- TAB: CAMBIOS DE TURNO -->
+            <div class="tab-content" id="tab-exchanges" style="display:none;">
+              <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 8px 0;">🔄 Cambios de Turno Registrados</h3>
+                <p class="text-muted" style="margin: 0;">Historial de turnos intercambiados con colegas</p>
+              </div>
+              <div id="exchangesList" class="shifts-list"></div>
+              <div id="emptyExchanges" style="display:none; text-align: center; padding: 60px 20px; color: var(--muted);">
+                <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">🔄</div>
+                <div style="font-size: 1.2em; margin-bottom: 10px; font-weight: 600;">No hay cambios de turno registrados</div>
+                <p>Los cambios de turno aparecerán aquí automáticamente</p>
               </div>
             </div>
 
             <!-- TAB: RESUMEN -->
             <div class="tab-content" id="tab-summary" style="display:none;">
-              <div class="filter-bar">
+              <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
                 <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Fecha Inicio</label>
+                  <label>📅 Desde</label>
                   <input type="date" id="summaryStartDate">
                 </div>
                 <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Fecha Fin</label>
+                  <label>📅 Hasta</label>
                   <input type="date" id="summaryEndDate">
                 </div>
                 <button class="btn" id="btnApplySummaryFilter" style="align-self:flex-end;">Filtrar</button>
                 <button class="btn secondary" id="btnClearSummaryFilter" style="align-self:flex-end;">Limpiar</button>
               </div>
 
-              <h3 style="margin:20px 0 10px 0;">📊 Resumen General</h3>
-              <div class="summary-totals" id="summaryTotals"></div>
+              <h3 style="margin:20px 0 10px 0;">📊 Totales Generales</h3>
+              <div class="summary-cards" id="summaryTotals"></div>
               
-              <h3 style="margin:30px 0 16px 0;">🏥 Balance por Entidad</h3>
+              <h3 style="margin:30px 0 16px 0;">💼 Distribución por Tipo de Pago</h3>
+              <div class="summary-cards" id="summaryByPaymentType"></div>
+              
+              <h3 style="margin:30px 0 16px 0;">🏥 Distribución por Lugar</h3>
               <div class="table-wrap">
                 <table>
                   <thead>
                     <tr>
-                      <th>Entidad</th>
+                      <th>Lugar</th>
                       <th>Turnos</th>
                       <th>Horas</th>
-                      <th>Tarifa Promedio</th>
+                      <th>Valor Promedio</th>
                       <th>Total</th>
                     </tr>
                   </thead>
-                  <tbody id="summaryByEntity"></tbody>
+                  <tbody id="summaryByPlace"></tbody>
                 </table>
               </div>
             </div>
-
-            <!-- TAB: CONFIGURACIÓN OPS -->
-            <div class="tab-content" id="tab-config" style="display:none;">
-              <h3 style="margin:0 0 12px 0;">⚙️ Configuración de Turnos OPS Automáticos</h3>
-              <p class="text-muted" style="margin-bottom:24px;">Configura la generación automática de turnos en OPS (Obra Social Provincial)</p>
-              
-              <div class="ops-toggle">
-                <label style="margin:0;font-weight:600;">Habilitar generación automática</label>
-                <label class="switch">
-                  <input type="checkbox" id="opsEnabled">
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div class="ops-fields" id="opsFields">
-                <div class="grid-2col">
-                  <div class="field">
-                    <label>📆 Frecuencia (días)</label>
-                    <input type="number" id="opsFrequency" min="1" value="7">
-                    <small class="text-muted">Cada cuántos días se genera un turno</small>
-                  </div>
-                  <div class="field">
-                    <label>🏥 Entidad</label>
-                    <input type="text" id="opsEntity" value="OPS">
-                  </div>
-                  <div class="field">
-                    <label>⏰ Horas por Turno</label>
-                    <input type="number" id="opsHours" step="0.5" min="0" value="12">
-                  </div>
-                  <div class="field">
-                    <label>💵 Tarifa por Hora ($)</label>
-                    <input type="number" id="opsRate" step="0.01" min="0" value="0">
-                  </div>
-                </div>
-                <div style="margin-top:20px;display:flex;gap:10px;">
-                  <button class="btn grow" id="btnSaveOpsConfig">💾 Guardar Configuración</button>
-                  <button class="btn secondary" id="btnGenerateOps">⚡ Generar Turnos Pendientes</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: CALENDARIO -->
-            <div class="tab-content" id="tab-calendar" style="display:none;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <button class="btn sm" onclick="cambiarMesCalendario(-1)">← Mes Anterior</button>
-                <h4 id="calendarioMesAnio" style="margin: 0; font-size: 18px;"></h4>
-                <button class="btn sm" onclick="cambiarMesCalendario(1)">Mes Siguiente →</button>
-              </div>
-            
-              <div id="calendarioTurnos" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 20px;"></div>
-            
-              <div id="formTurnoContainer" style="display:none; margin-top: 20px; padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid var(--primary);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <h4 style="margin: 0;" id="tituloFormTurno">Agregar Turno</h4>
-                  <button class="btn secondary sm" onclick="cerrarFormTurno()">✕</button>
-                </div>
-                
-                <div id="turnosDiaActual" style="display:none; margin-bottom: 16px; padding: 12px; background: rgba(0,139,139,0.08); border-radius: 6px;">
-                  <h5 style="margin: 0 0 8px 0; color: var(--primary);">Turnos programados este día:</h5>
-                  <div id="listaTurnosDia"></div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
-                  <div class="field">
-                    <label>Fecha del Turno</label>
-                    <input type="date" id="turnoFecha">
-                  </div>
-                  <div class="field">
-                    <label>Hora de Inicio</label>
-                    <input type="time" id="turnoHoraInicio">
-                  </div>
-                  <div class="field">
-                    <label>Hora de Fin</label>
-                    <input type="time" id="turnoHoraFin">
-                  </div>
-                  <div class="field">
-                    <label>Valor del Turno ($)</label>
-                    <input type="number" id="turnoValor" step="0.01" placeholder="0.00">
-                  </div>
-                  <div class="field">
-                    <label>Lugar</label>
-                    <input type="text" id="turnoLugar" placeholder="Hospital, Clínica...">
-                  </div>
-                  <div class="field">
-                    <label>Tipo de Turno</label>
-                    <select id="turnoTipo">
-                      <option value="guardia">Guardia</option>
-                      <option value="consulta">Consulta</option>
-                      <option value="cirugia">Cirugía</option>
-                      <option value="otro">Otro</option>
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label>Tipo de Pago</label>
-                    <select id="turnoPaymentType">
-                      <option value="ops">OPS</option>
-                      <option value="nomina">Nómina</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field" style="margin-top: 12px;">
-                  <label>Notas</label>
-                  <textarea id="turnoNotas" rows="2" placeholder="Notas adicionales..."></textarea>
-                </div>
-                <div style="margin-top: 12px; display: flex; gap: 8px;">
-                  <button class="btn primary" onclick="guardarTurnoCalendario()">Guardar Turno</button>
-                  <button class="btn secondary" onclick="cerrarFormTurno()">Cancelar</button>
-                </div>
-              </div>
-            
-              <div style="margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--primary);">
-                <h4 style="margin: 0 0 12px 0; color: var(--primary);">📊 Resumen del Mes Actual</h4>
-                <div id="resumenTurnos" style="font-size: 14px;"></div>
-              </div>
-            </div>
-
-            <!-- TAB: NÓMINA -->
-            <div class="tab-content" id="tab-payroll" style="display:none;">
-              <h4 style="margin-bottom: 12px;">💰 Configuración de Nómina</h4>
-              <p class="text-muted" style="margin-bottom: 16px;">Establece tu salario mensual fijo y los días de trabajo recurrentes.</p>
-              
-              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid #10b981; margin-bottom: 20px;">
-                <h5 style="margin: 0 0 12px 0; color: #10b981;">Información de Nómina</h5>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
-                  <div class="field">
-                    <label>Salario Mensual Fijo ($)</label>
-                    <input type="number" id="nominaSalarioFijo" step="0.01" placeholder="0.00">
-                  </div>
-                  <div class="field">
-                    <label>Lugar de Trabajo</label>
-                    <input type="text" id="nominaLugar" placeholder="Hospital, Clínica...">
-                  </div>
-                </div>
-                
-                <div class="field" style="margin-top: 12px;">
-                  <label>Días de Trabajo (selecciona los días que trabajas)</label>
-                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px;">
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia0" value="0">
-                      <span>Domingo</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia1" value="1">
-                      <span>Lunes</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia2" value="2">
-                      <span>Martes</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia3" value="3">
-                      <span>Miércoles</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia4" value="4">
-                      <span>Jueves</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia5" value="5">
-                      <span>Viernes</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: white; border-radius: 6px; cursor: pointer; border: 2px solid var(--border);">
-                      <input type="checkbox" id="nominaDia6" value="6">
-                      <span>Sábado</span>
-                    </label>
-                  </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
-                  <div class="field">
-                    <label>Hora de Inicio</label>
-                    <input type="time" id="nominaHoraInicio" value="08:00">
-                  </div>
-                  <div class="field">
-                    <label>Hora de Fin</label>
-                    <input type="time" id="nominaHoraFin" value="17:00">
-                  </div>
-                  <div class="field">
-                    <label>Tipo de Turno</label>
-                    <select id="nominaTipo">
-                      <option value="guardia">Guardia</option>
-                      <option value="consulta" selected>Consulta</option>
-                      <option value="cirugia">Cirugía</option>
-                      <option value="otro">Otro</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div style="margin-top: 16px; display: flex; gap: 8px;">
-                  <button class="btn success" onclick="generarTurnosNomina()">✓ Aplicar Turnos al Mes Actual</button>
-                  <button class="btn secondary" onclick="limpiarConfigNomina()">🗑️ Limpiar</button>
-                </div>
-              </div>
-              
-              <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 4px solid #10b981;">
-                <h5 style="margin: 0 0 8px 0; color: #10b981;">ℹ️ Cómo funciona</h5>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
-                  <li>Configura tu salario mensual fijo y los días que trabajas regularmente</li>
-                  <li>Al aplicar, se crearán automáticamente todos los turnos del mes actual</li>
-                  <li>Los turnos se marcarán como tipo "Nómina" en el calendario</li>
-                  <li>El valor del turno se calculará automáticamente: Salario Mensual / Días de Trabajo</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- TAB: SECUENCIAS OPS -->
-            <div class="tab-content" id="tab-sequences" style="display:none;">
-              <h4 style="margin-bottom: 12px;">📊 Gestión de Secuencias OPS</h4>
-              <p class="text-muted" style="margin-bottom: 16px;">Crea turnos individuales o genera secuencias automáticas para turnos OPS variables.</p>
-              
-              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid #f59e0b; margin-bottom: 20px;">
-                <h5 style="margin: 0 0 12px 0; color: #f59e0b;">Generar Secuencia Automática</h5>
-                <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">Crea múltiples turnos siguiendo un patrón específico.</p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                  <div class="field">
-                    <label>Fecha de Inicio</label>
-                    <input type="date" id="opsSecFechaInicio">
-                  </div>
-                  <div class="field">
-                    <label>Número de Turnos</label>
-                    <input type="number" id="opsSecCantidad" min="1" max="31" value="4" placeholder="¿Cuántos turnos?">
-                  </div>
-                  <div class="field">
-                    <label>Frecuencia</label>
-                    <select id="opsSecFrecuencia">
-                      <option value="1">Cada día</option>
-                      <option value="2">Cada 2 días</option>
-                      <option value="3" selected>Cada 3 días</option>
-                      <option value="4">Cada 4 días</option>
-                      <option value="7">Cada semana</option>
-                      <option value="14">Cada 2 semanas</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
-                  <div class="field">
-                    <label>Hora de Inicio</label>
-                    <input type="time" id="opsSecHoraInicio" value="07:00">
-                  </div>
-                  <div class="field">
-                    <label>Hora de Fin</label>
-                    <input type="time" id="opsSecHoraFin" value="19:00">
-                  </div>
-                  <div class="field">
-                    <label>Valor por Turno ($)</label>
-                    <input type="number" id="opsSecValor" step="0.01" placeholder="0.00">
-                  </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px;">
-                  <div class="field">
-                    <label>Lugar</label>
-                    <input type="text" id="opsSecLugar" placeholder="Hospital, Clínica...">
-                  </div>
-                  <div class="field">
-                    <label>Tipo de Turno</label>
-                    <select id="opsSecTipo">
-                      <option value="guardia" selected>Guardia</option>
-                      <option value="consulta">Consulta</option>
-                      <option value="cirugia">Cirugía</option>
-                      <option value="otro">Otro</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div style="margin-top: 16px; display: flex; gap: 8px;">
-                  <button class="btn primary" onclick="generarSecuenciaOPS()">🔄 Generar Secuencia</button>
-                  <button class="btn secondary" onclick="limpiarSecuenciaOPS()">🗑️ Limpiar</button>
-                </div>
-              </div>
-              
-              <div style="padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 4px solid #f59e0b;">
-                <h5 style="margin: 0 0 8px 0; color: #f59e0b;">ℹ️ Cómo funciona</h5>
-                <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
-                  <li>Define una fecha de inicio y cuántos turnos quieres crear</li>
-                  <li>Selecciona la frecuencia (cada cuántos días se repite el turno)</li>
-                  <li>Los turnos se crearán automáticamente con los mismos datos</li>
-                  <li>También puedes agregar turnos individuales haciendo clic en cualquier día del calendario</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- TAB: CAMBIOS DE TURNO -->
-            <div class="tab-content" id="tab-exchanges" style="display:none;">
-              <h4 style="margin-bottom: 12px;">Registrar Cambio de Turno</h4>
-              <div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 2px solid var(--primary); margin-bottom: 20px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
-                  <div class="field">
-                    <label>Médico con quien cambio</label>
-                    <input type="text" id="cambioMedico" placeholder="Dr. Juan Pérez">
-                  </div>
-                  <div class="field">
-                    <label>Mi turno original (fecha)</label>
-                    <input type="date" id="cambioMiTurno">
-                  </div>
-                  <div class="field">
-                    <label>Turno que asumo (fecha)</label>
-                    <input type="date" id="cambioTurnoAsumido">
-                  </div>
-                  <div class="field">
-                    <label>Tipo de turno</label>
-                    <select id="cambioTipo">
-                      <option value="guardia">Guardia</option>
-                      <option value="consulta">Consulta</option>
-                      <option value="cirugia">Cirugía</option>
-                      <option value="otro">Otro</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field" style="margin-top: 12px;">
-                  <label>Notas del cambio</label>
-                  <textarea id="cambioNotas" rows="2" placeholder="Motivo del cambio, acuerdos, etc."></textarea>
-                </div>
-                <div style="margin-top: 12px; display: flex; gap: 8px;">
-                  <button class="btn primary" onclick="guardarCambioTurno()">Registrar Cambio</button>
-                  <button class="btn secondary" onclick="limpiarFormCambio()">Limpiar</button>
-                </div>
-              </div>
-              
-              <h4 style="margin-bottom: 12px;">Historial de Cambios</h4>
-              <div id="listaCambios"></div>
-            </div>
           </div>
         </div>
-
-        <footer class="app-footer">
-          <div class="footer-links">
-            <a href="privacidad.html">Política de Privacidad</a>
-            <span class="separator">|</span>
-            <a href="terminos.html">Términos y Condiciones</a>
-            <span class="separator">|</span>
-            <a href="aviso-legal.html">Aviso Legal</a>
-            <span class="separator">|</span>
-            <a href="cookies.html">Cookies</a>
-          </div>
-          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
-          <p class="contact">contacto@medtoolshub.cloud</p>
-        </footer>
       </main>
     </div>
   </div>
-  <script src="script.js"></script>
-  <script>
-let currentEditingId = null;
 
-async function loadShifts(startDate = null, endDate = null) {
-  try {
-    const response = await api('/shifts' + (startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''));
-    displayShifts(response.shifts);
-    updateEntityList(response.shifts);
-  } catch (err) {
-    showToast('Error al cargar turnos', 'error');
+<script src="script.js"></script>
+<script>
+  function normalizeString(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
-}
 
-function displayShifts(shifts) {
-  const container = document.getElementById('shiftsList');
-  const emptyState = document.getElementById('emptyState');
-  
-  if (!shifts || shifts.length === 0) {
-    container.innerHTML = '';
-    emptyState.style.display = 'block';
-    return;
-  }
-  
-  emptyState.style.display = 'none';
-  container.innerHTML = shifts.map(shift => `
-    <div class="shift-card">
-      <div class="shift-card-header">
-        <div class="shift-entity">${shift.entity_name || 'Sin entidad'}</div>
-        <div class="shift-type-badge">${shift.shift_type}</div>
-      </div>
-      <div class="shift-date">📅 ${new Date(shift.shift_date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-      <div class="shift-details">
-        <div class="shift-detail">
-          <div class="shift-detail-label">Horas</div>
-          <div class="shift-detail-value">⏰ ${shift.hours}h</div>
-        </div>
-        <div class="shift-detail">
-          <div class="shift-detail-label">Tarifa/Hora</div>
-          <div class="shift-detail-value">💵 $${parseFloat(shift.hourly_rate).toFixed(2)}</div>
-        </div>
-      </div>
-      ${shift.notes ? `<div class="shift-notes">📝 ${shift.notes}</div>` : ''}
-      <div class="shift-total">Total: $${(parseFloat(shift.hours) * parseFloat(shift.hourly_rate)).toFixed(2)}</div>
-      <div class="shift-actions">
-        <button class="btn secondary sm" onclick="editShift(${shift.id})">✏️ Editar</button>
-        <button class="btn danger sm" onclick="deleteShift(${shift.id})">🗑️ Eliminar</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function updateEntityList(shifts) {
-  const uniqueEntities = [...new Set(shifts.map(s => s.entity_name).filter(Boolean))];
-  const datalist = document.getElementById('entityList');
-  datalist.innerHTML = uniqueEntities.map(e => `<option value="${e}">`).join('');
-}
-
-async function editShift(id) {
-  try {
-    const response = await api('/shifts');
-    const shift = response.shifts.find(s => s.id === id);
+  function toggleExchangeFields() {
+    const tipo = document.getElementById('shiftType').value;
+    const exchangeFields = document.getElementById('exchangeFields');
+    const paymentField = document.getElementById('fieldPaymentType');
     
-    if (!shift) return;
-    
-    currentEditingId = id;
-    document.getElementById('formTitle').textContent = '✏️ Editar Turno';
-    document.getElementById('entityName').value = shift.entity_name || '';
-    document.getElementById('shiftDate').value = shift.shift_date;
-    document.getElementById('shiftType').value = shift.shift_type;
-    document.getElementById('hours').value = shift.hours;
-    document.getElementById('hourlyRate').value = shift.hourly_rate;
-    document.getElementById('notes').value = shift.notes || '';
-    
-    document.getElementById('shiftForm').style.display = 'block';
-    document.getElementById('shiftForm').scrollIntoView({ behavior: 'smooth' });
-  } catch (err) {
-    showToast('Error al cargar turno', 'error');
+    if (tipo === 'cambio') {
+      exchangeFields.style.display = 'block';
+      paymentField.style.display = 'none';
+      document.getElementById('shiftValue').value = '0';
+    } else {
+      exchangeFields.style.display = 'none';
+      paymentField.style.display = 'block';
+    }
   }
-}
 
-async function deleteShift(id) {
-  if (!confirm('¿Estás seguro de eliminar este turno?')) return;
-  
-  try {
-    await api(`/shifts/${id}`, { method: 'DELETE' });
-    showToast('Turno eliminado exitosamente', 'success');
-    loadShifts();
-  } catch (err) {
-    showToast('Error al eliminar turno', 'error');
+  const FESTIVOS_COLOMBIA = {
+    2024: [
+      {fecha: '2024-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2024-01-08', nombre: 'Reyes Magos'},
+      {fecha: '2024-03-25', nombre: 'San José'},
+      {fecha: '2024-03-28', nombre: 'Jueves Santo'},
+      {fecha: '2024-03-29', nombre: 'Viernes Santo'},
+      {fecha: '2024-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2024-05-13', nombre: 'Ascensión'},
+      {fecha: '2024-06-03', nombre: 'Corpus Christi'},
+      {fecha: '2024-06-10', nombre: 'Sagrado Corazón'},
+      {fecha: '2024-07-01', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2024-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2024-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2024-08-19', nombre: 'Asunción'},
+      {fecha: '2024-10-14', nombre: 'Día de la Raza'},
+      {fecha: '2024-11-04', nombre: 'Todos los Santos'},
+      {fecha: '2024-11-11', nombre: 'Independencia de Cartagena'},
+      {fecha: '2024-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2024-12-25', nombre: 'Navidad'}
+    ],
+    2025: [
+      {fecha: '2025-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2025-01-06', nombre: 'Reyes Magos'},
+      {fecha: '2025-03-24', nombre: 'San José'},
+      {fecha: '2025-04-17', nombre: 'Jueves Santo'},
+      {fecha: '2025-04-18', nombre: 'Viernes Santo'},
+      {fecha: '2025-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2025-06-02', nombre: 'Ascensión'},
+      {fecha: '2025-06-23', nombre: 'Corpus Christi'},
+      {fecha: '2025-06-30', nombre: 'Sagrado Corazón'},
+      {fecha: '2025-07-07', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2025-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2025-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2025-08-18', nombre: 'Asunción'},
+      {fecha: '2025-10-13', nombre: 'Día de la Raza'},
+      {fecha: '2025-11-03', nombre: 'Todos los Santos'},
+      {fecha: '2025-11-17', nombre: 'Independencia de Cartagena'},
+      {fecha: '2025-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2025-12-25', nombre: 'Navidad'}
+    ],
+    2026: [
+      {fecha: '2026-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2026-01-12', nombre: 'Reyes Magos'},
+      {fecha: '2026-03-23', nombre: 'San José'},
+      {fecha: '2026-04-02', nombre: 'Jueves Santo'},
+      {fecha: '2026-04-03', nombre: 'Viernes Santo'},
+      {fecha: '2026-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2026-05-18', nombre: 'Ascensión'},
+      {fecha: '2026-06-08', nombre: 'Corpus Christi'},
+      {fecha: '2026-06-15', nombre: 'Sagrado Corazón'},
+      {fecha: '2026-06-29', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2026-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2026-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2026-08-17', nombre: 'Asunción'},
+      {fecha: '2026-10-12', nombre: 'Día de la Raza'},
+      {fecha: '2026-11-02', nombre: 'Todos los Santos'},
+      {fecha: '2026-11-16', nombre: 'Independencia de Cartagena'},
+      {fecha: '2026-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2026-12-25', nombre: 'Navidad'}
+    ]
+  };
+
+  let currentMonth = new Date().getMonth();
+  let currentYear = new Date().getFullYear();
+  let allShifts = [];
+  let editingShiftId = null;
+
+  async function initTurnos() {
+    await loadShifts();
+    renderCalendar();
+    setupTabs();
+    setupEventListeners();
   }
-}
 
-async function loadSummary(startDate = null, endDate = null) {
-  try {
-    let url = '/shifts/summary';
-    if (startDate && endDate) {
-      url += `?startDate=${startDate}&endDate=${endDate}`;
+  function setupTabs() {
+    document.querySelectorAll('.turnos-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.getAttribute('data-tab');
+        document.querySelectorAll('.turnos-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(`tab-${targetTab}`).style.display = 'block';
+        
+        if (targetTab === 'calendar') {
+          renderCalendar();
+        } else if (targetTab === 'list') {
+          renderShiftsList();
+        } else if (targetTab === 'exchanges') {
+          renderExchangesList();
+        } else if (targetTab === 'summary') {
+          loadSummary();
+        }
+      });
+    });
+  }
+
+  function setupEventListeners() {
+    document.getElementById('btnNewShiftQuick').addEventListener('click', () => openShiftForm());
+    document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
+    document.getElementById('btnApplyFilter').addEventListener('click', renderShiftsList);
+    document.getElementById('btnClearFilter').addEventListener('click', () => {
+      document.getElementById('filterStartDate').value = '';
+      document.getElementById('filterEndDate').value = '';
+      document.getElementById('filterPaymentType').value = '';
+      renderShiftsList();
+    });
+    document.getElementById('btnApplySummaryFilter').addEventListener('click', loadSummary);
+    document.getElementById('btnClearSummaryFilter').addEventListener('click', () => {
+      document.getElementById('summaryStartDate').value = '';
+      document.getElementById('summaryEndDate').value = '';
+      loadSummary();
+    });
+  }
+
+  async function loadShifts() {
+    try {
+      const response = await api('/shifts');
+      allShifts = response.shifts || [];
+      updatePlacesList();
+    } catch (err) {
+      console.error('Error loading shifts:', err);
+    }
+  }
+
+  function updatePlacesList() {
+    const places = [...new Set(allShifts.map(s => s.entity_name).filter(Boolean))];
+    const datalist = document.getElementById('placesList');
+    datalist.innerHTML = places.map(p => `<option value="${p}">`).join('');
+  }
+
+  function cambiarMes(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    } else if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    renderCalendar();
+  }
+
+  function getPaymentType(shift) {
+    if (!shift.notes) return 'ops';
+    const match = shift.notes.match(/Tipo pago: (ops|nomina)/i);
+    return match ? match[1].toLowerCase() : 'ops';
+  }
+
+  function getStartTime(shift) {
+    if (!shift.notes) return '';
+    const match = shift.notes.match(/(\d{2}:\d{2})-\d{2}:\d{2}/);
+    return match ? match[1] : '';
+  }
+
+  function renderCalendar() {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+    
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div></div>';
     }
     
-    const response = await api(url);
-    displaySummary(response);
-  } catch (err) {
-    showToast('Error al cargar resumen', 'error');
-  }
-}
-
-function displaySummary(data) {
-  const totalsContainer = document.getElementById('summaryTotals');
-  const totals = data.totals || { total_shifts: 0, total_hours: 0, total_amount: 0 };
-  
-  totalsContainer.innerHTML = `
-    <div class="summary-stat">
-      <div class="summary-stat-label">Total Turnos</div>
-      <div class="summary-stat-value">${totals.total_shifts || 0}</div>
-    </div>
-    <div class="summary-stat">
-      <div class="summary-stat-label">Total Horas</div>
-      <div class="summary-stat-value">${parseFloat(totals.total_hours || 0).toFixed(1)}h</div>
-    </div>
-    <div class="summary-stat">
-      <div class="summary-stat-label">Total a Cobrar</div>
-      <div class="summary-stat-value">$${parseFloat(totals.total_amount || 0).toFixed(2)}</div>
-    </div>
-  `;
-  
-  const tbody = document.getElementById('summaryByEntity');
-  if (!data.byEntity || data.byEntity.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">No hay datos disponibles</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = data.byEntity.map(entity => `
-    <tr>
-      <td><strong>${entity.entity_name || 'Sin entidad'}</strong></td>
-      <td>${entity.shift_count}</td>
-      <td>${parseFloat(entity.total_hours).toFixed(1)}h</td>
-      <td>$${parseFloat(entity.avg_rate).toFixed(2)}/h</td>
-      <td><strong style="color:var(--success);">$${parseFloat(entity.total_amount).toFixed(2)}</strong></td>
-    </tr>
-  `).join('');
-}
-
-async function loadOpsConfig() {
-  try {
-    const response = await api('/shifts/config');
-    const config = response.config;
+    const today = new Date().toISOString().split('T')[0];
+    const holidaysThisYear = FESTIVOS_COLOMBIA[currentYear] || [];
     
-    document.getElementById('opsEnabled').checked = config.ops_enabled;
-    document.getElementById('opsFrequency').value = config.ops_frequency_days;
-    document.getElementById('opsEntity').value = config.ops_entity_name || 'OPS';
-    document.getElementById('opsHours').value = config.ops_hours;
-    document.getElementById('opsRate').value = config.ops_hourly_rate;
-    
-    document.getElementById('opsFields').classList.toggle('active', config.ops_enabled);
-  } catch (err) {
-    showToast('Error al cargar configuración', 'error');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadShifts();
-  loadOpsConfig();
-  
-  document.querySelectorAll('.turnos-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const tabName = tab.dataset.tab;
+    for (let day = 1; day <= lastDate; day++) {
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayShifts = allShifts.filter(s => s.shift_date === dateStr);
+      const isToday = dateStr === today;
+      const holiday = holidaysThisYear.find(h => h.fecha === dateStr);
       
-      document.querySelectorAll('.turnos-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      let classes = 'calendar-day';
+      if (isToday) classes += ' today';
+      if (holiday) classes += ' holiday';
+      if (dayShifts.length > 0) classes += ' has-shifts';
       
-      tab.classList.add('active');
-      document.getElementById(`tab-${tabName}`).style.display = 'block';
-      
-      if (tabName === 'summary') {
-        loadSummary();
+      html += `<div class="${classes}" onclick="openShiftForm('${dateStr}')">`;
+      html += `<div class="calendar-day-number">${day}</div>`;
+      if (holiday) {
+        html += `<div class="holiday-name">${holiday.nombre}</div>`;
       }
+      
+      dayShifts.sort((a, b) => {
+        const timeA = getStartTime(a);
+        const timeB = getStartTime(b);
+        return timeA.localeCompare(timeB);
+      });
+      
+      dayShifts.forEach(shift => {
+        const tipo = normalizeString(shift.shift_type);
+        const paymentType = getPaymentType(shift);
+        const startTime = getStartTime(shift);
+        const displayTime = startTime ? startTime.substring(0, 5) + ' ' : '';
+        html += `<div class="shift-badge tipo-${tipo} pago-${paymentType}">${displayTime}${shift.shift_type}</div>`;
+      });
+      html += '</div>';
+    }
+    
+    document.getElementById('calendarGrid').innerHTML = html;
+    updateMonthSummary();
+  }
+
+  function updateMonthSummary() {
+    const monthShifts = allShifts.filter(s => {
+      const [year, month] = s.shift_date.split('-');
+      return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
     });
-  });
-  
-  document.getElementById('btnNewShift').addEventListener('click', () => {
-    currentEditingId = null;
-    document.getElementById('formTitle').textContent = '➕ Nuevo Turno';
+
+    const totalShifts = monthShifts.length;
+    const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+    const totalValue = monthShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+
+    const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
+    const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
+    const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+
+    document.getElementById('monthSummary').innerHTML = `
+      <div class="summary-card">
+        <div class="summary-card-value">${totalShifts}</div>
+        <div class="summary-card-label">Turnos</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">${totalHours.toFixed(1)}</div>
+        <div class="summary-card-label">Horas</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">$${opsTotal.toFixed(2)}</div>
+        <div class="summary-card-label">OPS</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">$${nominaTotal.toFixed(2)}</div>
+        <div class="summary-card-label">Nómina</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">$${totalValue.toFixed(2)}</div>
+        <div class="summary-card-label">Total</div>
+      </div>
+    `;
+  }
+
+  function openShiftForm(date = null) {
+    editingShiftId = null;
+    document.getElementById('shiftFormQuick').style.display = 'block';
+    document.getElementById('formQuickTitle').textContent = 'Agregar Turno';
+    toggleExchangeFields();
+    
+    if (date) {
+      document.getElementById('shiftDate').value = date;
+      const dayShifts = allShifts.filter(s => s.shift_date === date);
+      
+      if (dayShifts.length > 0) {
+        document.getElementById('existingShiftsDay').style.display = 'block';
+        document.getElementById('existingShiftsList').innerHTML = dayShifts.map(s => {
+          const paymentType = getPaymentType(s);
+          const startTime = getStartTime(s);
+          const paymentBadge = s.shift_type.toLowerCase() !== 'cambio' ? 
+            `<span class="payment-type-badge ${paymentType}">${paymentType.toUpperCase()}</span>` : '';
+          return `
+          <div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">
+                ${startTime ? startTime + ' - ' : ''}${s.shift_type} - ${s.hours}h ${paymentBadge}
+              </div>
+              <div style="font-size: 12px; color: var(--muted);">${s.entity_name || 'Sin lugar'} - $${(parseFloat(s.hours) * parseFloat(s.hourly_rate)).toFixed(2)}</div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn sm secondary" onclick="editShift(${s.id})">✏️</button>
+              <button type="button" class="btn sm danger" onclick="deleteShift(${s.id})">🗑️</button>
+            </div>
+          </div>
+        `}).join('');
+      } else {
+        document.getElementById('existingShiftsDay').style.display = 'none';
+      }
+    } else {
+      document.getElementById('shiftDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('existingShiftsDay').style.display = 'none';
+    }
+    
+    document.getElementById('shiftFormQuick').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeShiftForm() {
+    document.getElementById('shiftFormQuick').style.display = 'none';
+    clearShiftForm();
+  }
+
+  function clearShiftForm() {
+    editingShiftId = null;
     document.getElementById('shiftFormData').reset();
-    document.getElementById('shiftDate').valueAsDate = new Date();
-    document.getElementById('shiftForm').style.display = 'block';
-    document.getElementById('shiftForm').scrollIntoView({ behavior: 'smooth' });
-  });
-  
-  document.getElementById('btnCancelForm').addEventListener('click', () => {
-    document.getElementById('shiftForm').style.display = 'none';
-    currentEditingId = null;
-  });
-  
-  document.getElementById('shiftFormData').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    document.getElementById('shiftStartTime').value = '07:00';
+    document.getElementById('shiftEndTime').value = '19:00';
+    document.getElementById('shiftType').value = 'manana';
+    document.getElementById('paymentType').value = 'ops';
+    toggleExchangeFields();
+  }
+
+  async function saveShift(event) {
+    event.preventDefault();
+    
+    const date = document.getElementById('shiftDate').value;
+    const place = document.getElementById('shiftPlace').value;
+    const type = document.getElementById('shiftType').value;
+    const paymentType = document.getElementById('paymentType').value;
+    const startTime = document.getElementById('shiftStartTime').value;
+    const endTime = document.getElementById('shiftEndTime').value;
+    const value = parseFloat(document.getElementById('shiftValue').value) || 0;
+    let notes = document.getElementById('shiftNotes').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours < 0) hours += 24;
+    
+    if (type === 'cambio') {
+      const exchangeWith = document.getElementById('exchangeWith').value;
+      const exchangeDetails = document.getElementById('exchangeDetails').value;
+      if (exchangeWith) {
+        notes = `Cambio con: ${exchangeWith}. ${exchangeDetails ? exchangeDetails + '. ' : ''}${notes}`;
+      }
+    } else {
+      notes = `Tipo pago: ${paymentType} | ${startTime}-${endTime}` + (notes ? ' | ' + notes : '');
+    }
+    
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta',
+      'cambio': 'Cambio'
+    }[type] || type;
     
     const data = {
-      entity_name: document.getElementById('entityName').value,
-      shift_date: document.getElementById('shiftDate').value,
-      shift_type: document.getElementById('shiftType').value,
-      hours: parseFloat(document.getElementById('hours').value),
-      hourly_rate: parseFloat(document.getElementById('hourlyRate').value),
-      notes: document.getElementById('notes').value
+      entity_name: place,
+      shift_date: date,
+      shift_type: displayType,
+      hours: hours,
+      hourly_rate: hours > 0 ? (value / hours) : 0,
+      notes: notes
     };
     
     try {
-      if (currentEditingId) {
-        await api(`/shifts/${currentEditingId}`, { method: 'PUT', body: JSON.stringify(data) });
+      if (editingShiftId) {
+        await api(`/shifts/${editingShiftId}`, { method: 'PUT', body: JSON.stringify(data) });
         showToast('Turno actualizado exitosamente', 'success');
       } else {
         await api('/shifts', { method: 'POST', body: JSON.stringify(data) });
-        showToast('Turno creado exitosamente', 'success');
+        showToast('Turno guardado exitosamente', 'success');
       }
       
-      document.getElementById('shiftForm').style.display = 'none';
-      currentEditingId = null;
-      loadShifts();
+      closeShiftForm();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
     } catch (err) {
       showToast('Error al guardar turno', 'error');
     }
-  });
-  
-  document.getElementById('btnApplyFilter').addEventListener('click', () => {
-    const start = document.getElementById('filterStartDate').value;
-    const end = document.getElementById('filterEndDate').value;
-    if (start && end) {
-      loadShifts(start, end);
+  }
+
+  async function editShift(id) {
+    const shift = allShifts.find(s => s.id === id);
+    if (!shift) return;
+    
+    editingShiftId = id;
+    document.getElementById('formQuickTitle').textContent = 'Editar Turno';
+    document.getElementById('shiftDate').value = shift.shift_date;
+    document.getElementById('shiftPlace').value = shift.entity_name || '';
+    document.getElementById('shiftType').value = normalizeString(shift.shift_type);
+    
+    const paymentType = getPaymentType(shift);
+    document.getElementById('paymentType').value = paymentType;
+    
+    const notesMatch = shift.notes ? shift.notes.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/) : null;
+    if (notesMatch) {
+      document.getElementById('shiftStartTime').value = notesMatch[1];
+      document.getElementById('shiftEndTime').value = notesMatch[2];
     }
-  });
-  
-  document.getElementById('btnClearFilter').addEventListener('click', () => {
-    document.getElementById('filterStartDate').value = '';
-    document.getElementById('filterEndDate').value = '';
-    loadShifts();
-  });
-  
-  document.getElementById('btnApplySummaryFilter').addEventListener('click', () => {
-    const start = document.getElementById('summaryStartDate').value;
-    const end = document.getElementById('summaryEndDate').value;
-    if (start && end) {
-      loadSummary(start, end);
+    
+    const totalValue = parseFloat(shift.hours) * parseFloat(shift.hourly_rate);
+    document.getElementById('shiftValue').value = totalValue.toFixed(2);
+    
+    if (shift.shift_type.toLowerCase() === 'cambio') {
+      const exchangeMatch = shift.notes ? shift.notes.match(/Cambio con: ([^.]+)\.?\s*(.*)/) : null;
+      if (exchangeMatch) {
+        document.getElementById('exchangeWith').value = exchangeMatch[1].trim();
+        const details = exchangeMatch[2].split('|')[0].trim();
+        document.getElementById('exchangeDetails').value = details;
+      }
     }
-  });
-  
-  document.getElementById('btnClearSummaryFilter').addEventListener('click', () => {
-    document.getElementById('summaryStartDate').value = '';
-    document.getElementById('summaryEndDate').value = '';
-    loadSummary();
-  });
-  
-  document.getElementById('opsEnabled').addEventListener('change', (e) => {
-    document.getElementById('opsFields').classList.toggle('active', e.target.checked);
-  });
-  
-  document.getElementById('btnSaveOpsConfig').addEventListener('click', async () => {
-    const data = {
-      ops_enabled: document.getElementById('opsEnabled').checked,
-      ops_frequency_days: parseInt(document.getElementById('opsFrequency').value),
-      ops_entity_name: document.getElementById('opsEntity').value,
-      ops_hours: parseFloat(document.getElementById('opsHours').value),
-      ops_hourly_rate: parseFloat(document.getElementById('opsRate').value)
-    };
+    
+    const cleanNotes = shift.notes ? shift.notes.split('|').pop().trim() : '';
+    document.getElementById('shiftNotes').value = cleanNotes;
+    
+    toggleExchangeFields();
+    document.getElementById('shiftFormQuick').style.display = 'block';
+    document.getElementById('shiftFormQuick').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function deleteShift(id) {
+    if (!confirm('¿Eliminar este turno?')) return;
     
     try {
-      await api('/shifts/config', { method: 'POST', body: JSON.stringify(data) });
-      showToast('Configuración guardada exitosamente', 'success');
+      await api(`/shifts/${id}`, { method: 'DELETE' });
+      showToast('Turno eliminado', 'success');
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
     } catch (err) {
-      showToast('Error al guardar configuración', 'error');
+      showToast('Error al eliminar turno', 'error');
     }
-  });
-  
-  document.getElementById('btnGenerateOps').addEventListener('click', async () => {
-    try {
-      const response = await api('/shifts/generate-ops', { method: 'POST' });
-      if (response.generated > 0) {
-        showToast(`Se generaron ${response.generated} turnos OPS`, 'success');
-        loadShifts();
-      } else {
-        showToast('No hay turnos pendientes para generar', 'info');
+  }
+
+  function renderShiftsList() {
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    const filterPayment = document.getElementById('filterPaymentType').value;
+    
+    let filtered = [...allShifts];
+    if (startDate) filtered = filtered.filter(s => s.shift_date >= startDate);
+    if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
+    if (filterPayment) filtered = filtered.filter(s => getPaymentType(s) === filterPayment);
+    
+    filtered = filtered.filter(s => s.shift_type.toLowerCase() !== 'cambio');
+    filtered.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
+    
+    if (filtered.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('shiftsList').innerHTML = '';
+      return;
+    }
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('shiftsList').innerHTML = filtered.map(shift => {
+      const total = parseFloat(shift.hours) * parseFloat(shift.hourly_rate);
+      const paymentType = getPaymentType(shift);
+      const startTime = getStartTime(shift);
+      return `
+        <div class="shift-item">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div style="font-size: 1.15em; font-weight: 700; color: var(--text);">${shift.entity_name || 'Sin lugar'}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="shift-badge tipo-${normalizeString(shift.shift_type)} pago-${paymentType}" style="display: inline-block; width: auto;">${shift.shift_type}</div>
+              <span class="payment-type-badge ${paymentType}">${paymentType.toUpperCase()}</span>
+            </div>
+          </div>
+          <div style="font-size: 0.9em; color: var(--muted); margin-bottom: 12px;">
+            📅 ${new Date(shift.shift_date).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            ${startTime ? `<br/>🕐 Inicio: ${startTime}` : ''}
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;">
+            <div>
+              <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase;">Horas</div>
+              <div style="font-size: 1em; font-weight: 600; color: var(--text);">${shift.hours}h</div>
+            </div>
+            <div>
+              <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase;">Valor/Hora</div>
+              <div style="font-size: 1em; font-weight: 600; color: var(--text);">$${parseFloat(shift.hourly_rate).toFixed(2)}</div>
+            </div>
+          </div>
+          <div style="font-size: 1.25em; font-weight: 700; color: var(--success); text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border);">
+            $${total.toFixed(2)}
+          </div>
+          ${shift.notes && shift.notes.split('|').pop().trim() ? `<div style="font-size: 0.85em; color: var(--muted); margin-top: 10px; font-style: italic; padding: 8px; background: rgba(var(--primary-rgb), 0.03); border-radius: 6px;">${shift.notes.split('|').pop().trim()}</div>` : ''}
+          <div style="display: flex; gap: 8px; margin-top: 15px;">
+            <button class="btn sm secondary" onclick="editShift(${shift.id})">✏️ Editar</button>
+            <button class="btn sm danger" onclick="deleteShift(${shift.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderExchangesList() {
+    const exchanges = allShifts.filter(s => s.shift_type.toLowerCase() === 'cambio');
+    exchanges.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
+    
+    if (exchanges.length === 0) {
+      document.getElementById('emptyExchanges').style.display = 'block';
+      document.getElementById('exchangesList').innerHTML = '';
+      return;
+    }
+    
+    document.getElementById('emptyExchanges').style.display = 'none';
+    document.getElementById('exchangesList').innerHTML = exchanges.map(shift => {
+      const exchangeMatch = shift.notes ? shift.notes.match(/Cambio con: ([^.]+)/) : null;
+      const exchangeWith = exchangeMatch ? exchangeMatch[1].trim() : 'No especificado';
+      const startTime = getStartTime(shift);
+      
+      return `
+        <div class="shift-item" style="border-color: #8b5cf6;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 1.15em; font-weight: 700; color: var(--text);">${shift.entity_name || 'Sin lugar'}</div>
+              <div style="font-size: 0.9em; color: #8b5cf6; margin-top: 4px;">🔄 Cambio con: <strong>${exchangeWith}</strong></div>
+            </div>
+            <div class="shift-badge tipo-cambio" style="display: inline-block; width: auto;">Cambio</div>
+          </div>
+          <div style="font-size: 0.9em; color: var(--muted); margin-bottom: 12px;">
+            📅 ${new Date(shift.shift_date).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            ${startTime ? `<br/>🕐 Inicio: ${startTime}` : ''}
+          </div>
+          <div style="padding: 12px; background: rgba(139, 92, 246, 0.08); border-radius: 6px; margin: 12px 0;">
+            <div style="font-size: 0.85em; color: var(--muted);">${shift.notes ? shift.notes.split('Cambio con:')[1] || 'Sin detalles' : 'Sin detalles'}</div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 15px;">
+            <button class="btn sm secondary" onclick="editShift(${shift.id})">✏️ Editar</button>
+            <button class="btn sm danger" onclick="deleteShift(${shift.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadSummary() {
+    const startDate = document.getElementById('summaryStartDate').value;
+    const endDate = document.getElementById('summaryEndDate').value;
+    
+    let filtered = [...allShifts].filter(s => s.shift_type.toLowerCase() !== 'cambio');
+    if (startDate) filtered = filtered.filter(s => s.shift_date >= startDate);
+    if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
+    
+    const totalShifts = filtered.length;
+    const totalHours = filtered.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+    const totalAmount = filtered.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    const avgRate = totalHours > 0 ? (totalAmount / totalHours) : 0;
+    
+    const opsShifts = filtered.filter(s => getPaymentType(s) === 'ops');
+    const nominaShifts = filtered.filter(s => getPaymentType(s) === 'nomina');
+    const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    
+    document.getElementById('summaryTotals').innerHTML = `
+      <div class="summary-card">
+        <div class="summary-card-value">${totalShifts}</div>
+        <div class="summary-card-label">Total Turnos</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">${totalHours.toFixed(1)}</div>
+        <div class="summary-card-label">Total Horas</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">$${avgRate.toFixed(2)}</div>
+        <div class="summary-card-label">Valor/Hora Promedio</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">$${totalAmount.toFixed(2)}</div>
+        <div class="summary-card-label">Total General</div>
+      </div>
+    `;
+
+    document.getElementById('summaryByPaymentType').innerHTML = `
+      <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
+        <div class="summary-card-value">${opsShifts.length}</div>
+        <div class="summary-card-label">Turnos OPS</div>
+        <div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">$${opsTotal.toFixed(2)}</div>
+      </div>
+      <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
+        <div class="summary-card-value">${nominaShifts.length}</div>
+        <div class="summary-card-label">Turnos Nómina</div>
+        <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">$${nominaTotal.toFixed(2)}</div>
+      </div>
+    `;
+    
+    const byPlace = {};
+    filtered.forEach(s => {
+      const place = s.entity_name || 'Sin especificar';
+      if (!byPlace[place]) {
+        byPlace[place] = { count: 0, hours: 0, amount: 0 };
       }
-    } catch (err) {
-      showToast('Error al generar turnos OPS', 'error');
-    }
-  });
-  
-  document.getElementById('btnExportText').addEventListener('click', async () => {
+      byPlace[place].count++;
+      byPlace[place].hours += parseFloat(s.hours || 0);
+      byPlace[place].amount += parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0);
+    });
+    
+    document.getElementById('summaryByPlace').innerHTML = Object.entries(byPlace).map(([place, data]) => `
+      <tr>
+        <td>${place}</td>
+        <td style="text-align: center;">${data.count}</td>
+        <td style="text-align: center;">${data.hours.toFixed(1)}h</td>
+        <td style="text-align: right;">$${(data.amount / data.hours).toFixed(2)}</td>
+        <td style="text-align: right; font-weight: 700; color: var(--success);">$${data.amount.toFixed(2)}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function exportPDF() {
     try {
-      const response = await api('/shifts');
-      const summary = await api('/shifts/summary');
-      
-      let text = '=== RESUMEN DE TURNOS - MED TOOLS HUB ===\n\n';
-      text += `Fecha de generación: ${new Date().toLocaleDateString('es-ES')}\n\n`;
-      
-      text += '--- TOTALES GENERALES ---\n';
-      text += `Total de turnos: ${summary.totals.total_shifts || 0}\n`;
-      text += `Total de horas: ${parseFloat(summary.totals.total_hours || 0).toFixed(1)}h\n`;
-      text += `Total a cobrar: $${parseFloat(summary.totals.total_amount || 0).toFixed(2)}\n\n`;
-      
-      text += '--- BALANCE POR ENTIDAD ---\n';
-      summary.byEntity.forEach(entity => {
-        text += `\n${entity.entity_name || 'Sin entidad'}:\n`;
-        text += `  Turnos: ${entity.shift_count}\n`;
-        text += `  Horas: ${parseFloat(entity.total_hours).toFixed(1)}h\n`;
-        text += `  Tarifa promedio: $${parseFloat(entity.avg_rate).toFixed(2)}/h\n`;
-        text += `  Total: $${parseFloat(entity.total_amount).toFixed(2)}\n`;
-      });
-      
-      text += '\n--- DETALLE DE TURNOS ---\n';
-      response.shifts.forEach(shift => {
-        text += `\n${new Date(shift.shift_date).toLocaleDateString('es-ES')} - ${shift.entity_name || 'Sin entidad'}\n`;
-        text += `  Tipo: ${shift.shift_type}\n`;
-        text += `  Horas: ${shift.hours}h x $${shift.hourly_rate}/h = $${(shift.hours * shift.hourly_rate).toFixed(2)}\n`;
-        if (shift.notes) text += `  Notas: ${shift.notes}\n`;
-      });
-      
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `turnos_${new Date().toISOString().split('T')[0]}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showToast('Archivo de texto exportado exitosamente', 'success');
-    } catch (err) {
-      showToast('Error al exportar', 'error');
-    }
-  });
-  
-  document.getElementById('btnExportPDF').addEventListener('click', async () => {
-    try {
-      const response = await api('/shifts');
-      const summary = await api('/shifts/summary');
-      
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-      
-      const totals = summary.totals || { total_shifts: 0, total_hours: 0, total_amount: 0 };
-      
-      const shiftsTableBody = response.shifts.map(shift => {
+      const monthShifts = allShifts.filter(s => {
+        const [year, month] = s.shift_date.split('-');
+        return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
+      }).filter(s => s.shift_type.toLowerCase() !== 'cambio');
+
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+      const totalAmount = monthShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+
+      const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
+      const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
+      const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+      const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+
+      const shiftsTableBody = monthShifts.map(shift => {
+        const paymentType = getPaymentType(shift);
+        const startTime = getStartTime(shift);
         return [
-          { text: new Date(shift.shift_date).toLocaleDateString('es-ES'), fontSize: 9 },
-          { text: shift.entity_name || 'Sin entidad', fontSize: 9 },
+          { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
+          { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
           { text: shift.shift_type, fontSize: 9 },
+          { text: startTime || '-', fontSize: 9, alignment: 'center' },
+          { text: paymentType.toUpperCase(), fontSize: 9, alignment: 'center', color: paymentType === 'ops' ? '#ef4444' : '#3b82f6' },
           { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
           { text: `$${parseFloat(shift.hourly_rate).toFixed(2)}`, fontSize: 9, alignment: 'right' },
           { text: `$${(parseFloat(shift.hours) * parseFloat(shift.hourly_rate)).toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true }
-        ];
+        ]
       });
-      
-      const entitiesTableBody = summary.byEntity.map(entity => {
-        return [
-          { text: entity.entity_name || 'Sin entidad', fontSize: 9 },
-          { text: entity.shift_count.toString(), fontSize: 9, alignment: 'center' },
-          { text: `${parseFloat(entity.total_hours).toFixed(1)}h`, fontSize: 9, alignment: 'center' },
-          { text: `$${parseFloat(entity.avg_rate).toFixed(2)}`, fontSize: 9, alignment: 'right' },
-          { text: `$${parseFloat(entity.total_amount).toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true, color: '#10b981' }
-        ];
-      });
-      
+
       const docDefinition = {
         pageSize: 'A4',
+        pageOrientation: 'landscape',
         pageMargins: [40, 60, 40, 60],
         content: [
           { text: 'Med Tools Hub', style: 'header', color: '#475569' },
-          { text: 'Resumen de Turnos Médicos', style: 'subheader', color: '#64748b' },
-          { text: `Generado el ${dateStr}`, style: 'date', margin: [0, 0, 0, 20] },
+          { text: `Gestión de Turnos - ${monthNames[currentMonth]} ${currentYear}`, style: 'subheader', color: '#64748b' },
+          { text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, style: 'date', margin: [0, 0, 0, 20] },
           
-          { text: 'Totales Generales', style: 'sectionHeader', margin: [0, 10, 0, 10] },
+          { text: 'Totales del Mes', style: 'sectionHeader', margin: [0, 10, 0, 10] },
           {
             columns: [
               {
                 width: '*',
                 stack: [
                   { text: 'Total Turnos', fontSize: 10, color: '#64748b' },
-                  { text: (totals.total_shifts || 0).toString(), fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: monthShifts.length.toString(), fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
                   { text: 'Total Horas', fontSize: 10, color: '#64748b' },
-                  { text: `${parseFloat(totals.total_hours || 0).toFixed(1)}h`, fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: `${totalHours.toFixed(1)}h`, fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
-                  { text: 'Total a Cobrar', fontSize: 10, color: '#64748b' },
-                  { text: `$${parseFloat(totals.total_amount || 0).toFixed(2)}`, fontSize: 24, bold: true, color: '#10b981', margin: [0, 5, 0, 0] }
+                  { text: 'OPS', fontSize: 10, color: '#64748b' },
+                  { text: `$${opsTotal.toFixed(2)}`, fontSize: 24, bold: true, color: '#ef4444', margin: [0, 5, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'Nómina', fontSize: 10, color: '#64748b' },
+                  { text: `$${nominaTotal.toFixed(2)}`, fontSize: 24, bold: true, color: '#3b82f6', margin: [0, 5, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'Total', fontSize: 10, color: '#64748b' },
+                  { text: `$${totalAmount.toFixed(2)}`, fontSize: 24, bold: true, color: '#10b981', margin: [0, 5, 0, 0] }
                 ]
               }
             ],
-            margin: [0, 0, 0, 20]
-          },
-          
-          { text: 'Balance por Entidad', style: 'sectionHeader', margin: [0, 20, 0, 10] },
-          {
-            table: {
-              headerRows: 1,
-              widths: ['*', 'auto', 'auto', 'auto', 'auto'],
-              body: [
-                [
-                  { text: 'Entidad', style: 'tableHeader' },
-                  { text: 'Turnos', style: 'tableHeader', alignment: 'center' },
-                  { text: 'Horas', style: 'tableHeader', alignment: 'center' },
-                  { text: 'Tarifa Prom.', style: 'tableHeader', alignment: 'right' },
-                  { text: 'Total', style: 'tableHeader', alignment: 'right' }
-                ],
-                ...entitiesTableBody
-              ]
-            },
-            layout: {
-              fillColor: function(rowIndex) {
-                return rowIndex === 0 ? '#f1f5f9' : (rowIndex % 2 === 0 ? '#f8fafc' : null);
-              },
-              hLineWidth: function(i, node) {
-                return i === 0 || i === 1 || i === node.table.body.length ? 1 : 0.5;
-              },
-              vLineWidth: function() { return 0; },
-              hLineColor: function() { return '#e2e8f0'; }
-            },
             margin: [0, 0, 0, 20]
           },
           
@@ -1160,14 +1304,16 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             table: {
               headerRows: 1,
-              widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
+              widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
               body: [
                 [
                   { text: 'Fecha', style: 'tableHeader' },
-                  { text: 'Entidad', style: 'tableHeader' },
+                  { text: 'Lugar', style: 'tableHeader' },
                   { text: 'Tipo', style: 'tableHeader' },
+                  { text: 'Hora', style: 'tableHeader', alignment: 'center' },
+                  { text: 'Pago', style: 'tableHeader', alignment: 'center' },
                   { text: 'Horas', style: 'tableHeader', alignment: 'center' },
-                  { text: 'Tarifa/h', style: 'tableHeader', alignment: 'right' },
+                  { text: 'Valor/h', style: 'tableHeader', alignment: 'right' },
                   { text: 'Total', style: 'tableHeader', alignment: 'right' }
                 ],
                 ...shiftsTableBody
@@ -1186,459 +1332,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         ],
         styles: {
-          header: {
-            fontSize: 26,
-            bold: true,
-            margin: [0, 0, 0, 5]
-          },
-          subheader: {
-            fontSize: 16,
-            margin: [0, 0, 0, 5]
-          },
-          date: {
-            fontSize: 10,
-            color: '#64748b',
-            italics: true
-          },
-          sectionHeader: {
-            fontSize: 14,
-            bold: true,
-            color: '#475569'
-          },
-          tableHeader: {
-            fontSize: 10,
-            bold: true,
-            color: '#475569',
-            fillColor: '#f1f5f9'
-          }
+          header: { fontSize: 26, bold: true, margin: [0, 0, 0, 5] },
+          subheader: { fontSize: 16, margin: [0, 0, 0, 5] },
+          date: { fontSize: 10, color: '#64748b', italics: true },
+          sectionHeader: { fontSize: 14, bold: true, color: '#475569' },
+          tableHeader: { fontSize: 10, bold: true, color: '#475569', fillColor: '#f1f5f9' }
         },
-        defaultStyle: {
-          font: 'Roboto'
-        }
+        defaultStyle: { font: 'Roboto' }
       };
-      
-      pdfMake.createPdf(docDefinition).download(`turnos_${new Date().toISOString().split('T')[0]}.pdf`);
+
+      pdfMake.createPdf(docDefinition).download(`turnos_${monthNames[currentMonth]}_${currentYear}.pdf`);
       showToast('PDF generado exitosamente', 'success');
-      
     } catch (err) {
       console.error('Error al generar PDF:', err);
       showToast('Error al generar PDF', 'error');
     }
-  });
-
-  // ===== FUNCIONES PARA CALENDARIO =====
-  let calendarioMesActual = new Date().getMonth();
-  let calendarioAnioActual = new Date().getFullYear();
-
-  async function cargarTurnosCalendario() {
-    await renderizarCalendario();
-    await actualizarResumenTurnos();
   }
 
-  function cambiarMesCalendario(delta) {
-    calendarioMesActual += delta;
-    if (calendarioMesActual > 11) {
-      calendarioMesActual = 0;
-      calendarioAnioActual++;
-    } else if (calendarioMesActual < 0) {
-      calendarioMesActual = 11;
-      calendarioAnioActual--;
-    }
-    renderizarCalendario();
-    actualizarResumenTurnos();
-  }
-
-  async function renderizarCalendario() {
-    try {
-      const response = await api('/shifts');
-      const todosLosTurnos = response.shifts || [];
-      
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      
-      document.getElementById('calendarioMesAnio').textContent = `${meses[calendarioMesActual]} ${calendarioAnioActual}`;
-      
-      const primerDia = new Date(calendarioAnioActual, calendarioMesActual, 1).getDay();
-      const ultimoDia = new Date(calendarioAnioActual, calendarioMesActual + 1, 0).getDate();
-      
-      let calendarioHTML = diasSemana.map(d => `<div style="text-align: center; font-weight: 600; padding: 8px; background: var(--primary); color: white; border-radius: 4px;">${d}</div>`).join('');
-      
-      for (let i = 0; i < primerDia; i++) {
-        calendarioHTML += '<div style="min-height: 80px;"></div>';
-      }
-      
-      for (let dia = 1; dia <= ultimoDia; dia++) {
-        const fechaStr = `${calendarioAnioActual}-${String(calendarioMesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-        const turnosDia = todosLosTurnos.filter(t => t.shift_date === fechaStr);
-        const esHoy = new Date().toISOString().split('T')[0] === fechaStr;
-        
-        calendarioHTML += `
-          <div onclick="abrirFormTurno('${fechaStr}')" style="min-height: 80px; padding: 4px; border: 2px solid ${esHoy ? 'var(--primary)' : 'var(--border)'}; border-radius: 6px; cursor: pointer; background: ${turnosDia.length > 0 ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--card)'}; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 4px 12px rgba(var(--primary-rgb), 0.2)';" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">
-            <div style="text-align: center; font-weight: ${esHoy ? '700' : '500'}; font-size: 14px; margin-bottom: 4px; color: ${esHoy ? 'var(--primary)' : 'var(--text)'};">${dia}</div>
-            ${turnosDia.map(t => {
-              const color = t.shift_type === 'Guardia 24h' ? '#ff8c00' : t.shift_type === 'OPS' ? '#f59e0b' : '#10b981';
-              return `<div style="font-size: 10px; background: ${color}; color: white; padding: 2px 4px; border-radius: 3px; margin: 2px 0; text-align: center;">${t.shift_type}</div>`;
-            }).join('')}
-          </div>
-        `;
-      }
-      
-      document.getElementById('calendarioTurnos').innerHTML = calendarioHTML;
-    } catch (err) {
-      console.error('Error al renderizar calendario:', err);
-    }
-  }
-
-  async function abrirFormTurno(fecha) {
-    try {
-      const response = await api('/shifts');
-      const todosLosTurnos = response.shifts || [];
-      
-      document.getElementById('turnoFecha').value = fecha;
-      const turnosDia = todosLosTurnos.filter(t => t.shift_date === fecha);
-      
-      if (turnosDia.length > 0) {
-        document.getElementById('turnosDiaActual').style.display = 'block';
-        document.getElementById('listaTurnosDia').innerHTML = turnosDia.map(t => `
-          <div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px; border-left: 4px solid var(--primary);">
-            <div style="font-weight: 600; font-size: 13px;">${t.shift_type} - ${t.hours}h</div>
-            <div style="font-size: 12px; color: var(--muted);">${t.entity_name || 'Sin entidad'} - $${(t.hours * t.hourly_rate).toFixed(2)}</div>
-          </div>
-        `).join('');
-      } else {
-        document.getElementById('turnosDiaActual').style.display = 'none';
-      }
-      
-      document.getElementById('formTurnoContainer').style.display = 'block';
-    } catch (err) {
-      console.error('Error al abrir formulario:', err);
-    }
-  }
-
-  function cerrarFormTurno() {
-    document.getElementById('formTurnoContainer').style.display = 'none';
-    limpiarFormTurnoCalendario();
-  }
-
-  function limpiarFormTurnoCalendario() {
-    document.getElementById('turnoFecha').value = '';
-    document.getElementById('turnoHoraInicio').value = '';
-    document.getElementById('turnoHoraFin').value = '';
-    document.getElementById('turnoValor').value = '';
-    document.getElementById('turnoLugar').value = '';
-    document.getElementById('turnoTipo').value = 'guardia';
-    document.getElementById('turnoPaymentType').value = 'ops';
-    document.getElementById('turnoNotas').value = '';
-  }
-
-  async function guardarTurnoCalendario() {
-    const fecha = document.getElementById('turnoFecha').value;
-    const horaInicio = document.getElementById('turnoHoraInicio').value;
-    const horaFin = document.getElementById('turnoHoraFin').value;
-    const valor = parseFloat(document.getElementById('turnoValor').value) || 0;
-    const lugar = document.getElementById('turnoLugar').value.trim();
-    const tipo = document.getElementById('turnoTipo').value;
-    const paymentType = document.getElementById('turnoPaymentType').value;
-    const notas = document.getElementById('turnoNotas').value.trim();
-
-    if (!fecha || !horaInicio || !horaFin) {
-      showToast('Completa fecha, hora de inicio y hora de fin', 'error');
-      return;
-    }
-
-    const horaInicioTime = new Date(`2000-01-01T${horaInicio}`);
-    const horaFinTime = new Date(`2000-01-01T${horaFin}`);
-    const horas = (horaFinTime - horaInicioTime) / (1000 * 60 * 60);
-
-    try {
-      await api('/shifts', {
-        method: 'POST',
-        body: JSON.stringify({
-          entity_name: lugar || 'Sin especificar',
-          shift_date: fecha,
-          shift_type: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-          hours: horas,
-          hourly_rate: horas > 0 ? (valor / horas) : 0,
-          notes: `${notas} | Tipo pago: ${paymentType} | ${horaInicio}-${horaFin}`
-        })
-      });
-      
-      showToast('Turno guardado exitosamente', 'success');
-      cerrarFormTurno();
-      await loadShifts();
-      await cargarTurnosCalendario();
-    } catch (err) {
-      showToast('Error al guardar turno', 'error');
-    }
-  }
-
-  async function actualizarResumenTurnos() {
-    try {
-      const response = await api('/shifts');
-      const todosLosTurnos = response.shifts || [];
-      
-      const mesActual = todosLosTurnos.filter(t => {
-        const [anio, mes] = t.shift_date.split('-');
-        return parseInt(anio) === calendarioAnioActual && parseInt(mes) === calendarioMesActual + 1;
-      });
-
-      const totalTurnos = mesActual.length;
-      const totalHoras = mesActual.reduce((sum, t) => sum + parseFloat(t.hours), 0);
-      const totalValor = mesActual.reduce((sum, t) => sum + (parseFloat(t.hours) * parseFloat(t.hourly_rate)), 0);
-
-      document.getElementById('resumenTurnos').innerHTML = `
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-          <div style="text-align: center; padding: 12px; background: rgba(var(--primary-rgb), 0.1); border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--primary);">${totalTurnos}</div>
-            <div style="font-size: 13px; color: var(--muted);">Turnos</div>
-          </div>
-          <div style="text-align: center; padding: 12px; background: rgba(var(--primary-rgb), 0.1); border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--primary);">${totalHoras.toFixed(1)}h</div>
-            <div style="font-size: 13px; color: var(--muted);">Horas</div>
-          </div>
-          <div style="text-align: center; padding: 12px; background: rgba(var(--primary-rgb), 0.1); border-radius: 8px;">
-            <div style="font-size: 24px; font-weight: 700; color: var(--primary);">$${totalValor.toFixed(2)}</div>
-            <div style="font-size: 13px; color: var(--muted);">Total</div>
-          </div>
-        </div>
-      `;
-    } catch (err) {
-      console.error('Error al actualizar resumen:', err);
-    }
-  }
-
-  // ===== FUNCIONES PARA NÓMINA =====
-  async function generarTurnosNomina() {
-    const salarioFijo = parseFloat(document.getElementById('nominaSalarioFijo').value) || 0;
-    const lugar = document.getElementById('nominaLugar').value.trim();
-    const horaInicio = document.getElementById('nominaHoraInicio').value;
-    const horaFin = document.getElementById('nominaHoraFin').value;
-    const tipo = document.getElementById('nominaTipo').value;
-
-    if (!salarioFijo || !lugar) {
-      showToast('Completa salario y lugar de trabajo', 'error');
-      return;
-    }
-
-    const diasSeleccionados = [];
-    for (let i = 0; i <= 6; i++) {
-      const checkbox = document.getElementById(`nominaDia${i}`);
-      if (checkbox && checkbox.checked) {
-        diasSeleccionados.push(i);
-      }
-    }
-
-    if (diasSeleccionados.length === 0) {
-      showToast('Selecciona al menos un día de trabajo', 'error');
-      return;
-    }
-
-    const primerDia = new Date(calendarioAnioActual, calendarioMesActual, 1);
-    const ultimoDia = new Date(calendarioAnioActual, calendarioMesActual + 1, 0).getDate();
-    const horaInicioTime = new Date(`2000-01-01T${horaInicio}`);
-    const horaFinTime = new Date(`2000-01-01T${horaFin}`);
-    const horas = (horaFinTime - horaInicioTime) / (1000 * 60 * 60);
-    
-    let diasTrabajo = 0;
-    for (let dia = 1; dia <= ultimoDia; dia++) {
-      const fecha = new Date(calendarioAnioActual, calendarioMesActual, dia);
-      if (diasSeleccionados.includes(fecha.getDay())) {
-        diasTrabajo++;
-      }
-    }
-
-    const valorPorDia = salarioFijo / diasTrabajo;
-
-    try {
-      for (let dia = 1; dia <= ultimoDia; dia++) {
-        const fecha = new Date(calendarioAnioActual, calendarioMesActual, dia);
-        if (diasSeleccionados.includes(fecha.getDay())) {
-          const fechaStr = `${calendarioAnioActual}-${String(calendarioMesActual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-          
-          await api('/shifts', {
-            method: 'POST',
-            body: JSON.stringify({
-              entity_name: lugar,
-              shift_date: fechaStr,
-              shift_type: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-              hours: horas,
-              hourly_rate: horas > 0 ? (valorPorDia / horas) : 0,
-              notes: `Nómina | ${horaInicio}-${horaFin}`
-            })
-          });
-        }
-      }
-      
-      showToast(`${diasTrabajo} turnos de nómina generados exitosamente`, 'success');
-      limpiarConfigNomina();
-      await loadShifts();
-      await cargarTurnosCalendario();
-    } catch (err) {
-      showToast('Error al generar turnos de nómina', 'error');
-    }
-  }
-
-  function limpiarConfigNomina() {
-    document.getElementById('nominaSalarioFijo').value = '';
-    document.getElementById('nominaLugar').value = '';
-    document.getElementById('nominaHoraInicio').value = '08:00';
-    document.getElementById('nominaHoraFin').value = '17:00';
-    document.getElementById('nominaTipo').value = 'consulta';
-    for (let i = 0; i <= 6; i++) {
-      const checkbox = document.getElementById(`nominaDia${i}`);
-      if (checkbox) checkbox.checked = false;
-    }
-  }
-
-  // ===== FUNCIONES PARA SECUENCIAS OPS =====
-  async function generarSecuenciaOPS() {
-    const fechaInicio = document.getElementById('opsSecFechaInicio').value;
-    const cantidad = parseInt(document.getElementById('opsSecCantidad').value) || 0;
-    const frecuencia = parseInt(document.getElementById('opsSecFrecuencia').value) || 3;
-    const horaInicio = document.getElementById('opsSecHoraInicio').value;
-    const horaFin = document.getElementById('opsSecHoraFin').value;
-    const valor = parseFloat(document.getElementById('opsSecValor').value) || 0;
-    const lugar = document.getElementById('opsSecLugar').value.trim();
-    const tipo = document.getElementById('opsSecTipo').value;
-
-    if (!fechaInicio || cantidad <= 0 || !lugar) {
-      showToast('Completa todos los campos requeridos', 'error');
-      return;
-    }
-
-    const horaInicioTime = new Date(`2000-01-01T${horaInicio}`);
-    const horaFinTime = new Date(`2000-01-01T${horaFin}`);
-    const horas = (horaFinTime - horaInicioTime) / (1000 * 60 * 60);
-
-    try {
-      for (let i = 0; i < cantidad; i++) {
-        const fecha = new Date(fechaInicio);
-        fecha.setDate(fecha.getDate() + (i * frecuencia));
-        const fechaStr = fecha.toISOString().split('T')[0];
-        
-        await api('/shifts', {
-          method: 'POST',
-          body: JSON.stringify({
-            entity_name: lugar,
-            shift_date: fechaStr,
-            shift_type: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-            hours: horas,
-            hourly_rate: horas > 0 ? (valor / horas) : 0,
-            notes: `OPS Secuencia | ${horaInicio}-${horaFin}`
-          })
-        });
-      }
-      
-      showToast(`${cantidad} turnos OPS generados exitosamente`, 'success');
-      limpiarSecuenciaOPS();
-      await loadShifts();
-      await cargarTurnosCalendario();
-    } catch (err) {
-      showToast('Error al generar secuencia OPS', 'error');
-    }
-  }
-
-  function limpiarSecuenciaOPS() {
-    document.getElementById('opsSecFechaInicio').value = '';
-    document.getElementById('opsSecCantidad').value = '4';
-    document.getElementById('opsSecFrecuencia').value = '3';
-    document.getElementById('opsSecHoraInicio').value = '07:00';
-    document.getElementById('opsSecHoraFin').value = '19:00';
-    document.getElementById('opsSecValor').value = '';
-    document.getElementById('opsSecLugar').value = '';
-    document.getElementById('opsSecTipo').value = 'guardia';
-  }
-
-  // ===== FUNCIONES PARA CAMBIOS DE TURNO =====
-  let cambiosTurno = JSON.parse(localStorage.getItem('cambios_turno') || '[]');
-
-  function guardarCambioTurno() {
-    const medico = document.getElementById('cambioMedico').value.trim();
-    const miTurno = document.getElementById('cambioMiTurno').value;
-    const turnoAsumido = document.getElementById('cambioTurnoAsumido').value;
-    const tipo = document.getElementById('cambioTipo').value;
-    const notas = document.getElementById('cambioNotas').value.trim();
-
-    if (!medico || !miTurno || !turnoAsumido) {
-      showToast('Completa todos los campos requeridos', 'error');
-      return;
-    }
-
-    const cambio = {
-      id: Date.now(),
-      medico,
-      miTurno,
-      turnoAsumido,
-      tipo,
-      notas,
-      fecha: new Date().toISOString()
-    };
-
-    cambiosTurno.push(cambio);
-    localStorage.setItem('cambios_turno', JSON.stringify(cambiosTurno));
-    
-    showToast('Cambio de turno registrado exitosamente', 'success');
-    limpiarFormCambio();
-    cargarListaCambios();
-  }
-
-  function limpiarFormCambio() {
-    document.getElementById('cambioMedico').value = '';
-    document.getElementById('cambioMiTurno').value = '';
-    document.getElementById('cambioTurnoAsumido').value = '';
-    document.getElementById('cambioTipo').value = 'guardia';
-    document.getElementById('cambioNotas').value = '';
-  }
-
-  function cargarListaCambios() {
-    const lista = document.getElementById('listaCambios');
-    if (cambiosTurno.length === 0) {
-      lista.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);">No hay cambios de turno registrados</div>';
-      return;
-    }
-
-    lista.innerHTML = cambiosTurno.reverse().map(c => `
-      <div style="background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-          <h5 style="margin: 0; color: var(--primary);">Cambio con ${c.medico}</h5>
-          <button class="btn danger sm" onclick="eliminarCambio(${c.id})">Eliminar</button>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
-          <div>
-            <strong>Mi turno original:</strong><br>
-            ${new Date(c.miTurno).toLocaleDateString('es-ES')} - ${c.tipo}
-          </div>
-          <div>
-            <strong>Turno que asumo:</strong><br>
-            ${new Date(c.turnoAsumido).toLocaleDateString('es-ES')} - ${c.tipo}
-          </div>
-        </div>
-        ${c.notas ? `<div style="margin-top: 12px; padding: 12px; background: rgba(var(--primary-rgb), 0.08); border-radius: 6px; font-size: 13px;">${c.notas}</div>` : ''}
-        <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">Registrado: ${new Date(c.fecha).toLocaleString('es-ES')}</div>
-      </div>
-    `).join('');
-  }
-
-  function eliminarCambio(id) {
-    if (!confirm('¿Eliminar este cambio de turno?')) return;
-    cambiosTurno = cambiosTurno.filter(c => c.id !== id);
-    localStorage.setItem('cambios_turno', JSON.stringify(cambiosTurno));
-    showToast('Cambio eliminado', 'success');
-    cargarListaCambios();
-  }
-
-  // Cargar datos cuando se cambia a las nuevas pestañas
-  document.addEventListener('click', function(e) {
-    const tab = e.target.closest('[data-tab]');
-    if (tab) {
-      const tabName = tab.dataset.tab;
-      if (tabName === 'calendar') {
-        cargarTurnosCalendario();
-      } else if (tabName === 'exchanges') {
-        cargarListaCambios();
-      }
-    }
-  });
-});
-  </script>
+  initTurnos();
+</script>
 </body></html>
