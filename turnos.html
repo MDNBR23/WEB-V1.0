@@ -1141,6 +1141,8 @@
       notes: notes
     };
     
+    console.log('Guardando turno con datos:', data);
+    
     try {
       if (editingShiftId) {
         await api(`/shifts/${editingShiftId}`, { method: 'PUT', body: JSON.stringify(data) });
@@ -1156,7 +1158,8 @@
       renderShiftsList();
       renderExchangesList();
     } catch (err) {
-      showToast('Error al guardar turno', 'error');
+      console.error('Error al guardar turno:', err);
+      showToast(err.message || 'Error al guardar turno', 'error');
     }
   }
 
