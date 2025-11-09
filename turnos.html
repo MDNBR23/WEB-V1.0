@@ -460,7 +460,16 @@
                         <option value="corrido">Corrido</option>
                         <option value="noche">Noche</option>
                         <option value="consulta">Consulta</option>
+                        <option value="24horas">Turno 24 horas</option>
                         <option value="cambio">Cambio de Turno</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>💱 Moneda</label>
+                      <select id="shiftCurrency">
+                        <option value="COP" selected>COP (Peso Colombiano)</option>
+                        <option value="USD">USD (Dólar Estadounidense)</option>
+                        <option value="EUR">EUR (Euro)</option>
                       </select>
                     </div>
                     <div class="field" id="fieldPaymentType">
@@ -590,7 +599,20 @@
                         <option value="corrido">Corrido</option>
                         <option value="noche">Noche</option>
                         <option value="consulta">Consulta</option>
+                        <option value="24horas">Turno 24 horas</option>
                       </select>
+                    </div>
+                    <div class="field">
+                      <label>💱 Moneda</label>
+                      <select id="bulkShiftCurrency">
+                        <option value="COP" selected>COP (Peso Colombiano)</option>
+                        <option value="USD">USD (Dólar Estadounidense)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                      </select>
+                    </div>
+                    <div class="field" style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="excludeHolidays" style="width: auto; margin: 0;">
+                      <label for="excludeHolidays" style="margin: 0; cursor: pointer;">🎉 Excluir festivos colombianos en secuencias de nómina</label>
                     </div>
                     <div class="field">
                       <label>💼 Tipo de Pago</label>
@@ -960,6 +982,43 @@
     return match ? match[1] : '';
   }
 
+  function formatCurrency(value, currency = 'COP') {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '$0.00';
+    
+    const currencyConfig = {
+      'COP': { locale: 'es-CO', currency: 'COP', decimals: 2, format: (n) => {
+        const parts = n.toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return '$' + parts.join(',');
+      }},
+      'USD': { locale: 'en-US', currency: 'USD', decimals: 2, format: (n) => {
+        return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      }},
+      'EUR': { locale: 'de-DE', currency: 'EUR', decimals: 2, format: (n) => {
+        return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+      }}
+    };
+    
+    const config = currencyConfig[currency] || currencyConfig['COP'];
+    return config.format(num);
+  }
+  
+  function formatCOP(value) {
+    return formatCurrency(value, 'COP');
+  }
+
+  function groupByCurrency(shifts) {
+    const groups = {};
+    shifts.forEach(shift => {
+      const curr = shift.currency || 'COP';
+      if (!groups[curr]) groups[curr] = { shifts: [], total: 0 };
+      groups[curr].shifts.push(shift);
+      groups[curr].total += parseFloat(shift.hours || 0) * parseFloat(shift.hourly_rate || 0);
+    });
+    return groups;
+  }
+
   function renderCalendar() {
     const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -1017,18 +1076,31 @@
 
   function updateMonthSummary() {
     const monthShifts = allShifts.filter(s => {
+      if (!s.shift_date) return false;
       const [year, month] = s.shift_date.split('-');
       return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
     });
 
     const totalShifts = monthShifts.length;
     const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
-    const totalValue = monthShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
 
     const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
     const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
-    const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-    const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    
+    const opsByCurrency = groupByCurrency(opsShifts);
+    const nominaByCurrency = groupByCurrency(nominaShifts);
+    const allByCurrency = groupByCurrency(monthShifts);
+    
+    const currencies = new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)]);
+    const opsHTML = Array.from(currencies).map(curr => 
+      `<div style="font-size: 14px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>`
+    ).join('');
+    const nominaHTML = Array.from(currencies).map(curr => 
+      `<div style="font-size: 14px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>`
+    ).join('');
+    const totalHTML = Array.from(currencies).map(curr => 
+      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr]?.total || 0, curr)}</div>`
+    ).join('');
 
     document.getElementById('monthSummary').innerHTML = `
       <div class="summary-card">
@@ -1040,15 +1112,15 @@
         <div class="summary-card-label">Horas</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-value">$${opsTotal.toFixed(2)}</div>
+        <div class="summary-card-value">${opsHTML}</div>
         <div class="summary-card-label">OPS</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-value">$${nominaTotal.toFixed(2)}</div>
+        <div class="summary-card-value">${nominaHTML}</div>
         <div class="summary-card-label">Nómina</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-value">$${totalValue.toFixed(2)}</div>
+        <div class="summary-card-value">${totalHTML}</div>
         <div class="summary-card-label">Total</div>
       </div>
     `;
@@ -1077,7 +1149,7 @@
               <div style="font-weight: 600; font-size: 13px;">
                 ${startTime ? startTime + ' - ' : ''}${s.shift_type} - ${s.hours}h ${paymentBadge}
               </div>
-              <div style="font-size: 12px; color: var(--muted);">${s.entity_name || 'Sin lugar'} - $${(parseFloat(s.hours) * parseFloat(s.hourly_rate)).toFixed(2)}</div>
+              <div style="font-size: 12px; color: var(--muted);">${s.entity_name || 'Sin lugar'} - ${formatCurrency(parseFloat(s.hours) * parseFloat(s.hourly_rate), s.currency || 'COP')}</div>
             </div>
             <div style="display: flex; gap: 4px;">
               <button type="button" class="btn sm secondary" onclick="editShift(${s.id})">✏️</button>
@@ -1144,8 +1216,11 @@
       'corrido': 'Corrido',
       'noche': 'Noche',
       'consulta': 'Consulta',
+      '24horas': 'Turno 24 horas',
       'cambio': 'Cambio'
     }[type] || type;
+    
+    const currency = document.getElementById('shiftCurrency').value;
     
     const data = {
       entity_name: place,
@@ -1153,7 +1228,8 @@
       shift_type: displayType,
       hours: hours,
       hourly_rate: hours > 0 ? (value / hours) : 0,
-      notes: notes
+      notes: notes,
+      currency: currency || 'COP'
     };
     
     console.log('Guardando turno con datos:', data);
@@ -1186,7 +1262,17 @@
     document.getElementById('formQuickTitle').textContent = 'Editar Turno';
     document.getElementById('shiftDate').value = shift.shift_date;
     document.getElementById('shiftPlace').value = shift.entity_name || '';
-    document.getElementById('shiftType').value = normalizeString(shift.shift_type);
+    const typeMap = {
+      'Mañana': 'manana',
+      'Tarde': 'tarde',
+      'Corrido': 'corrido',
+      'Noche': 'noche',
+      'Consulta': 'consulta',
+      'Turno 24 horas': '24horas',
+      'Cambio': 'cambio'
+    };
+    document.getElementById('shiftType').value = typeMap[shift.shift_type] || normalizeString(shift.shift_type);
+    document.getElementById('shiftCurrency').value = shift.currency || 'COP';
     
     const paymentType = getPaymentType(shift);
     document.getElementById('paymentType').value = paymentType;
@@ -1416,21 +1502,38 @@
       'tarde': 'Tarde',
       'corrido': 'Corrido',
       'noche': 'Noche',
-      'consulta': 'Consulta'
+      'consulta': 'Consulta',
+      '24horas': 'Turno 24 horas'
     }[type] || type;
 
+    const currency = document.getElementById('bulkShiftCurrency').value;
+    const excludeHolidays = document.getElementById('excludeHolidays').checked && paymentType === 'nomina';
     const notesFormatted = `Tipo pago: ${paymentType} | ${startTime}-${endTime}` + (notes ? ' | ' + notes : '');
 
     try {
       let created = 0;
-      for (const date of dates) {
+      let filteredDates = dates;
+      
+      if (excludeHolidays) {
+        const currentYear = new Date().getFullYear();
+        const holidayDates = new Set();
+        for (let year = currentYear - 1; year <= currentYear + 10; year++) {
+          if (festivos[year]) {
+            festivos[year].forEach(f => holidayDates.add(f.fecha));
+          }
+        }
+        filteredDates = dates.filter(date => !holidayDates.has(date));
+      }
+      
+      for (const date of filteredDates) {
         const data = {
           entity_name: place,
           shift_date: date,
           shift_type: displayType,
           hours: hours,
           hourly_rate: hours > 0 ? (value / hours) : 0,
-          notes: notesFormatted
+          notes: notesFormatted,
+          currency: currency || 'COP'
         };
         
         await api('/shifts', { method: 'POST', body: JSON.stringify(data) });
@@ -1492,11 +1595,11 @@
             </div>
             <div>
               <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase;">Valor/Hora</div>
-              <div style="font-size: 1em; font-weight: 600; color: var(--text);">$${parseFloat(shift.hourly_rate).toFixed(2)}</div>
+              <div style="font-size: 1em; font-weight: 600; color: var(--text);">${formatCurrency(shift.hourly_rate, shift.currency || 'COP')}</div>
             </div>
           </div>
           <div style="font-size: 1.25em; font-weight: 700; color: var(--success); text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border);">
-            $${total.toFixed(2)}
+            ${formatCurrency(total, shift.currency || 'COP')}
           </div>
           ${shift.notes && shift.notes.split('|').pop().trim() ? `<div style="font-size: 0.85em; color: var(--muted); margin-top: 10px; font-style: italic; padding: 8px; background: rgba(var(--primary-rgb), 0.03); border-radius: 6px;">${shift.notes.split('|').pop().trim()}</div>` : ''}
           <div style="display: flex; gap: 8px; margin-top: 15px;">
@@ -1559,13 +1662,23 @@
     
     const totalShifts = filtered.length;
     const totalHours = filtered.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
-    const totalAmount = filtered.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-    const avgRate = totalHours > 0 ? (totalAmount / totalHours) : 0;
     
+    const allByCurrency = groupByCurrency(filtered);
     const opsShifts = filtered.filter(s => getPaymentType(s) === 'ops');
     const nominaShifts = filtered.filter(s => getPaymentType(s) === 'nomina');
-    const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-    const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
+    const opsByCurrency = groupByCurrency(opsShifts);
+    const nominaByCurrency = groupByCurrency(nominaShifts);
+    
+    const currencies = Object.keys(allByCurrency);
+    const totalHTML = currencies.map(curr => 
+      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr].total, curr)}</div>`
+    ).join('');
+    const opsHTML = currencies.map(curr => 
+      `<div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>`
+    ).join('');
+    const nominaHTML = currencies.map(curr => 
+      `<div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>`
+    ).join('');
     
     document.getElementById('summaryTotals').innerHTML = `
       <div class="summary-card">
@@ -1577,11 +1690,7 @@
         <div class="summary-card-label">Total Horas</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-value">$${avgRate.toFixed(2)}</div>
-        <div class="summary-card-label">Valor/Hora Promedio</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-card-value">$${totalAmount.toFixed(2)}</div>
+        <div class="summary-card-value">${totalHTML}</div>
         <div class="summary-card-label">Total General</div>
       </div>
     `;
@@ -1590,13 +1699,13 @@
       <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
         <div class="summary-card-value">${opsShifts.length}</div>
         <div class="summary-card-label">Turnos OPS (Individual)</div>
-        <div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">$${opsTotal.toFixed(2)}</div>
+        ${opsHTML}
         <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago por turno</div>
       </div>
       <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
         <div class="summary-card-value">${nominaShifts.length}</div>
         <div class="summary-card-label">Turnos Nómina (Mensual)</div>
-        <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">$${nominaTotal.toFixed(2)}</div>
+        ${nominaHTML}
         <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago único consolidado</div>
       </div>
     `;
@@ -1604,21 +1713,23 @@
     const byPlace = {};
     filtered.forEach(s => {
       const place = s.entity_name || 'Sin especificar';
-      if (!byPlace[place]) {
-        byPlace[place] = { count: 0, hours: 0, amount: 0 };
+      const curr = s.currency || 'COP';
+      const key = `${place}|${curr}`;
+      if (!byPlace[key]) {
+        byPlace[key] = { place, currency: curr, count: 0, hours: 0, amount: 0 };
       }
-      byPlace[place].count++;
-      byPlace[place].hours += parseFloat(s.hours || 0);
-      byPlace[place].amount += parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0);
+      byPlace[key].count++;
+      byPlace[key].hours += parseFloat(s.hours || 0);
+      byPlace[key].amount += parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0);
     });
     
-    document.getElementById('summaryByPlace').innerHTML = Object.entries(byPlace).map(([place, data]) => `
+    document.getElementById('summaryByPlace').innerHTML = Object.values(byPlace).map(data => `
       <tr>
-        <td>${place}</td>
+        <td>${data.place} (${data.currency})</td>
         <td style="text-align: center;">${data.count}</td>
         <td style="text-align: center;">${data.hours.toFixed(1)}h</td>
-        <td style="text-align: right;">$${(data.amount / data.hours).toFixed(2)}</td>
-        <td style="text-align: right; font-weight: 700; color: var(--success);">$${data.amount.toFixed(2)}</td>
+        <td style="text-align: right;">${formatCurrency(data.amount / data.hours, data.currency)}</td>
+        <td style="text-align: right; font-weight: 700; color: var(--success);">${formatCurrency(data.amount, data.currency)}</td>
       </tr>
     `).join('');
   }
@@ -1626,9 +1737,10 @@
   async function exportPDF() {
     try {
       const monthShifts = allShifts.filter(s => {
+        if (!s.shift_date) return false;
         const [year, month] = s.shift_date.split('-');
         return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
-      }).filter(s => s.shift_type.toLowerCase() !== 'cambio');
+      }).filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
 
       const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
       const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);

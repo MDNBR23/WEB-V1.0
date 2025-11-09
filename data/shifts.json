@@ -7,5 +7,77 @@
     "notes": "Primera consulta",
     "created_at": "2025-11-09T02:40:27.816Z",
     "updated_at": "2025-11-09T02:40:27.816Z"
+  },
+  {
+    "id": 2,
+    "user_id": "admin",
+    "entity_name": "dddfd",
+    "shift_date": "2025-11-08",
+    "shift_type": "Mañana",
+    "hours": 12,
+    "hourly_rate": 19360.25,
+    "notes": "Tipo pago: ops | 07:00-19:00",
+    "created_at": "2025-11-09T03:32:40.475Z",
+    "updated_at": "2025-11-09T03:32:40.475Z"
+  },
+  {
+    "id": 3,
+    "user_id": "admin",
+    "entity_name": "MSI",
+    "shift_date": "2025-11-03",
+    "shift_type": "Noche",
+    "hours": 12,
+    "hourly_rate": 20833.333333333332,
+    "notes": "Tipo pago: ops | 19:00-07:00",
+    "created_at": "2025-11-09T03:33:42.709Z",
+    "updated_at": "2025-11-09T03:33:42.709Z"
+  },
+  {
+    "id": 4,
+    "user_id": "admin",
+    "entity_name": "MSI",
+    "shift_date": "2025-11-09",
+    "shift_type": "Noche",
+    "hours": 12,
+    "hourly_rate": 20833.333333333332,
+    "notes": "Tipo pago: ops | 19:00-07:00",
+    "created_at": "2025-11-09T03:33:42.877Z",
+    "updated_at": "2025-11-09T03:33:42.877Z"
+  },
+  {
+    "id": 5,
+    "user_id": "admin",
+    "entity_name": "MSI",
+    "shift_date": "2025-11-15",
+    "shift_type": "Noche",
+    "hours": 12,
+    "hourly_rate": 20833.333333333332,
+    "notes": "Tipo pago: ops | 19:00-07:00",
+    "created_at": "2025-11-09T03:33:43.052Z",
+    "updated_at": "2025-11-09T03:33:43.052Z"
+  },
+  {
+    "id": 6,
+    "user_id": "admin",
+    "entity_name": "MSI",
+    "shift_date": "2025-11-21",
+    "shift_type": "Noche",
+    "hours": 12,
+    "hourly_rate": 20833.333333333332,
+    "notes": "Tipo pago: ops | 19:00-07:00",
+    "created_at": "2025-11-09T03:33:43.219Z",
+    "updated_at": "2025-11-09T03:33:43.219Z"
+  },
+  {
+    "id": 7,
+    "user_id": "admin",
+    "entity_name": "MSI",
+    "shift_date": "2025-11-27",
+    "shift_type": "Noche",
+    "hours": 12,
+    "hourly_rate": 20833.333333333332,
+    "notes": "Tipo pago: ops | 19:00-07:00",
+    "created_at": "2025-11-09T03:33:43.382Z",
+    "updated_at": "2025-11-09T03:33:43.382Z"
   }
 ]

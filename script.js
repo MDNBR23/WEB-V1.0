@@ -106,6 +106,10 @@
       });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 401) {
+          navigateWithTransition('index.html');
+          throw new Error('Sesión expirada. Redirigiendo al login...');
+        }
         throw new Error(data.error || 'Error en la solicitud');
       }
       return data;
