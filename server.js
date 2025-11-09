@@ -72,7 +72,8 @@ app.use(session({
   cookie: { 
     secure: false,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
   }
 }));
 
@@ -448,6 +449,7 @@ app.post('/api/login', async (req, res) => {
     user.isOnline = true;
     await writeJSON('users.json', users);
     
+    req.session.userId = user.id;
     req.session.user = {
       username: user.username,
       role: user.role,
@@ -2154,7 +2156,12 @@ app.get('/api/shifts', async (req, res) => {
 
 app.post('/api/shifts', async (req, res) => {
   try {
+    console.log('POST /api/shifts - Session:', req.session);
+    console.log('Session ID:', req.sessionID);
+    console.log('User ID from session:', req.session?.userId);
+    
     if (!req.session || !req.session.userId) {
+      console.error('No session or userId found');
       return res.status(401).json({ error: 'No autorizado' });
     }
     
@@ -2166,6 +2173,7 @@ app.post('/api/shifts', async (req, res) => {
       [req.session.userId, entity_name, shift_date, shift_type, hours || 0, hourly_rate || 0, notes || '']
     );
     
+    console.log('Shift created successfully for user:', req.session.userId);
     res.json({ shift: result.rows[0], success: true });
   } catch (err) {
     console.error('Error creating shift:', err);
