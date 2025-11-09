@@ -69,6 +69,30 @@ Med Tools Hub is built with a focus on simplicity, security, and performance usi
 - **Ollama:** Local LLM server for TinyLlama AI integration. Requires OLLAMA_HOST and OLLAMA_MODEL environment variables.
 
 ## Recent Changes (November 2025)
+- ✅ **Monthly Salary Distribution for Payroll Shifts (November 9, 2025):**
+  - Implemented proper salary distribution for recurring payroll ("nómina") shifts
+  - When creating bulk shifts with payment type "Nómina", the entered value is now interpreted as the MONTHLY TOTAL SALARY
+  - System automatically divides the monthly salary among all created shifts
+  - Formula: hourly_rate = (monthly_salary / number_of_shifts) / hours_per_shift
+  - Updated UI: Field label changes dynamically to "Salario Mensual Total ($)" for nómina vs "Valor por Turno ($)" for OPS
+  - Enhanced preview showing:
+    * Monthly salary total
+    * Number of shifts to create
+    * Value per shift
+    * Hourly rate
+    * Indication when holidays are excluded
+  - Preview now accurately reflects the same holiday exclusion logic used during shift creation
+  - Protected against division-by-zero errors for shifts with 0 hours
+- ✅ **Multi-currency PDF Export System (November 9, 2025):**
+  - Refactored PDF export to separate shifts by currency (COP, USD, EUR)
+  - Implemented locale-specific currency formatting with proper thousand/decimal separators
+    * COP: $1.500.000,50 (dot for thousands, comma for decimals)
+    * USD: $1,500,000.50 (comma for thousands, dot for decimals)
+    * EUR: €1.500.000,50 (dot for thousands, comma for decimals)
+  - Each currency gets its own section in the PDF with independent totals for OPS and Nómina
+  - Changed PDF logo from image to SVG text "Med Tools Hub" without black background
+  - Fixed TypeError bug: Added null-safe checks before `.toLowerCase()` calls on `shift_type`
+  - Removed invalid legacy shift records without required fields
 - ✅ **Enhanced Shift Management System (November 8, 2025) - v4:**
   - **Dual-mode bulk creation:** Two pattern options for shift sequences:
     * Weekday selection: Choose specific days (Lun, Mar, Mié, etc.) within date range

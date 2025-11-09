@@ -616,7 +616,7 @@
                     </div>
                     <div class="field">
                       <label>💼 Tipo de Pago</label>
-                      <select id="bulkPaymentType" required>
+                      <select id="bulkPaymentType" required onchange="updateBulkValueLabel()">
                         <option value="ops">OPS</option>
                         <option value="nomina">Nómina</option>
                       </select>
@@ -638,7 +638,7 @@
                       <input type="time" id="bulkShiftEndTime" value="19:00">
                     </div>
                     <div class="field">
-                      <label>💵 Valor ($)</label>
+                      <label id="bulkValueLabel">💵 Valor por Turno ($)</label>
                       <input type="number" id="bulkShiftValue" step="0.01" min="0" value="0">
                     </div>
                   </div>
@@ -1141,7 +1141,7 @@
         document.getElementById('existingShiftsList').innerHTML = dayShifts.map(s => {
           const paymentType = getPaymentType(s);
           const startTime = getStartTime(s);
-          const paymentBadge = s.shift_type.toLowerCase() !== 'cambio' ? 
+          const paymentBadge = (s.shift_type && s.shift_type.toLowerCase() !== 'cambio') ? 
             `<span class="payment-type-badge ${paymentType}">${paymentType.toUpperCase()}</span>` : '';
           return `
           <div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
@@ -1286,7 +1286,7 @@
     const totalValue = parseFloat(shift.hours) * parseFloat(shift.hourly_rate);
     document.getElementById('shiftValue').value = totalValue.toFixed(2);
     
-    if (shift.shift_type.toLowerCase() === 'cambio') {
+    if (shift.shift_type && shift.shift_type.toLowerCase() === 'cambio') {
       const exchangeMatch = shift.notes ? shift.notes.match(/Cambio con: ([^.]+)\.?\s*(.*)/) : null;
       if (exchangeMatch) {
         document.getElementById('exchangeWith').value = exchangeMatch[1].trim();
@@ -1365,6 +1365,16 @@
     }
   }
 
+  function updateBulkValueLabel() {
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const label = document.getElementById('bulkValueLabel');
+    if (paymentType === 'nomina') {
+      label.textContent = '💵 Salario Mensual Total ($)';
+    } else {
+      label.textContent = '💵 Valor por Turno ($)';
+    }
+  }
+
   function getSelectedDays() {
     const days = [];
     if (document.getElementById('bulkDayDom').checked) days.push(0);
@@ -1425,7 +1435,7 @@
       }
     }
 
-    const dates = calculateBulkDates();
+    let dates = calculateBulkDates();
     
     if (!dates || dates.length === 0) {
       showToast('No hay fechas en el rango seleccionado', 'warning');
@@ -1444,11 +1454,70 @@
     const patternDesc = patternType === 'weekdays' ? 
       'por días de la semana' : 
       `cada ${document.getElementById('bulkInterval').value} días`;
+    
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const value = parseFloat(document.getElementById('bulkShiftValue').value) || 0;
+    const currency = document.getElementById('bulkShiftCurrency').value || 'COP';
+    const startTime = document.getElementById('bulkShiftStartTime').value;
+    const endTime = document.getElementById('bulkShiftEndTime').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours <= 0) hours += 24;
+    
+    const excludeHolidays = document.getElementById('excludeHolidays').checked && paymentType === 'nomina';
+    let filteredDates = dates;
+    
+    if (excludeHolidays) {
+      const currentYear = new Date().getFullYear();
+      const holidayDates = new Set();
+      for (let year = currentYear - 1; year <= currentYear + 10; year++) {
+        if (festivos[year]) {
+          festivos[year].forEach(f => holidayDates.add(f.fecha));
+        }
+      }
+      filteredDates = dates.filter(date => !holidayDates.has(date));
+    }
+    
+    if (filteredDates.length === 0) {
+      showToast('No hay turnos para crear después de excluir festivos', 'warning');
+      return;
+    }
+    
+    let valueInfo = '';
+    if (paymentType === 'nomina') {
+      const perShiftValue = value / filteredDates.length;
+      const hourlyRate = hours > 0 ? (perShiftValue / hours) : 0;
+      valueInfo = `
+        <div style="margin-top: 8px; padding: 8px; background: rgba(59, 130, 246, 0.1); border-radius: 4px;">
+          <strong>💼 Distribución Nómina:</strong><br>
+          <span style="font-size: 11px;">
+            • Salario mensual total: ${formatCurrency(value, currency)}<br>
+            • Turnos a crear: ${filteredDates.length}${excludeHolidays ? ' (festivos excluidos)' : ''}<br>
+            • Valor por turno: ${formatCurrency(perShiftValue, currency)}<br>
+            ${hours > 0 ? `• Tarifa por hora: ${formatCurrency(hourlyRate, currency)}/h` : ''}
+          </span>
+        </div>
+      `;
+    } else {
+      const totalOPS = value * filteredDates.length;
+      valueInfo = `
+        <div style="margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 4px;">
+          <strong>💰 Valor OPS:</strong><br>
+          <span style="font-size: 11px;">
+            • Valor por turno: ${formatCurrency(value, currency)}<br>
+            • Total estimado: ${formatCurrency(totalOPS, currency)}
+          </span>
+        </div>
+      `;
+    }
 
     document.getElementById('bulkPreviewContent').innerHTML = `
-      <p><strong>Se crearán ${dates.length} turnos (${patternDesc}):</strong></p>
+      <p><strong>Se crearán ${filteredDates.length} turnos (${patternDesc}):</strong></p>
+      ${valueInfo}
       <ul style="margin: 6px 0; padding-left: 20px; max-height: 180px; overflow-y: auto;">
-        ${dates.map(d => {
+        ${filteredDates.map(d => {
           const date = new Date(d + 'T00:00:00');
           return `<li style="font-size: 11px;">${date.toLocaleDateString('es-CO', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })} - ${displayType}</li>`;
         }).join('')}
@@ -1525,13 +1594,26 @@
         filteredDates = dates.filter(date => !holidayDates.has(date));
       }
       
+      if (filteredDates.length === 0) {
+        showToast('No hay turnos para crear después de excluir festivos', 'warning');
+        return;
+      }
+      
+      let perShiftValue = value;
+      let hourlyRate = hours > 0 ? (value / hours) : 0;
+      
+      if (paymentType === 'nomina') {
+        perShiftValue = value / filteredDates.length;
+        hourlyRate = hours > 0 ? (perShiftValue / hours) : 0;
+      }
+      
       for (const date of filteredDates) {
         const data = {
           entity_name: place,
           shift_date: date,
           shift_type: displayType,
           hours: hours,
-          hourly_rate: hours > 0 ? (value / hours) : 0,
+          hourly_rate: hourlyRate,
           notes: notesFormatted,
           currency: currency || 'COP'
         };
@@ -1561,7 +1643,7 @@
     if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
     if (filterPayment) filtered = filtered.filter(s => getPaymentType(s) === filterPayment);
     
-    filtered = filtered.filter(s => s.shift_type.toLowerCase() !== 'cambio');
+    filtered = filtered.filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
     filtered.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
     
     if (filtered.length === 0) {
@@ -1612,7 +1694,7 @@
   }
 
   function renderExchangesList() {
-    const exchanges = allShifts.filter(s => s.shift_type.toLowerCase() === 'cambio');
+    const exchanges = allShifts.filter(s => s.shift_type && s.shift_type.toLowerCase() === 'cambio');
     exchanges.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
     
     if (exchanges.length === 0) {
@@ -1656,7 +1738,7 @@
     const startDate = document.getElementById('summaryStartDate').value;
     const endDate = document.getElementById('summaryEndDate').value;
     
-    let filtered = [...allShifts].filter(s => s.shift_type.toLowerCase() !== 'cambio');
+    let filtered = [...allShifts].filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
     if (startDate) filtered = filtered.filter(s => s.shift_date >= startDate);
     if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
     
@@ -1743,96 +1825,115 @@
       }).filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
 
       const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
-      const totalAmount = monthShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-
+      
       const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
       const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
-      const opsTotal = opsShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-      const nominaTotal = nominaShifts.reduce((sum, s) => sum + (parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0)), 0);
-
-      const shiftsTableBody = [];
       
-      opsShifts.forEach(shift => {
-        const startTime = getStartTime(shift);
-        shiftsTableBody.push([
-          { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
-          { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
-          { text: shift.shift_type, fontSize: 9 },
-          { text: startTime || '-', fontSize: 9, alignment: 'center' },
-          { text: 'OPS', fontSize: 9, alignment: 'center', color: '#ef4444' },
-          { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
-          { text: `$${parseFloat(shift.hourly_rate).toFixed(2)}`, fontSize: 9, alignment: 'right' },
-          { text: `$${(parseFloat(shift.hours) * parseFloat(shift.hourly_rate)).toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true }
-        ]);
-      });
+      const opsByCurrency = groupByCurrency(opsShifts);
+      const nominaByCurrency = groupByCurrency(nominaShifts);
+      const allByCurrency = groupByCurrency(monthShifts);
       
-      if (nominaShifts.length > 0) {
-        const nominaHours = nominaShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
-        shiftsTableBody.push([
-          { text: `Mes completo (${nominaShifts.length} turnos)`, fontSize: 9, colSpan: 4, bold: true },
-          {},
-          {},
-          {},
-          { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6', bold: true },
-          { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center' },
-          { text: '-', fontSize: 9, alignment: 'right' },
-          { text: `$${nominaTotal.toFixed(2)}`, fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6' }
-        ]);
-      }
+      const currencies = [...new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)])];
+      
+      const content = [
+        {
+          svg: '<svg width="200" height="50"><text x="0" y="35" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#475569">Med Tools Hub</text></svg>',
+          margin: [0, 0, 0, 5]
+        },
+        { text: `Gestión de Turnos - ${monthNames[currentMonth]} ${currentYear}`, style: 'subheader', color: '#64748b' },
+        { text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, style: 'date', margin: [0, 0, 0, 20] }
+      ];
 
-      const docDefinition = {
-        pageSize: 'A4',
-        pageOrientation: 'landscape',
-        pageMargins: [40, 60, 40, 60],
-        content: [
-          { text: 'Med Tools Hub', style: 'header', color: '#475569' },
-          { text: `Gestión de Turnos - ${monthNames[currentMonth]} ${currentYear}`, style: 'subheader', color: '#64748b' },
-          { text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, style: 'date', margin: [0, 0, 0, 20] },
-          
-          { text: 'Totales del Mes', style: 'sectionHeader', margin: [0, 10, 0, 10] },
+      currencies.forEach((currency, index) => {
+        const currencyOps = opsByCurrency[currency] || { shifts: [], total: 0 };
+        const currencyNomina = nominaByCurrency[currency] || { shifts: [], total: 0 };
+        const currencyAll = allByCurrency[currency] || { shifts: [], total: 0 };
+        
+        const currencyShifts = [...currencyOps.shifts, ...currencyNomina.shifts];
+        const currencyHours = currencyShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+        
+        if (index > 0) {
+          content.push({ text: '', pageBreak: 'before' });
+        }
+        
+        content.push(
+          { text: `Totales en ${currency}`, style: 'sectionHeader', margin: [0, index === 0 ? 10 : 0, 0, 10] },
           {
             columns: [
               {
                 width: '*',
                 stack: [
                   { text: 'Total Turnos', fontSize: 10, color: '#64748b' },
-                  { text: monthShifts.length.toString(), fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: currencyShifts.length.toString(), fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
                   { text: 'Total Horas', fontSize: 10, color: '#64748b' },
-                  { text: `${totalHours.toFixed(1)}h`, fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: `${currencyHours.toFixed(1)}h`, fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
                   { text: 'OPS', fontSize: 10, color: '#64748b' },
-                  { text: `$${opsTotal.toFixed(2)}`, fontSize: 24, bold: true, color: '#ef4444', margin: [0, 5, 0, 0] }
+                  { text: formatCurrency(currencyOps.total, currency), fontSize: 20, bold: true, color: '#ef4444', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
                   { text: 'Nómina', fontSize: 10, color: '#64748b' },
-                  { text: `$${nominaTotal.toFixed(2)}`, fontSize: 24, bold: true, color: '#3b82f6', margin: [0, 5, 0, 0] }
+                  { text: formatCurrency(currencyNomina.total, currency), fontSize: 20, bold: true, color: '#3b82f6', margin: [0, 5, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
                   { text: 'Total', fontSize: 10, color: '#64748b' },
-                  { text: `$${totalAmount.toFixed(2)}`, fontSize: 24, bold: true, color: '#10b981', margin: [0, 5, 0, 0] }
+                  { text: formatCurrency(currencyAll.total, currency), fontSize: 20, bold: true, color: '#10b981', margin: [0, 5, 0, 0] }
                 ]
               }
             ],
             margin: [0, 0, 0, 20]
-          },
-          
-          { text: 'Detalle de Turnos', style: 'sectionHeader', margin: [0, 20, 0, 10] },
+          }
+        );
+        
+        const shiftsTableBody = [];
+        
+        currencyOps.shifts.forEach(shift => {
+          const startTime = getStartTime(shift);
+          const hourlyRateValue = parseFloat(shift.hourly_rate || 0);
+          const totalValue = parseFloat(shift.hours || 0) * hourlyRateValue;
+          shiftsTableBody.push([
+            { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
+            { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
+            { text: shift.shift_type, fontSize: 9 },
+            { text: startTime || '-', fontSize: 9, alignment: 'center' },
+            { text: 'OPS', fontSize: 9, alignment: 'center', color: '#ef4444' },
+            { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
+            { text: formatCurrency(hourlyRateValue, currency), fontSize: 9, alignment: 'right' },
+            { text: formatCurrency(totalValue, currency), fontSize: 9, alignment: 'right', bold: true }
+          ]);
+        });
+        
+        if (currencyNomina.shifts.length > 0) {
+          const nominaHours = currencyNomina.shifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+          shiftsTableBody.push([
+            { text: `Mes completo (${currencyNomina.shifts.length} turnos)`, fontSize: 9, colSpan: 4, bold: true },
+            {},
+            {},
+            {},
+            { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6', bold: true },
+            { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center' },
+            { text: '-', fontSize: 9, alignment: 'right' },
+            { text: formatCurrency(currencyNomina.total, currency), fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6' }
+          ]);
+        }
+        
+        content.push(
+          { text: `Detalle de Turnos (${currency})`, style: 'sectionHeader', margin: [0, 20, 0, 10] },
           {
             table: {
               headerRows: 1,
@@ -1862,7 +1963,14 @@
               hLineColor: function() { return '#e2e8f0'; }
             }
           }
-        ],
+        );
+      });
+
+      const docDefinition = {
+        pageSize: 'A4',
+        pageOrientation: 'landscape',
+        pageMargins: [40, 60, 40, 60],
+        content: content,
         styles: {
           header: { fontSize: 26, bold: true, margin: [0, 0, 0, 5] },
           subheader: { fontSize: 16, margin: [0, 0, 0, 5] },
