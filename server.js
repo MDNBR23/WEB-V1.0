@@ -449,7 +449,7 @@ app.post('/api/login', async (req, res) => {
     user.isOnline = true;
     await writeJSON('users.json', users);
     
-    req.session.userId = user.id;
+    req.session.userId = user.username;  // Usar username como ID ya que no todos los usuarios tienen campo id
     req.session.user = {
       username: user.username,
       role: user.role,
@@ -2136,18 +2136,34 @@ app.get('/api/shifts', async (req, res) => {
     }
     
     const { startDate, endDate } = req.query;
-    let query = 'SELECT * FROM shifts WHERE user_id = $1';
-    const params = [req.session.userId];
     
-    if (startDate && endDate) {
-      query += ' AND shift_date BETWEEN $2 AND $3';
-      params.push(startDate, endDate);
+    // Intentar PostgreSQL primero
+    try {
+      let query = 'SELECT * FROM shifts WHERE user_id = $1';
+      const params = [req.session.userId];
+      
+      if (startDate && endDate) {
+        query += ' AND shift_date BETWEEN $2 AND $3';
+        params.push(startDate, endDate);
+      }
+      
+      query += ' ORDER BY shift_date DESC';
+      
+      const result = await pool.query(query, params);
+      return res.json({ shifts: result.rows });
+    } catch (dbError) {
+      console.log('PostgreSQL no disponible, usando JSON local');
+      // Fallback a JSON local
+      const shifts = await readJSON('shifts.json', []);
+      let userShifts = shifts.filter(s => s.user_id === req.session.userId);
+      
+      if (startDate && endDate) {
+        userShifts = userShifts.filter(s => s.shift_date >= startDate && s.shift_date <= endDate);
+      }
+      
+      userShifts.sort((a, b) => new Date(b.shift_date) - new Date(a.shift_date));
+      res.json({ shifts: userShifts });
     }
-    
-    query += ' ORDER BY shift_date DESC';
-    
-    const result = await pool.query(query, params);
-    res.json({ shifts: result.rows });
   } catch (err) {
     console.error('Error fetching shifts:', err);
     res.status(500).json({ error: 'Error al obtener turnos' });
@@ -2167,14 +2183,39 @@ app.post('/api/shifts', async (req, res) => {
     
     const { entity_name, shift_date, shift_type, hours, hourly_rate, notes } = req.body;
     
-    const result = await pool.query(
-      `INSERT INTO shifts (user_id, entity_name, shift_date, shift_type, hours, hourly_rate, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [req.session.userId, entity_name, shift_date, shift_type, hours || 0, hourly_rate || 0, notes || '']
-    );
-    
-    console.log('Shift created successfully for user:', req.session.userId);
-    res.json({ shift: result.rows[0], success: true });
+    // Intentar PostgreSQL primero
+    try {
+      const result = await pool.query(
+        `INSERT INTO shifts (user_id, entity_name, shift_date, shift_type, hours, hourly_rate, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [req.session.userId, entity_name, shift_date, shift_type, hours || 0, hourly_rate || 0, notes || '']
+      );
+      
+      console.log('Shift created successfully for user:', req.session.userId);
+      return res.json({ shift: result.rows[0], success: true });
+    } catch (dbError) {
+      console.log('PostgreSQL no disponible, guardando en JSON local');
+      // Fallback a JSON local
+      const shifts = await readJSON('shifts.json', []);
+      const newShift = {
+        id: shifts.length > 0 ? Math.max(...shifts.map(s => s.id)) + 1 : 1,
+        user_id: req.session.userId,
+        entity_name,
+        shift_date,
+        shift_type,
+        hours: hours || 0,
+        hourly_rate: hourly_rate || 0,
+        notes: notes || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      shifts.push(newShift);
+      await writeJSON('shifts.json', shifts);
+      
+      console.log('Shift created in JSON for user:', req.session.userId);
+      res.json({ shift: newShift, success: true });
+    }
   } catch (err) {
     console.error('Error creating shift:', err);
     res.status(500).json({ error: 'Error al crear turno' });
@@ -2190,18 +2231,45 @@ app.put('/api/shifts/:id', async (req, res) => {
     const { id } = req.params;
     const { entity_name, shift_date, shift_type, hours, hourly_rate, notes } = req.body;
     
-    const result = await pool.query(
-      `UPDATE shifts 
-       SET entity_name = $1, shift_date = $2, shift_type = $3, hours = $4, hourly_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $7 AND user_id = $8 RETURNING *`,
-      [entity_name, shift_date, shift_type, hours, hourly_rate, notes, id, req.session.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Turno no encontrado' });
+    // Intentar PostgreSQL primero
+    try {
+      const result = await pool.query(
+        `UPDATE shifts 
+         SET entity_name = $1, shift_date = $2, shift_type = $3, hours = $4, hourly_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $7 AND user_id = $8 RETURNING *`,
+        [entity_name, shift_date, shift_type, hours, hourly_rate, notes, id, req.session.userId]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Turno no encontrado' });
+      }
+      
+      return res.json({ shift: result.rows[0], success: true });
+    } catch (dbError) {
+      console.log('PostgreSQL no disponible, actualizando en JSON local');
+      // Fallback a JSON local
+      const shifts = await readJSON('shifts.json', []);
+      const shiftIndex = shifts.findIndex(s => s.id === parseInt(id) && s.user_id === req.session.userId);
+      
+      if (shiftIndex === -1) {
+        return res.status(404).json({ error: 'Turno no encontrado' });
+      }
+      
+      shifts[shiftIndex] = {
+        ...shifts[shiftIndex],
+        entity_name,
+        shift_date,
+        shift_type,
+        hours: hours || 0,
+        hourly_rate: hourly_rate || 0,
+        notes: notes || '',
+        updated_at: new Date().toISOString()
+      };
+      
+      await writeJSON('shifts.json', shifts);
+      console.log('Shift updated in JSON for user:', req.session.userId);
+      res.json({ shift: shifts[shiftIndex], success: true });
     }
-    
-    res.json({ shift: result.rows[0], success: true });
   } catch (err) {
     console.error('Error updating shift:', err);
     res.status(500).json({ error: 'Error al actualizar turno' });
@@ -2215,16 +2283,34 @@ app.delete('/api/shifts/:id', async (req, res) => {
     }
     
     const { id } = req.params;
-    const result = await pool.query(
-      'DELETE FROM shifts WHERE id = $1 AND user_id = $2 RETURNING id',
-      [id, req.session.userId]
-    );
     
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Turno no encontrado' });
+    // Intentar PostgreSQL primero
+    try {
+      const result = await pool.query(
+        'DELETE FROM shifts WHERE id = $1 AND user_id = $2 RETURNING id',
+        [id, req.session.userId]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Turno no encontrado' });
+      }
+      
+      return res.json({ success: true });
+    } catch (dbError) {
+      console.log('PostgreSQL no disponible, eliminando de JSON local');
+      // Fallback a JSON local
+      const shifts = await readJSON('shifts.json', []);
+      const initialLength = shifts.length;
+      const filteredShifts = shifts.filter(s => !(s.id === parseInt(id) && s.user_id === req.session.userId));
+      
+      if (filteredShifts.length === initialLength) {
+        return res.status(404).json({ error: 'Turno no encontrado' });
+      }
+      
+      await writeJSON('shifts.json', filteredShifts);
+      console.log('Shift deleted from JSON for user:', req.session.userId);
+      res.json({ success: true });
     }
-    
-    res.json({ success: true });
   } catch (err) {
     console.error('Error deleting shift:', err);
     res.status(500).json({ error: 'Error al eliminar turno' });

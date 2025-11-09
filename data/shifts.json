@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "user_id": "admin",
+    "hours": 0,
+    "hourly_rate": 0,
+    "notes": "Primera consulta",
+    "created_at": "2025-11-09T02:40:27.816Z",
+    "updated_at": "2025-11-09T02:40:27.816Z"
+  }
+]

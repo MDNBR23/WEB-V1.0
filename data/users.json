@@ -11,9 +11,9 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-09T00:06:05.064Z",
+    "lastLogin": "2025-11-09T03:09:26.734Z",
     "isOnline": true,
-    "lastHeartbeat": "2025-11-09T00:14:07.128Z",
+    "lastHeartbeat": "2025-11-09T03:12:15.030Z",
     "emailVerified": true
   },
   {
@@ -123,5 +123,22 @@
     "lastLogin": "2025-11-07T08:57:15.309Z",
     "lastHeartbeat": "2025-11-07T08:57:15.309Z",
     "isOnline": false
+  },
+  {
+    "username": "testuser",
+    "name": "Test User",
+    "firstName": "Test",
+    "lastName": "User",
+    "password": "$2b$10$uMRAeQkGqgK3TCjoOHy7mOUddzuKdHIiGKVZ9ZfosnbSLlD9xh21K",
+    "email": "test@example.com",
+    "phone": "123456789",
+    "institucion": "Hospital Test",
+    "role": "user",
+    "status": "aprobado",
+    "cat": "Médico General",
+    "avatar": "",
+    "emailVerified": false,
+    "verificationToken": "9908b608ba074edd6b1847d898cb4f25882c0c183d97e19d907b21721fb5cf0a",
+    "createdAt": "2025-11-09T02:37:31.042Z"
   }
 ]
