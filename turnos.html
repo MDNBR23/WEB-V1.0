@@ -730,6 +730,20 @@
 
 <script src="script.js"></script>
 <script>
+  function getColombiaDate() {
+    const now = new Date();
+    const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return colombiaTime;
+  }
+
+  function getColombiaDateString() {
+    const date = getColombiaDate();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function normalizeString(str) {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
@@ -852,8 +866,9 @@
     ]
   };
 
-  let currentMonth = new Date().getMonth();
-  let currentYear = new Date().getFullYear();
+  const colombiaDate = getColombiaDate();
+  let currentMonth = colombiaDate.getMonth();
+  let currentYear = colombiaDate.getFullYear();
   let allShifts = [];
   let editingShiftId = null;
 
@@ -960,7 +975,7 @@
       html += '<div></div>';
     }
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = getColombiaDateString();
     const holidaysThisYear = FESTIVOS_COLOMBIA[currentYear] || [];
     
     for (let day = 1; day <= lastDate; day++) {
@@ -1074,7 +1089,7 @@
         document.getElementById('existingShiftsDay').style.display = 'none';
       }
     } else {
-      document.getElementById('shiftDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('shiftDate').value = getColombiaDateString();
       document.getElementById('existingShiftsDay').style.display = 'none';
     }
     
@@ -1221,7 +1236,7 @@
     closeShiftForm();
     document.getElementById('bulkShiftForm').style.display = 'block';
     document.getElementById('bulkPreview').style.display = 'none';
-    const today = new Date().toISOString().split('T')[0];
+    const today = getColombiaDateString();
     document.getElementById('bulkStartDate').value = today;
     document.getElementById('bulkEndDate').value = today;
     document.getElementById('bulkShiftForm').scrollIntoView({ behavior: 'smooth' });

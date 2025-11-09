@@ -63,8 +63,10 @@ const pool = new Pool({
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
 
+const SESSION_SECRET = process.env.SESSION_SECRET || 'medtoolshub-secret-key-change-in-production-2025';
+
 app.use(session({
-  secret: crypto.randomBytes(32).toString('hex'),
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { 
