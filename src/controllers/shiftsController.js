@@ -21,7 +21,13 @@ exports.getShifts = async (req, res) => {
       query += ' ORDER BY shift_date DESC';
       
       const result = await pool.query(query, params);
-      return res.json({ shifts: result.rows });
+      const shifts = result.rows.map(shift => ({
+        ...shift,
+        shift_date: shift.shift_date instanceof Date 
+          ? shift.shift_date.toISOString().slice(0, 10)
+          : (shift.shift_date || '').toString().slice(0, 10)
+      }));
+      return res.json({ shifts });
     } catch (dbError) {
       console.log('PostgreSQL no disponible, usando JSON local');
       const shifts = await readJSON('shifts.json', []);
@@ -61,7 +67,13 @@ exports.createShift = async (req, res) => {
       );
       
       console.log('Shift created successfully for user:', req.session.userId);
-      return res.json({ shift: result.rows[0], success: true });
+      const shift = {
+        ...result.rows[0],
+        shift_date: result.rows[0].shift_date instanceof Date
+          ? result.rows[0].shift_date.toISOString().slice(0, 10)
+          : (result.rows[0].shift_date || '').toString().slice(0, 10)
+      };
+      return res.json({ shift, success: true });
     } catch (dbError) {
       console.log('PostgreSQL no disponible, guardando en JSON local');
       const shifts = await readJSON('shifts.json', []);
@@ -111,7 +123,13 @@ exports.updateShift = async (req, res) => {
         return res.status(404).json({ error: 'Turno no encontrado' });
       }
       
-      return res.json({ shift: result.rows[0], success: true });
+      const shift = {
+        ...result.rows[0],
+        shift_date: result.rows[0].shift_date instanceof Date
+          ? result.rows[0].shift_date.toISOString().slice(0, 10)
+          : (result.rows[0].shift_date || '').toString().slice(0, 10)
+      };
+      return res.json({ shift, success: true });
     } catch (dbError) {
       console.log('PostgreSQL no disponible, actualizando en JSON local');
       const shifts = await readJSON('shifts.json', []);
