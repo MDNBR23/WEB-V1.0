@@ -7,12 +7,12 @@ const MAX_BACKUPS = 7;
 const DATA_DIR = path.join(__dirname, 'data');
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  ssl: { rejectUnauthorized: false }
+  host: process.env.PGHOST || process.env.DB_HOST,
+  port: process.env.PGPORT || process.env.DB_PORT,
+  database: process.env.PGDATABASE || process.env.DB_NAME,
+  user: process.env.PGUSER || process.env.DB_USER,
+  password: process.env.PGPASSWORD || process.env.DB_PASSWORD,
+  ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false }
 });
 
 async function readJSON(filename, defaultValue = []) {
@@ -93,6 +93,12 @@ async function createBackup() {
     const plantillasResult = await pool.query('SELECT * FROM plantillas ORDER BY created_at DESC');
     backup.database.plantillas = plantillasResult.rows;
 
+    const shiftsResult = await pool.query('SELECT * FROM shifts ORDER BY created_at DESC');
+    backup.database.shifts = shiftsResult.rows;
+
+    const shiftConfigResult = await pool.query('SELECT * FROM shift_config ORDER BY created_at DESC');
+    backup.database.shift_config = shiftConfigResult.rows;
+
     await ensureBackupDir();
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -104,6 +110,8 @@ async function createBackup() {
     console.log(`✓ Backup creado exitosamente: ${filename}`);
     console.log(`  - Archivos JSON: ${Object.keys(backup.jsonFiles).length}`);
     console.log(`  - Plantillas: ${backup.database.plantillas.length}`);
+    console.log(`  - Turnos: ${backup.database.shifts.length}`);
+    console.log(`  - Configuraciones de turnos: ${backup.database.shift_config.length}`);
     console.log(`  - Tamaño: ${(Buffer.byteLength(JSON.stringify(backup)) / 1024).toFixed(2)} KB`);
 
     await cleanOldBackups();

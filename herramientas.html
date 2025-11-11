@@ -409,22 +409,38 @@ html[data-theme="dark"] #medicationSelect {
           </a>
           
           <section class="card glass tool-section">
-            <h3>Corrector de Texto</h3>
-            <p class="text-muted">Herramientas de formato y corrección de texto.</p>
-            
-            <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+              <div>
+                <h3 style="margin: 0 0 6px 0;">Corrector de Texto</h3>
+                <p class="text-muted" style="margin: 0;">Herramientas inteligentes de formato y corrección</p>
+              </div>
               <button class="btn sm" onclick="toggleExcelView()">
                 <span id="excelViewIcon">📊</span> <span id="excelViewText">Vista Tabla</span>
               </button>
             </div>
             
             <div id="normalTextView">
-              <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a procesar..." oninput="actualizarContadores()"></textarea>
+              <div style="position: relative;">
+                <textarea id="textInput" class="text-editor" placeholder="Pega aquí el texto a procesar..." oninput="actualizarContadores()" style="min-height: 180px; font-size: 15px; line-height: 1.6;"></textarea>
+                <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 6px;">
+                  <button class="btn sm secondary" onclick="limpiarTexto()" title="Limpiar">🗑️</button>
+                  <button class="btn sm success" onclick="copiarTexto()" title="Copiar">📋</button>
+                </div>
+              </div>
               
-              <div style="margin: 12px 0; padding: 12px; background: var(--bg); border-radius: 8px; display: flex; gap: 16px; flex-wrap: wrap;">
-                <span><strong>Caracteres:</strong> <span id="charCounter">0</span></span>
-                <span><strong>Palabras:</strong> <span id="wordCounter">0</span></span>
-                <span><strong>Líneas:</strong> <span id="lineCounter">0</span></span>
+              <div style="margin: 16px 0; padding: 16px; background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05), rgba(var(--primary-rgb), 0.02)); border-radius: 12px; border: 1px solid rgba(var(--primary-rgb), 0.1); display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px;">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="charCounter">0</div>
+                  <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Caracteres</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="wordCounter">0</div>
+                  <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Palabras</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="lineCounter">0</div>
+                  <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Líneas</div>
+                </div>
               </div>
             </div>
             
@@ -446,23 +462,28 @@ html[data-theme="dark"] #medicationSelect {
               </div>
             </div>
             
-            <div style="margin-top: 12px;">
-              <h4 style="margin: 0 0 8px 0; font-size: 15px;">Operaciones de texto:</h4>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
-                <button class="btn sm" onclick="aplicarOperacion('espacios')">Corregir Espacios</button>
-                <button class="btn sm" onclick="aplicarOperacion('mayusculas')">TODO MAYÚSCULAS</button>
-                <button class="btn sm" onclick="aplicarOperacion('minusculas')">todo minúsculas</button>
-                <button class="btn sm" onclick="aplicarOperacion('capitalizar')">Capitalizar Palabras</button>
-                <button class="btn sm" onclick="aplicarOperacion('oracion')">Capitalizar oraciones</button>
-                <button class="btn sm" onclick="aplicarOperacion('invertir')">Invertir Texto</button>
-                <button class="btn sm" onclick="aplicarOperacion('eliminarSaltos')">Eliminar Saltos de Línea</button>
-                <button class="btn sm" onclick="aplicarOperacion('duplicar')">Eliminar Líneas Duplicadas</button>
+            <div style="margin-top: 20px;">
+              <h4 style="margin: 0 0 12px 0; font-size: 16px; color: var(--text);">⚡ Transformaciones Rápidas</h4>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">🔤 Formato de Texto</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                  <button class="btn sm" onclick="aplicarOperacion('mayusculas')">TODO MAYÚSCULAS</button>
+                  <button class="btn sm" onclick="aplicarOperacion('minusculas')">todo minúsculas</button>
+                  <button class="btn sm" onclick="aplicarOperacion('capitalizar')">Capitalizar Palabras</button>
+                  <button class="btn sm" onclick="aplicarOperacion('oracion')">Capitalizar Oraciones</button>
+                </div>
               </div>
-            </div>
-            
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button class="btn" onclick="limpiarTexto()">🗑️ Limpiar</button>
-              <button class="btn success" onclick="copiarTexto()">📋 Copiar Texto</button>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">✨ Corrección</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                  <button class="btn sm" onclick="aplicarOperacion('espacios')">🔧 Corregir Espacios</button>
+                  <button class="btn sm" onclick="aplicarOperacion('eliminarSaltos')">📄 Eliminar Saltos</button>
+                  <button class="btn sm" onclick="aplicarOperacion('duplicar')">🎯 Eliminar Duplicadas</button>
+                  <button class="btn sm" onclick="aplicarOperacion('invertir')">🔄 Invertir Texto</button>
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -782,39 +803,61 @@ html[data-theme="dark"] #medicationSelect {
     </div>
   </div>
 
-  <div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; padding:20px;">
-    <div style="max-width: 900px; margin: 40px auto; background: white; border-radius: 8px; padding: 24px; max-height: 90vh; overflow-y: auto;">
-      <h3 id="editDocTitle" style="margin-top: 0;">Editar Plantilla</h3>
-      <div style="margin-bottom: 12px;">
-        <label>Nombre de la plantilla</label>
-        <input type="text" id="editDocName" style="width: 100%;">
+  <div id="editModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index:1000; padding:20px; animation: fadeIn 0.2s ease;">
+    <div style="max-width: 1000px; margin: 20px auto; background: var(--card); border-radius: 16px; padding: 32px; max-height: calc(100vh - 80px); overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);">
+        <h3 id="editDocTitle" style="margin: 0; font-size: 24px; color: var(--primary);">Editar Plantilla</h3>
+        <button onclick="cerrarEditor()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); transition: all 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
       </div>
-      <div style="margin-bottom: 12px;">
-        <label>Categoría</label>
-        <select id="editDocCategory" style="width: 100%;">
-          <option value="">Seleccionar categoría</option>
-          <option value="pediatria">Pediatría</option>
-          <option value="adultos">Adultos</option>
-          <option value="geriatria">Geriatría</option>
-          <option value="neonatologia">Neonatología</option>
-          <option value="infusiones">Infusiones</option>
-          <option value="otras">Otras</option>
-        </select>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text);">Nombre de la plantilla</label>
+          <input type="text" id="editDocName" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text);">Categoría</label>
+          <select id="editDocCategory" style="width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 8px; transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="">Seleccionar categoría</option>
+            <option value="pediatria">👶 Pediatría</option>
+            <option value="adultos">👨‍⚕️ Adultos</option>
+            <option value="geriatria">👴 Geriatría</option>
+            <option value="neonatologia">👼 Neonatología</option>
+            <option value="infusiones">💉 Infusiones</option>
+            <option value="otras">📋 Otras</option>
+          </select>
+        </div>
       </div>
-      <div style="margin-bottom: 12px;">
-        <label>Contenido</label>
-        <textarea id="editDocContent" class="text-editor"></textarea>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text);">Contenido</label>
+        <textarea id="editDocContent" class="text-editor" style="min-height: 300px; font-size: 14px; line-height: 1.6; border: 2px solid var(--border); transition: all 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'"></textarea>
       </div>
-      <div id="editAdminPlantillaOption" style="margin-bottom: 12px; display: none;">
+      <div id="editAdminPlantillaOption" style="margin-bottom: 16px; display: none;">
         <label class="switch">
           <input id="editPlantillaGlobal" type="checkbox">
           <span class="slider"></span>
           <span>Plantilla predefinida (visible para todos los usuarios)</span>
         </label>
       </div>
-      <div style="display: flex; gap: 8px; justify-content: flex-end;">
-        <button class="btn" onclick="cerrarEditor()">Cancelar</button>
-        <button class="btn primary" onclick="guardarEdicion()">Guardar Cambios</button>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="btn secondary" onclick="cerrarEditor()">Cancelar</button>
+        <button class="btn primary" onclick="guardarEdicion()">💾 Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="previewModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index:1000; padding:20px; animation: fadeIn 0.2s ease;">
+    <div style="max-width: 900px; margin: 20px auto; background: var(--card); border-radius: 16px; padding: 32px; max-height: calc(100vh - 80px); overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border);">
+        <div>
+          <h3 id="previewDocTitle" style="margin: 0 0 4px 0; font-size: 24px; color: var(--primary);">Vista Previa</h3>
+          <p id="previewDocMeta" style="margin: 0; font-size: 14px; color: var(--muted);"></p>
+        </div>
+        <button onclick="cerrarPreview()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--muted); transition: all 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
+      </div>
+      <div id="previewDocContent" style="background: rgba(var(--primary-rgb), 0.03); padding: 24px; border-radius: 12px; border: 1px solid var(--border); min-height: 300px; white-space: pre-wrap; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; line-height: 1.8; color: var(--text);"></div>
+      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn secondary" onclick="cerrarPreview()">Cerrar</button>
+        <button class="btn success" onclick="copiarContenidoPreview()">📋 Copiar Contenido</button>
       </div>
     </div>
   </div>

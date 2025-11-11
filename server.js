@@ -51,14 +51,19 @@ const DATA_DIR = path.join(__dirname, 'data');
 
 app.set('trust proxy', true);
 
+const isReplit = !!(process.env.REPL_ID || process.env.REPL_SLUG);
+const sslConfig = isReplit ? false : (process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false });
+
 const pool = new Pool({
   host: process.env.PGHOST || process.env.DB_HOST,
   port: process.env.PGPORT || process.env.DB_PORT,
   database: process.env.PGDATABASE || process.env.DB_NAME,
   user: process.env.PGUSER || process.env.DB_USER,
   password: process.env.PGPASSWORD || process.env.DB_PASSWORD,
-  ssl: false
+  ssl: sslConfig
 });
+
+console.log('PostgreSQL SSL mode:', sslConfig === false ? 'disabled (Replit or DB_SSL=false)' : 'enabled');
 
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
@@ -176,7 +181,7 @@ async function initializeDatabase() {
     const createShiftsQuery = `
       CREATE TABLE IF NOT EXISTS shifts (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
+        user_id VARCHAR(100) NOT NULL,
         entity_name VARCHAR(255) NOT NULL,
         shift_date DATE NOT NULL,
         shift_type VARCHAR(100) NOT NULL,
@@ -191,7 +196,7 @@ async function initializeDatabase() {
     const createShiftConfigQuery = `
       CREATE TABLE IF NOT EXISTS shift_config (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL UNIQUE,
+        user_id VARCHAR(100) NOT NULL UNIQUE,
         ops_entity_name VARCHAR(255),
         ops_frequency_days INTEGER DEFAULT 6,
         ops_hours DECIMAL(10, 2) DEFAULT 12,
@@ -2314,6 +2319,74 @@ app.delete('/api/shifts/:id', async (req, res) => {
   } catch (err) {
     console.error('Error deleting shift:', err);
     res.status(500).json({ error: 'Error al eliminar turno' });
+  }
+});
+
+app.post('/api/shifts/delete-bulk', async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    
+    const { ids, startDate, endDate, shiftTypes } = req.body;
+    
+    try {
+      let query = 'DELETE FROM shifts WHERE user_id = $1';
+      const params = [req.session.userId];
+      let paramIndex = 2;
+      
+      if (ids && ids.length > 0) {
+        query += ` AND id = ANY($${paramIndex})`;
+        params.push(ids);
+        paramIndex++;
+      }
+      
+      if (startDate && endDate) {
+        query += ` AND shift_date BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
+        params.push(startDate, endDate);
+        paramIndex += 2;
+      }
+      
+      if (shiftTypes && shiftTypes.length > 0) {
+        query += ` AND shift_type = ANY($${paramIndex})`;
+        params.push(shiftTypes);
+        paramIndex++;
+      }
+      
+      query += ' RETURNING id';
+      
+      const result = await pool.query(query, params);
+      
+      return res.json({ 
+        success: true, 
+        deletedCount: result.rows.length,
+        deletedIds: result.rows.map(r => r.id)
+      });
+    } catch (dbError) {
+      console.log('PostgreSQL no disponible, eliminando de JSON local');
+      const shifts = await readJSON('shifts.json', []);
+      let filteredShifts = shifts.filter(s => {
+        if (s.user_id !== req.session.userId) return true;
+        
+        if (ids && ids.length > 0 && !ids.includes(s.id)) return true;
+        if (startDate && endDate && (s.shift_date < startDate || s.shift_date > endDate)) return true;
+        if (shiftTypes && shiftTypes.length > 0 && !shiftTypes.includes(s.shift_type)) return true;
+        
+        return false;
+      });
+      
+      const deletedCount = shifts.length - filteredShifts.length;
+      await writeJSON('shifts.json', filteredShifts);
+      
+      res.json({ 
+        success: true, 
+        deletedCount,
+        message: `${deletedCount} turno(s) eliminado(s)` 
+      });
+    }
+  } catch (err) {
+    console.error('Error deleting shifts in bulk:', err);
+    res.status(500).json({ error: 'Error al eliminar turnos' });
   }
 });
 
