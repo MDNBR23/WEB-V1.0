@@ -11,9 +11,9 @@
     "cat": "",
     "avatar": "",
     "createdAt": "2025-10-06T23:20:31.601Z",
-    "lastLogin": "2025-11-09T05:09:44.789Z",
-    "isOnline": true,
-    "lastHeartbeat": "2025-11-09T05:11:58.518Z",
+    "lastLogin": "2025-11-11T06:35:53.261Z",
+    "isOnline": false,
+    "lastHeartbeat": "2025-11-11T06:35:53.261Z",
     "emailVerified": true
   },
   {
@@ -120,9 +120,9 @@
     "emailVerified": true,
     "verificationToken": null,
     "createdAt": "2025-11-07T06:10:44.404Z",
-    "lastLogin": "2025-11-07T08:57:15.309Z",
-    "lastHeartbeat": "2025-11-07T08:57:15.309Z",
-    "isOnline": false
+    "lastLogin": "2025-11-11T06:36:06.095Z",
+    "lastHeartbeat": "2025-11-11T06:36:06.095Z",
+    "isOnline": true
   },
   {
     "username": "testuser",

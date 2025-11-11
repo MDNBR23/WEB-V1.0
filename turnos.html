@@ -2117,6 +2117,10 @@
     }
   }
 
-  initTurnos();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTurnos);
+  } else {
+    initTurnos();
+  }
 </script>
 </body></html>

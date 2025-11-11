@@ -95,6 +95,12 @@
   } 
   window.showToast=toast;
 
+  function handleError(err, fallbackMsg) {
+    if (err.code === 'SESSION_EXPIRED') return;
+    toast(err.message || fallbackMsg, 'error');
+  }
+  window.handleError = handleError;
+
   async function api(endpoint, options = {}) {
     try {
       const res = await fetch(`/api${endpoint}`, {
@@ -106,9 +112,14 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        if (res.status === 401) {
-          navigateWithTransition('index.html');
-          throw new Error('Sesión expirada. Redirigiendo al login...');
+        if (res.status === 401 && !isAuth && !isReg && !isReset) {
+          toast('Sesión expirada. Redirigiendo al login...', 'error');
+          setTimeout(() => {
+            navigateWithTransition('index.html');
+          }, 1500);
+          const error = new Error('Sesión expirada');
+          error.code = 'SESSION_EXPIRED';
+          throw error;
         }
         throw new Error(data.error || 'Error en la solicitud');
       }
@@ -379,8 +390,10 @@
     
     inactivityTimer = setTimeout(async () => {
       if (currentSession) {
-        alert('Tu sesión ha expirado por inactividad. Serás redirigido al inicio de sesión.');
-        await window.logout();
+        toast('Tu sesión ha expirado por inactividad. Serás redirigido al inicio de sesión.', 'warning');
+        setTimeout(async () => {
+          await window.logout();
+        }, 2000);
       }
     }, INACTIVITY_TIMEOUT);
   }
@@ -456,7 +469,7 @@
           navigateWithTransition('main.html');
         }
       } catch (err) {
-        alert(err.message);
+        handleError(err, 'Error al iniciar sesión');
       }
     });
   }
@@ -476,10 +489,14 @@
       const password2=document.getElementById('registerPassConfirm').value;
       const acceptTerms=document.getElementById('acceptTerms');
       
-      if(password!==password2) return alert('Las contraseñas no coinciden');
+      if(password!==password2) {
+        toast('Las contraseñas no coinciden', 'error');
+        return;
+      }
       
       if(!acceptTerms || !acceptTerms.checked) {
-        return alert('Debes aceptar la Política de Privacidad y los Términos y Condiciones para continuar');
+        toast('Debes aceptar la Política de Privacidad y los Términos y Condiciones para continuar', 'warning');
+        return;
       }
       
       try {
@@ -494,7 +511,7 @@
         }));
         navigateWithTransition('index.html');
       } catch (err) {
-        alert(err.message);
+        handleError(err, 'Error al registrarse');
       }
     });
   }
@@ -525,7 +542,7 @@
           toast(data.message, 'success');
         }
       } catch (err) {
-        toast(err.message || 'Error al solicitar recuperación de contraseña', 'error');
+        handleError(err, 'Error al solicitar recuperación de contraseña');
       }
     });
   }
@@ -538,7 +555,8 @@
       const confirmPassword = document.getElementById('confirmPassword').value;
       
       if(newPassword !== confirmPassword) {
-        return alert('Las contraseñas no coinciden');
+        toast('Las contraseñas no coinciden', 'error');
+        return;
       }
       
       try {
@@ -555,7 +573,7 @@
           navigateWithTransition('index.html');
         }
       } catch (err) {
-        alert(err.message);
+        handleError(err, 'Error al restablecer contraseña');
       }
     });
   }
@@ -774,7 +792,7 @@
           await fillTop();
           toast('Avatar actualizado.','success');
         } catch (err) {
-          toast('Error al actualizar avatar.','error');
+          handleError(err, 'Error al actualizar avatar.');
         }
       });
       
@@ -788,7 +806,7 @@
           await fillTop();
           toast('Avatar eliminado.','info');
         } catch (err) {
-          toast('Error al eliminar avatar.','error');
+          handleError(err, 'Error al eliminar avatar.');
         }
       });
       
@@ -808,7 +826,7 @@
           await fillTop();
           toast('Perfil actualizado.','success');
         } catch (err) {
-          toast('Error al actualizar perfil.','error');
+          handleError(err, 'Error al actualizar perfil.');
         }
       });
     } catch (err) {
@@ -845,7 +863,7 @@
         $('cfgNewPass').value='';
         $('cfgConfirmPass').value='';
       } catch (err) {
-        toast(err.message||'Error al cambiar contraseña','error');
+        handleError(err, 'Error al cambiar contraseña');
       }
     });
   }
@@ -878,7 +896,7 @@
           navigateWithTransition('index.html');
         }, 2000);
       } catch (err) {
-        toast(err.message||'Error al eliminar cuenta','error');
+        handleError(err, 'Error al eliminar cuenta');
       }
     });
   }
