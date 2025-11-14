@@ -3,6 +3,12 @@
 ## Overview
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
+## Recent Changes
+**November 2025 - Shift Management Bug Fixes:**
+- Fixed timezone issue in bulk shift creation where selecting Monday-Friday would create Tuesday-Saturday shifts due to UTC/local time conversion
+- Improved PDF export formatting with clear currency separation, centered headers, and visual dividers between different currencies
+- Reorganized bottom action menus to prevent overlap on smaller screens using responsive grid layouts
+
 ## User Preferences
 None recorded yet.
 

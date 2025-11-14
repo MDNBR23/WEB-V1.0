@@ -686,10 +686,10 @@
                     <div id="bulkPreviewContent" style="font-size: 12px;"></div>
                   </div>
 
-                  <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn secondary" onclick="previewBulkShifts()">👁️ Vista Previa</button>
-                    <button type="submit" class="btn primary grow">💾 Crear Turnos</button>
-                    <button type="button" class="btn secondary" onclick="closeBulkShiftForm()">Cancelar</button>
+                  <div style="margin-top: 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center;">
+                    <button type="button" class="btn secondary" onclick="previewBulkShifts()" style="white-space: nowrap;">👁️ Vista Previa</button>
+                    <button type="submit" class="btn primary" style="width: 100%;">💾 Crear Turnos</button>
+                    <button type="button" class="btn secondary" onclick="closeBulkShiftForm()" style="white-space: nowrap;">Cancelar</button>
                   </div>
                 </form>
               </div>
@@ -697,25 +697,29 @@
 
             <!-- TAB: LISTA -->
             <div class="tab-content" id="tab-list" style="display:none;">
-              <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Desde</label>
-                  <input type="date" id="filterStartDate">
+              <div style="margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                  <div class="field" style="margin:0;">
+                    <label>📅 Desde</label>
+                    <input type="date" id="filterStartDate">
+                  </div>
+                  <div class="field" style="margin:0;">
+                    <label>📅 Hasta</label>
+                    <input type="date" id="filterEndDate">
+                  </div>
+                  <div class="field" style="margin:0;">
+                    <label>💼 Tipo de Pago</label>
+                    <select id="filterPaymentType">
+                      <option value="">Todos</option>
+                      <option value="ops">OPS</option>
+                      <option value="nomina">Nómina</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Hasta</label>
-                  <input type="date" id="filterEndDate">
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                  <button class="btn" id="btnApplyFilter">Filtrar</button>
+                  <button class="btn secondary" id="btnClearFilter">Limpiar</button>
                 </div>
-                <div class="field" style="margin:0;min-width:150px;">
-                  <label>💼 Tipo de Pago</label>
-                  <select id="filterPaymentType">
-                    <option value="">Todos</option>
-                    <option value="ops">OPS</option>
-                    <option value="nomina">Nómina</option>
-                  </select>
-                </div>
-                <button class="btn" id="btnApplyFilter" style="align-self:flex-end;">Filtrar</button>
-                <button class="btn secondary" id="btnClearFilter" style="align-self:flex-end;">Limpiar</button>
               </div>
               
               <div style="margin-bottom: 20px; padding: 12px; background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; border-left: 4px solid var(--primary);">
@@ -1036,19 +1040,32 @@
 
   function formatCurrency(value, currency = 'COP') {
     const num = parseFloat(value);
-    if (isNaN(num)) return '$0.00';
+    if (isNaN(num)) return '$0';
+    
+    const hasDecimals = Math.abs(num - Math.round(num)) > 0.001;
     
     const currencyConfig = {
-      'COP': { locale: 'es-CO', currency: 'COP', decimals: 2, format: (n) => {
-        const parts = n.toFixed(2).split('.');
+      'COP': { locale: 'es-CO', currency: 'COP', format: (n) => {
+        const formatted = hasDecimals ? n.toFixed(2) : n.toFixed(0);
+        const parts = formatted.split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         return '$' + parts.join(',');
       }},
-      'USD': { locale: 'en-US', currency: 'USD', decimals: 2, format: (n) => {
-        return n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      'USD': { locale: 'en-US', currency: 'USD', format: (n) => {
+        return n.toLocaleString('en-US', { 
+          style: 'currency', 
+          currency: 'USD',
+          minimumFractionDigits: hasDecimals ? 2 : 0,
+          maximumFractionDigits: hasDecimals ? 2 : 0
+        });
       }},
-      'EUR': { locale: 'de-DE', currency: 'EUR', decimals: 2, format: (n) => {
-        return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+      'EUR': { locale: 'de-DE', currency: 'EUR', format: (n) => {
+        return n.toLocaleString('de-DE', { 
+          style: 'currency', 
+          currency: 'EUR',
+          minimumFractionDigits: hasDecimals ? 2 : 0,
+          maximumFractionDigits: hasDecimals ? 2 : 0
+        });
       }}
     };
     
@@ -1145,13 +1162,13 @@
     
     const currencies = new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)]);
     const opsHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>`
+      `<div style="font-size: 14px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
     ).join('');
     const nominaHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>`
+      `<div style="font-size: 14px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
     ).join('');
     const totalHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr]?.total || 0, curr)}</div>`
+      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
     ).join('');
 
     document.getElementById('monthSummary').innerHTML = `
@@ -1541,8 +1558,10 @@
   }
 
   function calculateBulkDates() {
-    const startDate = new Date(document.getElementById('bulkStartDate').value);
-    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
     const patternType = document.getElementById('bulkPatternType').value;
     const dates = [];
     
@@ -1553,7 +1572,8 @@
       let currentDate = new Date(startDate);
       while (currentDate <= endDate) {
         if (selectedDays.includes(currentDate.getDay())) {
-          dates.push(new Date(currentDate).toISOString().split('T')[0]);
+          const dateStr = currentDate.toISOString().split('T')[0];
+          dates.push(dateStr);
         }
         currentDate.setDate(currentDate.getDate() + 1);
       }
@@ -1562,7 +1582,8 @@
       let currentDate = new Date(startDate);
       
       while (currentDate <= endDate) {
-        dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        const dateStr = currentDate.toISOString().split('T')[0];
+        dates.push(dateStr);
         currentDate.setDate(currentDate.getDate() + interval);
       }
     }
@@ -1571,8 +1592,10 @@
   }
 
   function previewBulkShifts() {
-    const startDate = new Date(document.getElementById('bulkStartDate').value);
-    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
     const patternType = document.getElementById('bulkPatternType').value;
     
     if (startDate > endDate) {
@@ -1682,8 +1705,10 @@
   async function saveBulkShifts(event) {
     event.preventDefault();
     
-    const startDate = new Date(document.getElementById('bulkStartDate').value);
-    const endDate = new Date(document.getElementById('bulkEndDate').value);
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
     const patternType = document.getElementById('bulkPatternType').value;
     
     if (startDate > endDate) {
@@ -1997,12 +2022,27 @@
       const currencies = [...new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)])];
       
       const content = [
-        {
-          svg: '<svg width="200" height="50"><text x="0" y="35" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#475569">Med Tools Hub</text></svg>',
+        { 
+          text: 'Med Tools Hub', 
+          style: 'header', 
+          color: '#475569',
+          alignment: 'center',
           margin: [0, 0, 0, 5]
         },
-        { text: `Gestión de Turnos - ${monthNames[currentMonth]} ${currentYear}`, style: 'subheader', color: '#64748b' },
-        { text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, style: 'date', margin: [0, 0, 0, 20] }
+        { 
+          text: `Reporte de Turnos - ${monthNames[currentMonth]} ${currentYear}`, 
+          fontSize: 18, 
+          bold: true, 
+          color: '#475569',
+          alignment: 'center',
+          margin: [0, 5, 0, 5]
+        },
+        { 
+          text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, 
+          style: 'date', 
+          alignment: 'center',
+          margin: [0, 0, 0, 20] 
+        }
       ];
 
       currencies.forEach((currency, index) => {
@@ -2014,11 +2054,26 @@
         const currencyHours = currencyShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
         
         if (index > 0) {
-          content.push({ text: '', pageBreak: 'before' });
+          content.push({ 
+            canvas: [{ 
+              type: 'line', 
+              x1: 0, y1: 0, 
+              x2: 515, y2: 0, 
+              lineWidth: 2, 
+              lineColor: '#cbd5e1' 
+            }], 
+            margin: [0, 20, 0, 20] 
+          });
         }
         
         content.push(
-          { text: `Totales en ${currency}`, style: 'sectionHeader', margin: [0, index === 0 ? 10 : 0, 0, 10] },
+          { 
+            text: `REPORTE EN ${currency}`, 
+            style: 'currencyHeader', 
+            alignment: 'center',
+            color: '#0ea5e9',
+            margin: [0, index === 0 ? 10 : 0, 0, 10] 
+          },
           {
             columns: [
               {
@@ -2137,6 +2192,7 @@
           subheader: { fontSize: 16, margin: [0, 0, 0, 5] },
           date: { fontSize: 10, color: '#64748b', italics: true },
           sectionHeader: { fontSize: 14, bold: true, color: '#475569' },
+          currencyHeader: { fontSize: 16, bold: true, color: '#0ea5e9' },
           tableHeader: { fontSize: 10, bold: true, color: '#475569', fillColor: '#f1f5f9' }
         },
         defaultStyle: { font: 'Roboto' }
