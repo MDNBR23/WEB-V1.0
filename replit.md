@@ -4,9 +4,15 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
-**November 2025 - Shift Management Bug Fixes:**
+**November 2025 - Shift Management Improvements:**
 - Fixed timezone issue in bulk shift creation where selecting Monday-Friday would create Tuesday-Saturday shifts due to UTC/local time conversion
-- Improved PDF export formatting with clear currency separation, centered headers, and visual dividers between different currencies
+- **Eliminated all decimal values** from shift amounts - all monetary values are now displayed as whole numbers
+- **Enhanced multi-currency support**: PDF and calendar summaries now properly separate each currency (COP, USD, EUR) with independent totals
+- **Improved PDF formatting**:
+  - When using a single currency: Clean report without redundant currency labels
+  - When using multiple currencies: Clear section headers (e.g., "REPORTE EN COP", "REPORTE EN USD") with visual separators
+  - Payroll (Nómina) shifts now display individually with date and hours, with a consolidated total at the end
+  - OPS shifts show individual values per shift
 - Reorganized bottom action menus to prevent overlap on smaller screens using responsive grid layouts
 
 ## User Preferences

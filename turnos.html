@@ -1042,35 +1042,35 @@
     const num = parseFloat(value);
     if (isNaN(num)) return '$0';
     
-    const hasDecimals = Math.abs(num - Math.round(num)) > 0.001;
+    const roundedNum = Math.round(num);
     
     const currencyConfig = {
       'COP': { locale: 'es-CO', currency: 'COP', format: (n) => {
-        const formatted = hasDecimals ? n.toFixed(2) : n.toFixed(0);
+        const formatted = n.toFixed(0);
         const parts = formatted.split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return '$' + parts.join(',');
+        return '$' + parts[0];
       }},
       'USD': { locale: 'en-US', currency: 'USD', format: (n) => {
         return n.toLocaleString('en-US', { 
           style: 'currency', 
           currency: 'USD',
-          minimumFractionDigits: hasDecimals ? 2 : 0,
-          maximumFractionDigits: hasDecimals ? 2 : 0
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
         });
       }},
       'EUR': { locale: 'de-DE', currency: 'EUR', format: (n) => {
         return n.toLocaleString('de-DE', { 
           style: 'currency', 
           currency: 'EUR',
-          minimumFractionDigits: hasDecimals ? 2 : 0,
-          maximumFractionDigits: hasDecimals ? 2 : 0
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
         });
       }}
     };
     
     const config = currencyConfig[currency] || currencyConfig['COP'];
-    return config.format(num);
+    return config.format(roundedNum);
   }
   
   function formatCOP(value) {
@@ -1161,17 +1161,10 @@
     const allByCurrency = groupByCurrency(monthShifts);
     
     const currencies = new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)]);
-    const opsHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
-    ).join('');
-    const nominaHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
-    ).join('');
-    const totalHTML = Array.from(currencies).map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr]?.total || 0, curr)} <span style="font-size: 11px; color: var(--muted);">${curr}</span></div>`
-    ).join('');
-
-    document.getElementById('monthSummary').innerHTML = `
+    const currencyArray = Array.from(currencies);
+    const hasMultipleCurrencies = currencyArray.length > 1;
+    
+    let summaryHTML = `
       <div class="summary-card">
         <div class="summary-card-value">${totalShifts}</div>
         <div class="summary-card-label">Turnos</div>
@@ -1180,19 +1173,42 @@
         <div class="summary-card-value">${totalHours.toFixed(1)}</div>
         <div class="summary-card-label">Horas</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-card-value">${opsHTML}</div>
-        <div class="summary-card-label">OPS</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-card-value">${nominaHTML}</div>
-        <div class="summary-card-label">Nómina</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-card-value">${totalHTML}</div>
-        <div class="summary-card-label">Total</div>
-      </div>
     `;
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">OPS${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">Nómina${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(allByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">Total${currLabel}</div>
+        </div>
+      `;
+    });
+
+    document.getElementById('monthSummary').innerHTML = summaryHTML;
   }
 
   function openShiftForm(date = null) {
@@ -1938,17 +1954,9 @@
     const nominaByCurrency = groupByCurrency(nominaShifts);
     
     const currencies = Object.keys(allByCurrency);
-    const totalHTML = currencies.map(curr => 
-      `<div style="font-size: 14px;">${formatCurrency(allByCurrency[curr].total, curr)}</div>`
-    ).join('');
-    const opsHTML = currencies.map(curr => 
-      `<div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>`
-    ).join('');
-    const nominaHTML = currencies.map(curr => 
-      `<div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>`
-    ).join('');
+    const hasMultipleCurrencies = currencies.length > 1;
     
-    document.getElementById('summaryTotals').innerHTML = `
+    let totalsHTML = `
       <div class="summary-card">
         <div class="summary-card-value">${totalShifts}</div>
         <div class="summary-card-label">Total Turnos</div>
@@ -1957,26 +1965,45 @@
         <div class="summary-card-value">${totalHours.toFixed(1)}</div>
         <div class="summary-card-label">Total Horas</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-card-value">${totalHTML}</div>
-        <div class="summary-card-label">Total General</div>
-      </div>
     `;
+    
+    currencies.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      totalsHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(allByCurrency[curr].total, curr)}</div>
+          <div class="summary-card-label">Total General${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    document.getElementById('summaryTotals').innerHTML = totalsHTML;
 
-    document.getElementById('summaryByPaymentType').innerHTML = `
-      <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
-        <div class="summary-card-value">${opsShifts.length}</div>
-        <div class="summary-card-label">Turnos OPS (Individual)</div>
-        ${opsHTML}
-        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago por turno</div>
-      </div>
-      <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
-        <div class="summary-card-value">${nominaShifts.length}</div>
-        <div class="summary-card-label">Turnos Nómina (Mensual)</div>
-        ${nominaHTML}
-        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago único consolidado</div>
-      </div>
-    `;
+    let paymentHTML = '';
+    currencies.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      const opsTotal = opsByCurrency[curr]?.total || 0;
+      const nominaTotal = nominaByCurrency[curr]?.total || 0;
+      const opsCount = opsByCurrency[curr]?.shifts.length || 0;
+      const nominaCount = nominaByCurrency[curr]?.shifts.length || 0;
+      
+      paymentHTML += `
+        <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
+          <div class="summary-card-value">${opsCount}</div>
+          <div class="summary-card-label">Turnos OPS${currLabel}</div>
+          <div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">${formatCurrency(opsTotal, curr)}</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago por turno</div>
+        </div>
+        <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
+          <div class="summary-card-value">${nominaCount}</div>
+          <div class="summary-card-label">Turnos Nómina${currLabel}</div>
+          <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">${formatCurrency(nominaTotal, curr)}</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago único consolidado</div>
+        </div>
+      `;
+    });
+    
+    document.getElementById('summaryByPaymentType').innerHTML = paymentHTML;
     
     const byPlace = {};
     filtered.forEach(s => {
@@ -2020,6 +2047,7 @@
       const allByCurrency = groupByCurrency(monthShifts);
       
       const currencies = [...new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)])];
+      const hasMultipleCurrencies = currencies.length > 1;
       
       const content = [
         { 
@@ -2059,21 +2087,24 @@
               type: 'line', 
               x1: 0, y1: 0, 
               x2: 515, y2: 0, 
-              lineWidth: 2, 
-              lineColor: '#cbd5e1' 
+              lineWidth: 3, 
+              lineColor: '#0ea5e9' 
             }], 
-            margin: [0, 20, 0, 20] 
+            margin: [0, 25, 0, 25] 
           });
         }
         
-        content.push(
-          { 
+        if (hasMultipleCurrencies) {
+          content.push({
             text: `REPORTE EN ${currency}`, 
             style: 'currencyHeader', 
             alignment: 'center',
             color: '#0ea5e9',
             margin: [0, index === 0 ? 10 : 0, 0, 10] 
-          },
+          });
+        }
+        
+        content.push(
           {
             columns: [
               {
@@ -2136,20 +2167,36 @@
         
         if (currencyNomina.shifts.length > 0) {
           const nominaHours = currencyNomina.shifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+          
+          currencyNomina.shifts.forEach(shift => {
+            const startTime = getStartTime(shift);
+            shiftsTableBody.push([
+              { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
+              { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
+              { text: shift.shift_type, fontSize: 9 },
+              { text: startTime || '-', fontSize: 9, alignment: 'center' },
+              { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6' },
+              { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
+              { text: '-', fontSize: 9, alignment: 'right' },
+              { text: '-', fontSize: 9, alignment: 'right' }
+            ]);
+          });
+          
           shiftsTableBody.push([
-            { text: `Mes completo (${currencyNomina.shifts.length} turnos)`, fontSize: 9, colSpan: 4, bold: true },
+            { text: `TOTAL NÓMINA (${currencyNomina.shifts.length} turnos)`, fontSize: 9, colSpan: 5, bold: true, fillColor: '#eff6ff' },
             {},
             {},
             {},
-            { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6', bold: true },
-            { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center' },
-            { text: '-', fontSize: 9, alignment: 'right' },
-            { text: formatCurrency(currencyNomina.total, currency), fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6' }
+            {},
+            { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center', bold: true, fillColor: '#eff6ff' },
+            { text: '-', fontSize: 9, alignment: 'right', fillColor: '#eff6ff' },
+            { text: formatCurrency(currencyNomina.total, currency), fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6', fillColor: '#eff6ff' }
           ]);
         }
         
+        const detailTitle = hasMultipleCurrencies ? `Detalle de Turnos (${currency})` : 'Detalle de Turnos';
         content.push(
-          { text: `Detalle de Turnos (${currency})`, style: 'sectionHeader', margin: [0, 20, 0, 10] },
+          { text: detailTitle, style: 'sectionHeader', margin: [0, 20, 0, 10] },
           {
             table: {
               headerRows: 1,
