@@ -20,7 +20,7 @@
     "name": "Mis Turnos"
   },
   "ia": {
-    "enabled": true,
+    "enabled": false,
     "name": "Asistente IA"
   },
   "interacciones": {

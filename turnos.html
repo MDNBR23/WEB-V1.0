@@ -202,31 +202,39 @@
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin: 24px 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
 }
 
 .summary-card {
   background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 14px 12px;
   text-align: center;
   border: 2px solid rgba(var(--primary-rgb), 0.2);
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
 }
 
 .summary-card-value {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .summary-card-label {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .shift-form-container {
@@ -764,39 +772,47 @@
 
             <!-- TAB: RESUMEN -->
             <div class="tab-content" id="tab-summary" style="display:none;">
-              <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Desde</label>
-                  <input type="date" id="summaryStartDate">
+              <div style="background: rgba(var(--primary-rgb), 0.05); padding: 16px; border-radius: 10px; margin-bottom: 24px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <div class="field" style="margin:0;flex:1;min-width:200px;">
+                    <label>📅 Desde</label>
+                    <input type="date" id="summaryStartDate">
+                  </div>
+                  <div class="field" style="margin:0;flex:1;min-width:200px;">
+                    <label>📅 Hasta</label>
+                    <input type="date" id="summaryEndDate">
+                  </div>
+                  <button class="btn" id="btnApplySummaryFilter" style="align-self:flex-end;">Filtrar</button>
+                  <button class="btn secondary" id="btnClearSummaryFilter" style="align-self:flex-end;">Limpiar</button>
                 </div>
-                <div class="field" style="margin:0;flex:1;min-width:200px;">
-                  <label>📅 Hasta</label>
-                  <input type="date" id="summaryEndDate">
-                </div>
-                <button class="btn" id="btnApplySummaryFilter" style="align-self:flex-end;">Filtrar</button>
-                <button class="btn secondary" id="btnClearSummaryFilter" style="align-self:flex-end;">Limpiar</button>
               </div>
 
-              <h3 style="margin:20px 0 10px 0;">📊 Totales Generales</h3>
-              <div class="summary-cards" id="summaryTotals"></div>
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin-bottom: 16px;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">📊 Totales Generales</h3>
+                <div class="summary-cards" id="summaryTotals"></div>
+              </div>
               
-              <h3 style="margin:30px 0 16px 0;">💼 Distribución por Tipo de Pago</h3>
-              <div class="summary-cards" id="summaryByPaymentType"></div>
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin: 32px 0 16px 0;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">💼 Distribución por Tipo de Pago</h3>
+                <div class="summary-cards" id="summaryByPaymentType"></div>
+              </div>
               
-              <h3 style="margin:30px 0 16px 0;">🏥 Distribución por Lugar</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Lugar</th>
-                      <th>Turnos</th>
-                      <th>Horas</th>
-                      <th>Valor Promedio</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody id="summaryByPlace"></tbody>
-                </table>
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin: 32px 0 16px 0;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">🏥 Distribución por Lugar</h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Lugar</th>
+                        <th>Turnos</th>
+                        <th>Horas</th>
+                        <th>Valor Promedio</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="summaryByPlace"></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -2055,21 +2071,21 @@
           style: 'header', 
           color: '#475569',
           alignment: 'center',
-          margin: [0, 0, 0, 5]
+          margin: [0, 0, 0, 2]
         },
         { 
           text: `Reporte de Turnos - ${monthNames[currentMonth]} ${currentYear}`, 
-          fontSize: 18, 
+          fontSize: 14, 
           bold: true, 
           color: '#475569',
           alignment: 'center',
-          margin: [0, 5, 0, 5]
+          margin: [0, 2, 0, 2]
         },
         { 
           text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, 
           style: 'date', 
           alignment: 'center',
-          margin: [0, 0, 0, 20] 
+          margin: [0, 0, 0, 10] 
         }
       ];
 
@@ -2087,10 +2103,10 @@
               type: 'line', 
               x1: 0, y1: 0, 
               x2: 515, y2: 0, 
-              lineWidth: 3, 
+              lineWidth: 2, 
               lineColor: '#0ea5e9' 
             }], 
-            margin: [0, 25, 0, 25] 
+            margin: [0, 12, 0, 12] 
           });
         }
         
@@ -2100,7 +2116,7 @@
             style: 'currencyHeader', 
             alignment: 'center',
             color: '#0ea5e9',
-            margin: [0, index === 0 ? 10 : 0, 0, 10] 
+            margin: [0, index === 0 ? 5 : 0, 0, 5] 
           });
         }
         
@@ -2110,40 +2126,40 @@
               {
                 width: '*',
                 stack: [
-                  { text: 'Total Turnos', fontSize: 10, color: '#64748b' },
-                  { text: currencyShifts.length.toString(), fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: 'Turnos', fontSize: 8, color: '#64748b' },
+                  { text: currencyShifts.length.toString(), fontSize: 16, bold: true, color: '#475569', margin: [0, 2, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
-                  { text: 'Total Horas', fontSize: 10, color: '#64748b' },
-                  { text: `${currencyHours.toFixed(1)}h`, fontSize: 24, bold: true, color: '#475569', margin: [0, 5, 0, 0] }
+                  { text: 'Horas', fontSize: 8, color: '#64748b' },
+                  { text: `${currencyHours.toFixed(1)}h`, fontSize: 16, bold: true, color: '#475569', margin: [0, 2, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
-                  { text: 'OPS', fontSize: 10, color: '#64748b' },
-                  { text: formatCurrency(currencyOps.total, currency), fontSize: 20, bold: true, color: '#ef4444', margin: [0, 5, 0, 0] }
+                  { text: 'OPS', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyOps.total, currency), fontSize: 14, bold: true, color: '#ef4444', margin: [0, 2, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
-                  { text: 'Nómina', fontSize: 10, color: '#64748b' },
-                  { text: formatCurrency(currencyNomina.total, currency), fontSize: 20, bold: true, color: '#3b82f6', margin: [0, 5, 0, 0] }
+                  { text: 'Nómina', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyNomina.total, currency), fontSize: 14, bold: true, color: '#3b82f6', margin: [0, 2, 0, 0] }
                 ]
               },
               {
                 width: '*',
                 stack: [
-                  { text: 'Total', fontSize: 10, color: '#64748b' },
-                  { text: formatCurrency(currencyAll.total, currency), fontSize: 20, bold: true, color: '#10b981', margin: [0, 5, 0, 0] }
+                  { text: 'Total', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyAll.total, currency), fontSize: 14, bold: true, color: '#10b981', margin: [0, 2, 0, 0] }
                 ]
               }
             ],
-            margin: [0, 0, 0, 20]
+            margin: [0, 0, 0, 10]
           }
         );
         
@@ -2196,7 +2212,7 @@
         
         const detailTitle = hasMultipleCurrencies ? `Detalle de Turnos (${currency})` : 'Detalle de Turnos';
         content.push(
-          { text: detailTitle, style: 'sectionHeader', margin: [0, 20, 0, 10] },
+          { text: detailTitle, style: 'sectionHeader', margin: [0, 8, 0, 6] },
           {
             table: {
               headerRows: 1,
@@ -2223,7 +2239,9 @@
                 return i === 0 || i === 1 || i === node.table.body.length ? 1 : 0.5;
               },
               vLineWidth: function() { return 0; },
-              hLineColor: function() { return '#e2e8f0'; }
+              hLineColor: function() { return '#e2e8f0'; },
+              paddingTop: function() { return 3; },
+              paddingBottom: function() { return 3; }
             }
           }
         );
@@ -2232,17 +2250,17 @@
       const docDefinition = {
         pageSize: 'A4',
         pageOrientation: 'landscape',
-        pageMargins: [40, 60, 40, 60],
+        pageMargins: [30, 30, 30, 30],
         content: content,
         styles: {
-          header: { fontSize: 26, bold: true, margin: [0, 0, 0, 5] },
-          subheader: { fontSize: 16, margin: [0, 0, 0, 5] },
-          date: { fontSize: 10, color: '#64748b', italics: true },
-          sectionHeader: { fontSize: 14, bold: true, color: '#475569' },
-          currencyHeader: { fontSize: 16, bold: true, color: '#0ea5e9' },
-          tableHeader: { fontSize: 10, bold: true, color: '#475569', fillColor: '#f1f5f9' }
+          header: { fontSize: 18, bold: true, margin: [0, 0, 0, 2] },
+          subheader: { fontSize: 12, margin: [0, 0, 0, 2] },
+          date: { fontSize: 8, color: '#64748b', italics: true },
+          sectionHeader: { fontSize: 11, bold: true, color: '#475569' },
+          currencyHeader: { fontSize: 12, bold: true, color: '#0ea5e9' },
+          tableHeader: { fontSize: 8, bold: true, color: '#475569', fillColor: '#f1f5f9' }
         },
-        defaultStyle: { font: 'Roboto' }
+        defaultStyle: { font: 'Roboto', fontSize: 8 }
       };
 
       pdfMake.createPdf(docDefinition).download(`turnos_${monthNames[currentMonth]}_${currentYear}.pdf`);

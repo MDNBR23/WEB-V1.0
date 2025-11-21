@@ -4,15 +4,26 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
-**November 2025 - Shift Management Improvements:**
+**November 18, 2025 - UI/UX Optimization and Multi-Currency Implementation:**
+- **Visual Optimizations:**
+  - Optimized summary cards for space efficiency: reduced min-width (200px→140px), padding (20px→14px), and font sizes (value 32px→24px, label 13px→11px)
+  - Enhanced Statistics tab with visual hierarchy: added accent border separators, wrapped filters in background container, consistent 18px section headers
+  - Optimized PDF export for single-page layout: reduced margins (40/60→30/30), smaller fonts (header 26→18, body 10→8), tighter spacing and cell padding
+  - Added hover effects to summary cards with transform and shadow for better interaction feedback
+
+- **IMPLEMENTED COMPLETE multi-currency support** (frontend code existed, backend was missing):
+  - Added `currency` VARCHAR(3) field to shifts table with DEFAULT 'COP'
+  - Updated `createShift` and `updateShift` endpoints to persist currency field (PostgreSQL + JSON fallback)
+  - Refactored `getSummary` endpoint to GROUP BY currency and entity, returning separate totals per currency
+  - Implemented JSON fallback with identical multi-currency grouping logic for offline resilience
+  - Calendar summary cards now show separate OPS/Nómina/Total cards for each currency (e.g., "OPS (COP)", "OPS (EUR)")
+  - Statistics tab displays independent totals per currency with proper labeling
+  - PDF export generates separate sections per currency with headers when multiple currencies are used
+  - Single currency mode displays clean labels without redundant currency tags
+  - All monetary values remain as whole numbers (no decimals)
+
+**Previous November 2025 - Shift Management Improvements:**
 - Fixed timezone issue in bulk shift creation where selecting Monday-Friday would create Tuesday-Saturday shifts due to UTC/local time conversion
-- **Eliminated all decimal values** from shift amounts - all monetary values are now displayed as whole numbers
-- **Enhanced multi-currency support**: PDF and calendar summaries now properly separate each currency (COP, USD, EUR) with independent totals
-- **Improved PDF formatting**:
-  - When using a single currency: Clean report without redundant currency labels
-  - When using multiple currencies: Clear section headers (e.g., "REPORTE EN COP", "REPORTE EN USD") with visual separators
-  - Payroll (Nómina) shifts now display individually with date and hours, with a consolidated total at the end
-  - OPS shifts show individual values per shift
 - Reorganized bottom action menus to prevent overlap on smaller screens using responsive grid layouts
 
 ## User Preferences
