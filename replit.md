@@ -4,6 +4,16 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
+**November 21, 2025 - Session Persistence Fix:**
+- **Problem Fixed:** Users were losing their sessions after server restarts, preventing them from viewing their created shifts
+- **Root Cause:** Sessions were stored in memory (default express-session behavior) and were lost on every server restart
+- **Solution Implemented:**
+  - Installed `session-file-store` package
+  - Configured express-session to use FileStore for persistent session storage
+  - Sessions now saved to `data/sessions/` directory with 24-hour TTL
+  - Sessions persist across server restarts, ensuring users can access their shifts consistently
+- **Impact:** Users can now reliably view their created shifts in the calendar without authentication issues
+
 **November 18, 2025 - UI/UX Optimization and Multi-Currency Implementation:**
 - **Visual Optimizations:**
   - Optimized summary cards for space efficiency: reduced min-width (200px→140px), padding (20px→14px), and font sizes (value 32px→24px, label 13px→11px)

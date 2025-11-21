@@ -3,7 +3,12 @@ const { readJSON, writeJSON } = require('../services/fileService');
 
 exports.getShifts = async (req, res) => {
   try {
+    console.log('GET /api/shifts - Session:', req.session);
+    console.log('Session ID:', req.sessionID);
+    console.log('User ID from session:', req.session?.userId);
+    
     if (!req.session || !req.session.userId) {
+      console.error('GET /api/shifts - No session or userId found');
       return res.status(401).json({ error: 'No autorizado' });
     }
     

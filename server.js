@@ -34,6 +34,13 @@ app.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
 
 app.use(session(sessionConfig));
 
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    console.log(`${req.method} ${req.path} - Session ID: ${req.sessionID}, User ID: ${req.session?.userId}`);
+  }
+  next();
+});
+
 app.use(htmlRedirectMiddleware);
 
 app.use(express.static('.', {

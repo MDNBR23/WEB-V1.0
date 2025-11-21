@@ -19,8 +19,9 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "nodemailer": "^7.0.10",
-    "openai": "^6.8.1",
+    "openai": "^6.9.1",
     "pdfmake": "^0.2.20",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "session-file-store": "^1.5.0"
   }
 }
