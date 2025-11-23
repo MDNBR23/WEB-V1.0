@@ -10,12 +10,29 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
+:root {
+  --text-on-primary: #ffffff;
+  --footer-bg: #2d3748;
+  --footer-text: #cbd5e0;
+  --footer-text-hover: #ffffff;
+  --footer-info: #a0aec0;
+  --focus-ring: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+html[data-theme="dark"] {
+  --footer-bg: var(--g2);
+  --footer-text: var(--muted);
+  --footer-text-hover: var(--text);
+  --footer-info: var(--muted);
+  --focus-ring: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
 .modern-login-wrapper {
   width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
+  background: linear-gradient(135deg, var(--g1) 0%, var(--g2) 100%);
   padding: 0;
   position: relative;
 }
@@ -38,15 +55,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
   border-radius: 50%;
-  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .login-logo-text {
   font-size: 32px;
   font-weight: 800;
-  color: white;
+  color: var(--text-on-primary);
   text-align: center;
   line-height: 1;
 }
@@ -54,7 +71,7 @@
 .login-title {
   font-size: 32px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text);
   margin: 0 0 8px 0;
   text-align: left;
   width: 100%;
@@ -62,7 +79,7 @@
 
 .login-subtitle {
   font-size: 15px;
-  color: #64748b;
+  color: var(--muted);
   margin: 0 0 32px 0;
   line-height: 1.5;
   text-align: left;
@@ -74,7 +91,7 @@
   width: 100%;
   margin-bottom: 24px;
   gap: 0;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border);
 }
 
 .login-tab {
@@ -83,7 +100,7 @@
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  color: #94a3b8;
+  color: var(--muted);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -93,8 +110,8 @@
 }
 
 .login-tab.active {
-  color: #0284c7;
-  border-bottom-color: #0284c7;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 .login-form {
@@ -113,27 +130,28 @@
 .login-field label {
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .login-field input {
   padding: 14px 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 15px;
-  color: #0f172a;
-  background: white;
+  color: var(--text);
+  background: var(--card);
   transition: all 0.2s;
 }
 
 .login-field input:focus {
   outline: none;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
 }
 
 .login-field input::placeholder {
-  color: #cbd5e0;
+  color: var(--muted);
+  opacity: 0.6;
 }
 
 .recover-link {
@@ -143,7 +161,7 @@
 
 .recover-link a {
   font-size: 14px;
-  color: #0369a1;
+  color: var(--primary-600);
   text-decoration: none;
   font-weight: 600;
 }
@@ -151,8 +169,8 @@
 .login-button {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
+  color: var(--text-on-primary);
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -160,16 +178,16 @@
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 8px;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .login-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .login-button:disabled {
-  background: #cbd5e0;
+  background: var(--muted);
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -191,22 +209,22 @@
   top: 50%;
   width: 100%;
   height: 1px;
-  background: #e2e8f0;
+  background: var(--border);
 }
 
 .login-divider span {
-  background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
+  background: var(--card);
   padding: 0 16px;
   position: relative;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--muted);
 }
 
 .faceid-button {
   width: 100%;
   padding: 16px;
-  background: white;
-  border: 2px solid #e2e8f0;
+  background: var(--card);
+  border: 2px solid var(--border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -219,50 +237,131 @@
 .faceid-icon {
   width: 48px;
   height: 48px;
-  color: #94a3b8;
+  color: var(--muted);
 }
 
 .faceid-text {
   font-size: 14px;
-  color: #64748b;
+  color: var(--muted);
   font-weight: 500;
 }
 
-.modern-footer {
-  padding: 20px;
+.signup-prompt {
   text-align: center;
-  background: rgba(255, 255, 255, 0.5);
-  border-top: 1px solid rgba(226, 232, 240, 0.5);
+  padding: 40px 20px;
+}
+
+.signup-text {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.signup-link {
+  display: inline-block;
+  text-decoration: none;
+  max-width: 300px;
+}
+
+.modern-footer {
+  padding: 24px 20px;
+  text-align: center;
+  background: var(--footer-bg);
+  border-top: none;
+}
+
+html[data-theme="dark"] .modern-footer {
+  border-top: 1px solid var(--border);
 }
 
 .modern-footer-links {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 4px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
-  font-size: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  align-items: center;
 }
 
 .modern-footer-links a {
-  color: #64748b;
+  color: var(--footer-text);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
   transition: all 0.2s;
+  padding: 0 4px;
 }
 
 .modern-footer-links a:hover {
-  color: #0284c7;
-  border-bottom-color: #0284c7;
+  color: var(--footer-text-hover);
+}
+
+.modern-footer-links .separator {
+  color: var(--footer-text);
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
 }
 
 .modern-footer-info {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--footer-info);
   margin: 4px 0;
 }
 
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle svg {
+  width: 24px;
+  height: 24px;
+  color: var(--text);
+  transition: all 0.3s;
+}
+
+.sun-icon {
+  display: none;
+}
+
+html[data-theme="dark"] .sun-icon {
+  display: block;
+}
+
+html[data-theme="dark"] .moon-icon {
+  display: none;
+}
+
 @media (max-width: 480px) {
+  .theme-toggle {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .theme-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+  
   .modern-login-container {
     padding: 24px 16px 16px 16px;
   }
@@ -279,6 +378,11 @@
   
   .login-subtitle {
     font-size: 14px;
+  }
+  
+  .modern-footer-links {
+    flex-direction: row;
+    font-size: 11px;
   }
 }
 
@@ -310,6 +414,14 @@
   });
 </script>
 </head><body>
+  <button class="theme-toggle" id="themeToggle" type="button" title="Cambiar tema">
+    <svg class="sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+    </svg>
+  </button>
   <div class="modern-login-wrapper">
     <div class="modern-login-container">
       <div class="login-logo">
@@ -356,9 +468,9 @@
       </div>
       
       <div class="tab-content-login" id="signup-tab">
-        <div class="login-form" style="text-align: center; padding: 40px 20px;">
-          <p style="color: #64748b; margin-bottom: 20px;">¿Nuevo en Med Tools Hub?</p>
-          <a href="register.html" class="login-button enabled" style="display: inline-block; text-decoration: none; max-width: 300px;">
+        <div class="login-form signup-prompt">
+          <p class="signup-text">¿Nuevo en Med Tools Hub?</p>
+          <a href="register.html" class="login-button enabled signup-link">
             Crear cuenta nueva
           </a>
         </div>
@@ -367,10 +479,13 @@
     
     <footer class="modern-footer">
       <div class="modern-footer-links">
-        <a href="cookies.html">Cookies</a>
         <a href="privacidad.html">Política de Privacidad</a>
+        <span class="separator">|</span>
         <a href="terminos.html">Términos y Condiciones</a>
+        <span class="separator">|</span>
         <a href="aviso-legal.html">Aviso Legal</a>
+        <span class="separator">|</span>
+        <a href="cookies.html">Cookies</a>
       </div>
       <p class="modern-footer-info">NBR® 2025 | Med Tools Hub</p>
       <p class="modern-footer-info">contacto@medtoolshub.cloud</p>
@@ -393,6 +508,16 @@
           this.classList.add('active');
           document.getElementById(targetTab + '-tab').classList.add('active');
         });
+      });
+      
+      const themeToggle = document.getElementById('themeToggle');
+      
+      themeToggle.addEventListener('click', function() {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        localStorage.setItem('theme', newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
       });
     });
   </script>
