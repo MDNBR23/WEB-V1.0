@@ -11,30 +11,6 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
-.tools-header {
-  background: rgba(var(--warning-rgb), 0.08);
-  color: var(--text);
-  padding: 32px;
-  border-radius: 16px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(var(--warning-rgb), 0.1);
-  border: 1px solid rgba(var(--warning-rgb), 0.2);
-}
-.tools-header h2 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--warning);
-}
-.tools-header p {
-  margin: 0;
-  opacity: 0.85;
-  font-size: 15px;
-  color: var(--text);
-}
 .tool-menu {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -348,7 +324,10 @@ html[data-theme="dark"] #medicationSelect {
     <div class="content">
       <header class="header">
         <button id="btnToggleSidebar" type="button"></button>
-        <h2>Herramientas</h2>
+        <div class="header-title-group">
+          <h2>🔧 Herramientas Médicas</h2>
+          <p class="header-subtitle">Suite completa de calculadoras y herramientas para práctica clínica en pediatría y neonatología</p>
+        </div>
         <div id="colombiaClock"></div>
         <div class="user-info">
           <img id="avatarTop" alt="">
@@ -357,12 +336,6 @@ html[data-theme="dark"] #medicationSelect {
         </div>
       </header>
       <main>
-        
-        <!-- Header Banner -->
-        <div class="tools-header" id="toolsHeaderBanner">
-          <h2><span>🔧</span> Herramientas Médicas</h2>
-          <p>Suite completa de calculadoras y herramientas para práctica clínica en pediatría y neonatología</p>
-        </div>
 
         <div id="toolMenu" class="tool-menu">
           <div class="card glass tool-card" onclick="showTool('corrector')">

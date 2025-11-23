@@ -4,6 +4,38 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
+**November 23, 2025 - Header Optimization & Mobile Layout Redesign (Evening):**
+- **Integrated Descriptive Text into Headers (All Pages):**
+  - Eliminated redundant banner sections that occupied ~100px of vertical space
+  - Moved descriptive subtitles directly into header for cleaner, more compact design
+  - Applied to all 7 application pages: main, vademecum, herramientas, turnos, sugerencias, configuracion, admin
+  - Desktop: Title and subtitle appear side-by-side in a single line
+  - Mobile: Optimized grid layout for efficient space usage
+
+- **Mobile Header Grid Layout (≤768px):**
+  - Implemented CSS Grid for optimal horizontal space utilization
+  - **Row 1**: Hamburger menu | Clock (centered) | Avatar + Logout button
+  - **Row 2**: Full-width title and subtitle
+  - Eliminated wasted space next to hamburger button
+  - Clock and user controls now share top row for maximum efficiency
+
+- **Clock Display Fix:**
+  - Solved flickering/truncation issue when clock updates
+  - Applied `font-variant-numeric: tabular-nums` for fixed-width numbers
+  - Removed `overflow: hidden` and `text-overflow: ellipsis` that caused clipping
+  - Clock now displays fully without dots or visual jitter
+
+- **Mobile User Interface Optimizations:**
+  - Username hidden on mobile (shows only avatar + logout button)
+  - Reduced avatar size from 32px to 28px for compact layout
+  - Adjusted gaps and padding for tighter, more efficient spacing
+  - Removed unnecessary borders and margins in mobile view
+
+- **Consistency Across All Pages:**
+  - All 7 pages now share identical header structure and behavior
+  - Uniform subtitle styling with professional medical descriptions
+  - Seamless light/dark theme support maintained
+
 **November 23, 2025 - Mobile UI Fixes (Afternoon):**
 - **Turnos (Shifts Calendar) Mobile Fixes:**
   - Fixed bottom navigation bar that was being cut off in mobile devices

@@ -13,30 +13,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <style>
-.turnos-header {
-  background: rgba(var(--primary-rgb), 0.08);
-  color: var(--text);
-  padding: 16px 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.08);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
-}
-.turnos-header h2 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary);
-}
-.turnos-header p {
-  margin: 0;
-  opacity: 0.85;
-  font-size: 13px;
-  color: var(--text);
-}
 .turnos-actions {
   display: flex;
   gap: 10px;
@@ -481,7 +457,10 @@
     <div class="content">
       <header class="header">
         <button id="btnToggleSidebar" type="button"></button>
-        <h2>Gestión de Turnos</h2>
+        <div class="header-title-group">
+          <h2>📅 Gestión de Turnos</h2>
+          <p class="header-subtitle">Organiza tus turnos, visualiza festivos colombianos y gestiona cambios con colegas</p>
+        </div>
         <div id="colombiaClock"></div>
         <div class="user-info">
           <img id="avatarTop" alt="">
@@ -490,10 +469,6 @@
         </div>
       </header>
       <main>
-        <div class="turnos-header">
-          <h2><span>📅</span> Gestión de Turnos</h2>
-          <p>Organiza tus turnos, visualiza festivos colombianos y gestiona cambios con colegas</p>
-        </div>
 
         <div class="card glass" style="padding:0;overflow:hidden;">
           <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">

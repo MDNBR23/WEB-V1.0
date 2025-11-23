@@ -54,6 +54,85 @@
     font-size: 13px;
     color: var(--muted);
   }
+  .profile-form-grid {
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+  }
+  .profile-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  #tab-perfil {
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 768px) {
+    #tab-perfil {
+      display: block;
+    }
+    #tab-perfil > h3 {
+      margin-bottom: 16px;
+    }
+    .profile-form-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+    .profile-form-grid > div:first-child {
+      display: grid !important;
+      grid-template-columns: auto 1fr !important;
+      gap: 12px !important;
+      align-items: flex-start !important;
+      width: auto !important;
+    }
+    .profile-form-grid > div:first-child > .field {
+      grid-column: 1 !important;
+      width: auto !important;
+    }
+    .profile-form-grid > div:first-child > div:nth-child(2) {
+      grid-column: 1 !important;
+      width: 100%;
+      max-width: 150px;
+    }
+    .profile-form-grid > div:first-child > .profile-stats {
+      grid-column: 2 !important;
+      grid-row: 1 / 3 !important;
+      width: auto !important;
+      margin: 0 !important;
+    }
+    .profile-stats {
+      margin-bottom: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      grid-template-columns: 1fr !important;
+    }
+    .stat-card {
+      padding: 8px 10px;
+      min-width: 95px;
+    }
+    .stat-card h4 {
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .stat-card p {
+      font-size: 9px;
+    }
+    .profile-fields-grid {
+      gap: 8px;
+    }
+    .profile-fields-grid .field {
+      margin-bottom: 0;
+    }
+    .profile-fields-grid label {
+      font-size: 13px !important;
+    }
+    .profile-fields-grid input,
+    .profile-fields-grid select {
+      font-size: 14px !important;
+      padding: 8px 12px !important;
+    }
+  }
 </style>
 <script>
   document.documentElement.classList.add('preload');
@@ -79,7 +158,10 @@
     <div class="content">
       <header class="header">
         <button id="btnToggleSidebar" type="button"></button>
-        <h2>Configuración</h2>
+        <div class="header-title-group">
+          <h2>⚙️ Configuración</h2>
+          <p class="header-subtitle">Personaliza tu perfil, seguridad y preferencias de la aplicación</p>
+        </div>
         <div id="colombiaClock"></div>
         <div class="user-info">
           <img id="avatarTop" alt="">
@@ -111,36 +193,35 @@
             <div class="tab-content" id="tab-perfil">
               <h3 style="margin:0 0 20px 0;color:var(--text);">Información del Perfil</h3>
               
-              <!-- Profile Stats -->
-              <div class="profile-stats" style="margin-bottom:24px;">
-                <div class="stat-card">
-                  <h4 id="memberSinceDays">-</h4>
-                  <p>Días siendo miembro</p>
-                </div>
-                <div class="stat-card">
-                  <h4 id="userRoleBadge">-</h4>
-                  <p>Rol</p>
-                </div>
-                <div class="stat-card">
-                  <h4 id="accountStatusBadge">✓</h4>
-                  <p>Estado de cuenta</p>
-                </div>
-              </div>
-
               <form id="cfgForm">
-                <div class="grid-2col" style="grid-template-columns:280px 1fr;gap:24px;">
+                <div class="grid-2col profile-form-grid">
                   <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
                     <div class="field" style="width:100%;">
                       <label style="text-align:center;display:block;margin-bottom:8px;">Imagen de Perfil</label>
                       <img id="avatarTopPreview" src="" alt="" class="profile-preview" style="margin:0 auto;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
                     </div>
-                    <div style="display:flex;gap:6px;width:100%;flex-direction:column;">
-                      <button class="btn grow" type="button" style="font-size:13px;padding:10px 16px;" onclick="document.getElementById('cfgAvatarFile').click()">📷 Cambiar imagen</button>
-                      <button class="btn secondary grow" type="button" style="font-size:13px;padding:10px 16px;" id="cfgAvatarClear">🗑️ Quitar imagen</button>
+                    <div style="display:flex;gap:6px;width:100%;flex-direction:row;">
+                      <button class="btn grow" type="button" style="font-size:13px;padding:10px 16px;flex:1;" onclick="document.getElementById('cfgAvatarFile').click()">📷 Cambiar imagen</button>
+                      <button class="btn secondary grow" type="button" style="font-size:13px;padding:10px 16px;flex:1;" id="cfgAvatarClear">🗑️ Quitar imagen</button>
                       <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
                     </div>
+                    <!-- Profile Stats -->
+                    <div class="profile-stats" style="margin-bottom:0;">
+                      <div class="stat-card">
+                        <h4 id="memberSinceDays">-</h4>
+                        <p>Member Since</p>
+                      </div>
+                      <div class="stat-card">
+                        <h4 id="userRoleBadge">-</h4>
+                        <p>Rol</p>
+                      </div>
+                      <div class="stat-card">
+                        <h4 id="accountStatusBadge">✓</h4>
+                        <p>Estado de cuenta</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
+                  <div class="profile-fields-grid">
                     <div class="field">
                       <label>👤 Usuario</label>
                       <input id="cfgUser" type="text" disabled style="background:rgba(0,0,0,0.05);cursor:not-allowed;">
@@ -326,24 +407,24 @@
           
           const userData = await response.json();
           
-          // Calculate member days
+          // Display registration date
           if (userData.createdAt) {
             const created = new Date(userData.createdAt);
-            const now = new Date();
-            const diffTime = Math.abs(now - created);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            document.getElementById('memberSinceDays').textContent = diffDays;
+            const day = created.getDate().toString().padStart(2, '0');
+            const month = (created.getMonth() + 1).toString().padStart(2, '0');
+            const year = created.getFullYear();
+            document.getElementById('memberSinceDays').textContent = `${day}/${month}/${year}`;
           } else {
-            document.getElementById('memberSinceDays').textContent = '0';
+            document.getElementById('memberSinceDays').textContent = '-';
           }
           
           // Set role badge
           const roleElement = document.getElementById('userRoleBadge');
           if (userData.role === 'admin') {
-            roleElement.textContent = 'Admin';
+            roleElement.textContent = 'ADMIN';
             // Keep subtle styling from CSS - no override needed
           } else {
-            roleElement.textContent = 'Usuario';
+            roleElement.textContent = 'USUARIO';
           }
 
           // Set account status

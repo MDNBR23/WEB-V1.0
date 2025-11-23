@@ -95,6 +95,51 @@
   } 
   window.showToast=toast;
 
+  function showConfirm(message, title='Confirmación'){
+    return new Promise(resolve=>{
+      const backdrop=document.createElement('div');
+      backdrop.className='confirm-backdrop';
+      backdrop.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999;';
+      
+      const modal=document.createElement('div');
+      modal.className='confirm-modal';
+      const bgColor = document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e293b' : '#ffffff';
+      modal.style.cssText=`background:${bgColor};border-radius:16px;padding:24px;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.5);`;
+      
+      modal.innerHTML=`
+        <h3 style="margin:0 0 12px 0;color:var(--text);font-size:18px;">${title}</h3>
+        <p style="margin:0 0 24px 0;color:var(--muted);font-size:14px;line-height:1.5;">${message}</p>
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+          <button class="confirm-cancel" style="background:var(--border);color:var(--text);border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:500;font-size:14px;">Cancelar</button>
+          <button class="confirm-accept" style="background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:500;font-size:14px;">Aceptar</button>
+        </div>
+      `;
+      
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      
+      const close=()=>backdrop.remove();
+      
+      modal.querySelector('.confirm-cancel').onclick=()=>{
+        close();
+        resolve(false);
+      };
+      
+      modal.querySelector('.confirm-accept').onclick=()=>{
+        close();
+        resolve(true);
+      };
+      
+      backdrop.onclick=(e)=>{
+        if(e.target===backdrop){
+          close();
+          resolve(false);
+        }
+      };
+    });
+  }
+  window.showConfirm=showConfirm;
+
   function handleError(err, fallbackMsg) {
     if (err.code === 'SESSION_EXPIRED') return;
     toast(err.message || fallbackMsg, 'error');
@@ -198,9 +243,11 @@
   const sidebar=document.querySelector('.sidebar');
   const btn=document.getElementById('btnToggleSidebar');
   const collapsed=localStorage.getItem('sidebarCollapsed')==='1';
+  const sidebarWasOpen=localStorage.getItem('sidebarMobileOpen')==='1';
   
   if(layout&&collapsed)layout.classList.add('collapsed');
   if(sidebar&&collapsed)sidebar.classList.add('collapsed');
+  if(layout&&sidebarWasOpen&&window.innerWidth<=768)layout.classList.add('sidebar-open');
   
   function isMobile() {
     return window.innerWidth <= 768;
@@ -219,6 +266,7 @@
           layout.classList.remove('sidebar-open');
           sidebarOverlay.style.display = 'none';
           document.body.style.overflow = '';
+          localStorage.setItem('sidebarMobileOpen', '0');
         }
       });
     }
@@ -234,9 +282,11 @@
           sidebarOverlay.style.display = 'block';
           document.body.style.overflow = 'hidden';
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          localStorage.setItem('sidebarMobileOpen', '1');
         } else {
           sidebarOverlay.style.display = 'none';
           document.body.style.overflow = '';
+          localStorage.setItem('sidebarMobileOpen', '0');
         }
       } else {
         sidebar.classList.toggle('collapsed');
@@ -251,6 +301,7 @@
           layout.classList.remove('sidebar-open');
           if(sidebarOverlay) sidebarOverlay.style.display = 'none';
           document.body.style.overflow = '';
+          localStorage.setItem('sidebarMobileOpen', '0');
         }
       });
     });
@@ -876,7 +927,7 @@
   const btnDeleteAccount=document.getElementById('btnDeleteAccount');
   if(btnDeleteAccount){
     btnDeleteAccount.addEventListener('click',async()=>{
-      if(!confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente tu cuenta y todos tus datos.\n\n¿Estás absolutamente seguro de que deseas continuar?')){
+      if(!await showConfirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente tu cuenta y todos tus datos.\n\n¿Estás absolutamente seguro de que deseas continuar?','Eliminar cuenta')){
         return;
       }
       
@@ -885,7 +936,7 @@
         return;
       }
       
-      if(!confirm('Esta es tu última oportunidad para cancelar. ¿Realmente deseas eliminar tu cuenta?\n\nEsta acción NO se puede deshacer.')){
+      if(!await showConfirm('Esta es tu última oportunidad para cancelar. ¿Realmente deseas eliminar tu cuenta?\n\nEsta acción NO se puede deshacer.','Última advertencia')){
         return;
       }
       
@@ -1017,28 +1068,44 @@
           <td style="text-align:center;">
             <div class="action-menu">
               <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
-              <div class="action-menu-dropdown" data-menu="${u.username}">
-                <div class="action-menu-item info" data-edit-user="${u.username}">
-                  <span class="action-menu-icon">✏️</span>
-                  <span>Editar</span>
-                </div>
-                ${resendEmailOption}
-                <div class="action-menu-item success ${!canModify?'disabled':''}" data-approve="${u.username}">
-                  <span class="action-menu-icon">✓</span>
-                  <span>Aprobar</span>
-                </div>
-                <div class="action-menu-item warning ${!canModify?'disabled':''}" data-reject="${u.username}">
-                  <span class="action-menu-icon">✗</span>
-                  <span>Rechazar</span>
-                </div>
-                <div class="action-menu-item danger ${!canDelete?'disabled':''}" data-del-user="${u.username}">
-                  <span class="action-menu-icon">🗑️</span>
-                  <span>Eliminar</span>
-                </div>
-              </div>
             </div>
           </td>
         </tr>`;
+      }).join('');
+      
+      // Renderizar menús en contenedor global (fuera del overflow)
+      const userMenusContainer = document.getElementById('user-menus-container');
+      userMenusContainer.innerHTML = users.map(u => {
+        const isAdmin = u.username === 'admin';
+        const canDelete = u.username !== me && !isAdmin;
+        const canModify = !isAdmin;
+        const emailVerified = u.emailVerified === true;
+        const emailVerifiedExists = u.hasOwnProperty('emailVerified');
+        const resendEmailOption = (!emailVerified && emailVerifiedExists) ? 
+          `<div class="action-menu-item info" data-resend-email="${u.username}">
+            <span class="action-menu-icon">📧</span>
+            <span>Reenviar verificación</span>
+          </div>` : '';
+        
+        return `<div class="action-menu-dropdown" data-menu="${u.username}">
+          <div class="action-menu-item info" data-edit-user="${u.username}">
+            <span class="action-menu-icon">✏️</span>
+            <span>Editar</span>
+          </div>
+          ${resendEmailOption}
+          <div class="action-menu-item success ${!canModify?'disabled':''}" data-approve="${u.username}">
+            <span class="action-menu-icon">✓</span>
+            <span>Aprobar</span>
+          </div>
+          <div class="action-menu-item warning ${!canModify?'disabled':''}" data-reject="${u.username}">
+            <span class="action-menu-icon">✗</span>
+            <span>Rechazar</span>
+          </div>
+          <div class="action-menu-item danger ${!canDelete?'disabled':''}" data-del-user="${u.username}">
+            <span class="action-menu-icon">🗑️</span>
+            <span>Eliminar</span>
+          </div>
+        </div>`;
       }).join('');
       
       await updateUsuariosPendientesCounter();
@@ -1048,15 +1115,30 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const username = btn.getAttribute('data-menu-toggle');
-          const dropdown = tb.querySelector(`[data-menu="${username}"]`);
-          const isOpen = dropdown.classList.contains('show');
+          const dropdown = document.querySelector(`[data-menu="${username}"]`);
           
-          tb.querySelectorAll('.action-menu-dropdown').forEach(d => d.classList.remove('show'));
+          // Cerrar otros menús
+          document.querySelectorAll('.action-menu-dropdown').forEach(d => d.classList.remove('show'));
           
-          if (!isOpen) {
-            dropdown.classList.add('show');
+          // Posicionar al lado del botón
+          const rect = btn.getBoundingClientRect();
+          const menuWidth = 180;
+          let left = rect.right + 5;
+          if(left + menuWidth > window.innerWidth) {
+            left = rect.left - menuWidth - 5;
           }
+          dropdown.style.top = rect.top + 'px';
+          dropdown.style.left = left + 'px';
+          
+          dropdown.classList.add('show');
         });
+      });
+      
+      // Cierre global de menús
+      document.addEventListener('click', (e) => {
+        if(!e.target.closest('.action-menu') && !e.target.closest('.action-menu-dropdown')) {
+          document.querySelectorAll('.action-menu-dropdown.show').forEach(m => m.classList.remove('show'));
+        }
       });
       
       tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
@@ -1116,7 +1198,7 @@
       
       tb.querySelectorAll('[data-del-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-del-user');
-        if(!confirm(`¿Eliminar usuario ${username}?`))return;
+        if(!await showConfirm(`¿Eliminar usuario ${username}?`,'Confirmar eliminación'))return;
         try {
           await api(`/users/${username}`, {method: 'DELETE'});
           await renderUsers();
@@ -1128,7 +1210,7 @@
       
       tb.querySelectorAll('[data-resend-email]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-resend-email');
-        if(!confirm(`¿Reenviar correo de verificación a ${username}?`))return;
+        if(!await showConfirm(`¿Reenviar correo de verificación a ${username}?`,'Reenviar correo'))return;
         try {
           const result = await api('/resend-verification', {
             method: 'POST',
@@ -1912,7 +1994,7 @@
       tbody.querySelectorAll('[data-edit-med]').forEach(b => b.addEventListener('click', () => openMedicamento(b.getAttribute('data-edit-med'))));
       tbody.querySelectorAll('[data-del-med]').forEach(b => b.addEventListener('click', async () => {
         const id = b.getAttribute('data-del-med');
-        if(!confirm('¿Eliminar este medicamento?')) return;
+        if(!await showConfirm('¿Eliminar este medicamento?','Confirmar eliminación')) return;
         
         try {
           await api(`/medications/${id}`, {method: 'DELETE'});
@@ -2156,10 +2238,10 @@
 
     try {
       const sugerenciasData = await api('/sugerencias/count');
-      const sugerenciasPendientes = sugerenciasData.count || 0;
+      const sugerenciasPendientes = sugerenciasData?.count || 0;
 
       const users = await api('/users');
-      const usuariosPendientes = users.filter(u => u.status === 'pendiente').length;
+      const usuariosPendientes = Array.isArray(users) ? users.filter(u => u.status === 'pendiente').length : 0;
 
       const totalNotificaciones = sugerenciasPendientes + usuariosPendientes;
 
@@ -2175,15 +2257,17 @@
         adminNavLink.classList.remove('has-notifications');
       }
       
-      lastAdminNotifications = totalNotificaciones;
+      lastAdminNotificaciones = totalNotificaciones;
     } catch (err) {
-      console.error('Error fetching admin notifications:', err);
+      adminBadge.style.display = 'none';
     }
   }
 
   async function renderSugerenciasAdmin() {
     if(!adminSugerenciasTable) return;
     const tbody = adminSugerenciasTable.querySelector('tbody');
+    const expandibleDiv = document.getElementById('sugerenciasExpandible');
+    const menusContainer = document.getElementById('sug-menus-container');
 
     try {
       const list = await api('/sugerencias');
@@ -2198,20 +2282,101 @@
         return `<tr>
           <td>${s.username}</td>
           <td>${new Date(s.fecha).toLocaleDateString()}</td>
-          <td>${s.mensaje}</td>
-          <td>${s.respuesta||'-'}</td>
-          <td><div style='display:flex;gap:6px;white-space:nowrap'>
+          <td><div style='display:flex;gap:6px;align-items:center;white-space:nowrap'>
             <span class='chip' style='${statusStyle}'>${statusText}</span>
-            <button class='btn sm info' data-resp-sug='${s.id}'>Responder</button>
-            <button class='btn sm danger' data-del-sug='${s.id}'>Eliminar</button>
+            <div class='sug-menu-container'>
+              <button class='sug-menu-btn' data-menu-sug='${s.id}' title='Opciones'>⋮</button>
+            </div>
           </div></td>
         </tr>`;
       }).join('');
+      
+      // Renderizar menús en contenedor separado (fuera del overflow)
+      menusContainer.innerHTML = sorted.map(s => `
+        <div class='sug-menu-dropdown' id='menu-${s.id}'>
+          <button class='sug-menu-item' data-resp-sug='${s.id}'>💬 Responder</button>
+          <button class='sug-menu-item danger' data-del-sug='${s.id}'>🗑️ Eliminar</button>
+        </div>
+      `).join('');
 
-      tbody.querySelectorAll('[data-resp-sug]').forEach(b => b.addEventListener('click', () => openSugerencia(b.getAttribute('data-resp-sug'))));
-      tbody.querySelectorAll('[data-del-sug]').forEach(b => b.addEventListener('click', async () => {
+      expandibleDiv.innerHTML = sorted.map(s => `
+        <div class='sug-accordion' id='sug-expand-${s.id}'>
+          <div style='margin-bottom:12px;'>
+            <strong>${s.username}</strong> <span class='text-muted'>${new Date(s.fecha).toLocaleDateString()}</span>
+          </div>
+          <label style='display:block;margin-bottom:8px;font-weight:500;'>📝 Sugerencia:</label>
+          <div class='mensaje-text'>${s.mensaje}</div>
+          <label style='display:block;margin-bottom:8px;font-weight:500;'>💬 Tu respuesta:</label>
+          <textarea id='resp-${s.id}' placeholder='Escribe tu respuesta aquí...'>${s.respuesta || ''}</textarea>
+          <div style='display:flex;gap:8px;margin-top:12px;'>
+            <button class='btn sm primary' data-save-sug='${s.id}'>Guardar respuesta</button>
+            <button class='btn sm' data-cancel-sug='${s.id}'>Cerrar</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Listeners para botones de hamburguesa
+      tbody.querySelectorAll('[data-menu-sug]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-menu-sug');
+          const menu = document.getElementById(`menu-${id}`);
+          
+          // Cerrar otros menus
+          document.querySelectorAll('.sug-menu-dropdown.show').forEach(m => {
+            if(m.id !== `menu-${id}`) m.classList.remove('show');
+          });
+          
+          // Posicionar al lado del botón
+          const rect = btn.getBoundingClientRect();
+          const menuWidth = 160;
+          let left = rect.right + 5;
+          if(left + menuWidth > window.innerWidth) {
+            left = rect.left - menuWidth - 5;
+          }
+          menu.style.top = rect.top + 'px';
+          menu.style.left = left + 'px';
+          
+          menu.classList.toggle('show');
+        });
+      });
+
+      // Responder
+      tbody.querySelectorAll('[data-resp-sug]').forEach(b => b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = b.getAttribute('data-resp-sug');
+        document.getElementById(`sug-expand-${id}`).classList.add('active');
+        document.getElementById(`resp-${id}`).focus();
+        document.getElementById(`menu-${id}`).classList.remove('show');
+      }));
+
+      expandibleDiv.querySelectorAll('[data-cancel-sug]').forEach(b => b.addEventListener('click', () => {
+        const id = b.getAttribute('data-cancel-sug');
+        document.getElementById(`sug-expand-${id}`).classList.remove('active');
+      }));
+
+      expandibleDiv.querySelectorAll('[data-save-sug]').forEach(b => b.addEventListener('click', async () => {
+        const id = b.getAttribute('data-save-sug');
+        const respuesta = document.getElementById(`resp-${id}`).value;
+        try {
+          await api(`/sugerencias/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({respuesta})
+          });
+          document.getElementById(`sug-expand-${id}`).classList.remove('active');
+          await renderSugerenciasAdmin();
+          await updateSugerenciasCounter();
+          toast('Respuesta guardada.', 'info');
+        } catch (err) {
+          toast('Error al guardar respuesta.', 'error');
+        }
+      }));
+
+      // Eliminar
+      tbody.querySelectorAll('[data-del-sug]').forEach(b => b.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const id = b.getAttribute('data-del-sug');
-        if(!confirm('¿Eliminar esta sugerencia?')) return;
+        if(!await showConfirm('¿Eliminar esta sugerencia?','Confirmar eliminación')) return;
 
         try {
           await api(`/sugerencias/${id}`, {method: 'DELETE'});
@@ -2285,6 +2450,13 @@
   if(adminSugerenciasTable) {
     await renderSugerenciasAdmin();
     setInterval(updateSugerenciasCounter, 10000);
+    
+    // Cierre global de menus
+    document.addEventListener('click', (e) => {
+      if(!e.target.closest('.sug-menu-container') && !e.target.closest('.sug-menu-dropdown')) {
+        document.querySelectorAll('.sug-menu-dropdown.show').forEach(m => m.classList.remove('show'));
+      }
+    });
   }
 
   const toggleMantenimiento = document.getElementById('toggleMantenimiento');
@@ -2782,7 +2954,7 @@
     tbody.querySelectorAll('[data-edit-inf]').forEach(b => b.addEventListener('click', () => openInfusion(b.getAttribute('data-edit-inf'))));
     tbody.querySelectorAll('[data-del-inf]').forEach(b => b.addEventListener('click', async () => {
       const id = parseInt(b.getAttribute('data-del-inf'));
-      if(!confirm('¿Eliminar este medicamento de infusión?')) return;
+      if(!await showConfirm('¿Eliminar este medicamento de infusión?','Confirmar eliminación')) return;
 
       const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
       const filtered = meds.filter(m => m.id !== id);

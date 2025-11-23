@@ -29,31 +29,6 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .info-banner {
-    background: rgba(var(--info-rgb), 0.08);
-    color: var(--text);
-    padding: 24px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    border: 1px solid rgba(var(--info-rgb), 0.2);
-  }
-  .info-banner-icon {
-    font-size: 48px;
-  }
-  .info-banner-content h3 {
-    margin: 0 0 6px 0;
-    font-size: 20px;
-    color: var(--info);
-  }
-  .info-banner-content p {
-    margin: 0;
-    opacity: 0.85;
-    font-size: 14px;
-    color: var(--text);
-  }
   .suggestion-card {
     background: var(--card);
     padding: 20px;
@@ -134,7 +109,10 @@
     <div class="content">
       <header class="header">
         <button id="btnToggleSidebar" type="button"></button>
-        <h2>Sugerencias</h2>
+        <div class="header-title-group">
+          <h2>💡 Tu opinión nos importa</h2>
+          <p class="header-subtitle">Ayúdanos a mejorar Med Tools Hub reportando errores o sugiriendo nuevas funcionalidades</p>
+        </div>
         <div id="colombiaClock"></div>
         <div class="user-info">
           <img id="avatarTop" alt="">
@@ -143,14 +121,6 @@
         </div>
       </header>
       <main>
-        <!-- Info Banner -->
-        <div class="info-banner">
-          <div class="info-banner-icon">💡</div>
-          <div class="info-banner-content">
-            <h3>Tu opinión nos importa</h3>
-            <p>Ayúdanos a mejorar Med Tools Hub reportando errores o sugiriendo nuevas funcionalidades</p>
-          </div>
-        </div>
 
         <!-- Tabs -->
         <div class="card glass" style="padding:0;overflow:hidden;">
