@@ -166,21 +166,20 @@
   }
   .sug-menu-dropdown {
     position: fixed;
-    background: #f8fafc;
+    background: #f1f5f9;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 8px 0;
     display: none;
     z-index: 100000;
     min-width: 160px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     pointer-events:auto;
   }
   
-  @media (prefers-color-scheme: dark) {
-    .sug-menu-dropdown {
-      background: #1a2332;
-    }
+  html[data-theme="dark"] .sug-menu-dropdown {
+    background: #1e293b;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   .sug-menu-dropdown.show {
     display: flex;
@@ -368,6 +367,7 @@
                 </tr></thead><tbody></tbody>
               </table>
             </div>
+            <div id="usersPagination" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;"></div>
           </div>
 
           <!-- Tab Content: Anuncios -->

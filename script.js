@@ -961,10 +961,130 @@
   const modalUser=document.getElementById('modalUser');
   const userForm=document.getElementById('userForm');
   let allUsers = [];
+  let usersCurrentPage = 1;
+  const USERS_PER_PAGE = 6;
   
   function openModal(id, show){
     const el=document.getElementById(id);
     if(el) el.style.display=show?'flex':'none';
+  }
+  
+  async function goToUsersPage(page, users) {
+    usersCurrentPage = page;
+    const tb=adminUsersTable?.querySelector('tbody');
+    if(!tb) return;
+    
+    const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+    const start = (usersCurrentPage - 1) * USERS_PER_PAGE;
+    const paginatedUsers = users.slice(start, start + USERS_PER_PAGE);
+    
+    try {
+      const session = await checkSession();
+      const me=session.username;
+      
+      tb.innerHTML=paginatedUsers.map(u=>{
+        const status = u.status||'pendiente';
+        const statusText = status.toUpperCase();
+        let statusClass = 'chip';
+        let statusStyle = '';
+        
+        if (status === 'aprobado') {
+          statusStyle = 'background:#16a34a;color:#fff;';
+        } else if (status === 'rechazado') {
+          statusStyle = 'background:#dc2626;color:#fff;';
+        } else if (status === 'pendiente') {
+          statusClass = 'chip status-pendiente';
+          statusStyle = 'background:#ff8c00;color:#fff;';
+        } else if (status === 'suspendido') {
+          statusStyle = 'background:#ff8c00;color:#fff;';
+        }
+        
+        const roleText = (u.role||'user').toUpperCase();
+        const isAdmin = u.username === 'admin';
+        const fullName = (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : (u.name || '');
+        const canDelete = u.username !== me && !isAdmin;
+        const canModify = !isAdmin;
+        const isOnline = u.isOnline || false;
+        const onlineIndicator = isOnline ? 
+          '<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;box-shadow:0 0 8px #16a34a;"></span>Online</span>' : 
+          '<span style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);"><span style="display:inline-block;width:10px;height:10px;background:#cbd5e1;border-radius:50%;"></span>Offline</span>';
+        
+        let lastLoginText = '-';
+        if (u.lastLogin) {
+          const loginDate = new Date(u.lastLogin);
+          const now = new Date();
+          const diffMs = now - loginDate;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMins / 60);
+          const diffDays = Math.floor(diffHours / 24);
+          if (diffMins < 1) lastLoginText = 'Ahora';
+          else if (diffMins < 60) lastLoginText = `Hace ${diffMins}m`;
+          else if (diffHours < 24) lastLoginText = `Hace ${diffHours}h`;
+          else if (diffDays < 7) lastLoginText = `Hace ${diffDays}d`;
+          else lastLoginText = loginDate.toLocaleDateString();
+        }
+        
+        return `<tr>
+          <td><strong>${u.username}</strong></td>
+          <td>${fullName}</td>
+          <td><span class='chip' style='font-size:11px;padding:4px 10px;background:var(--primary-light);color:var(--primary);'>${roleText}</span></td>
+          <td><span class='${statusClass}' style='${statusStyle}'>${statusText}</span></td>
+          <td>${onlineIndicator}</td>
+          <td style="font-size:13px;color:var(--muted);">${lastLoginText}</td>
+          <td style="text-align:center;">
+            <div class="action-menu">
+              <button class="action-menu-btn" data-menu-toggle="${u.username}">⋮</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+      
+      // Actualizar paginación
+      const paginationDiv = document.getElementById('usersPagination');
+      paginationDiv.innerHTML = '';
+      if(totalPages > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'btn sm';
+        prevBtn.textContent = '← Anterior';
+        prevBtn.disabled = usersCurrentPage === 1;
+        prevBtn.addEventListener('click', () => goToUsersPage(usersCurrentPage - 1, users));
+        paginationDiv.appendChild(prevBtn);
+        
+        const pageInfo = document.createElement('span');
+        pageInfo.style.fontSize = '14px';
+        pageInfo.style.color = 'var(--muted)';
+        pageInfo.textContent = `Página ${usersCurrentPage} de ${totalPages}`;
+        paginationDiv.appendChild(pageInfo);
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn sm';
+        nextBtn.textContent = 'Siguiente →';
+        nextBtn.disabled = usersCurrentPage === totalPages;
+        nextBtn.addEventListener('click', () => goToUsersPage(usersCurrentPage + 1, users));
+        paginationDiv.appendChild(nextBtn);
+      }
+      
+      // Re-agregar listeners
+      tb.querySelectorAll('[data-menu-toggle]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const username = btn.getAttribute('data-menu-toggle');
+          const dropdown = document.querySelector(`[data-menu="${username}"]`);
+          document.querySelectorAll('.action-menu-dropdown').forEach(d => d.classList.remove('show'));
+          const rect = btn.getBoundingClientRect();
+          const menuWidth = 180;
+          let left = rect.right + 5;
+          if(left + menuWidth > window.innerWidth) {
+            left = rect.left - menuWidth - 5;
+          }
+          dropdown.style.top = rect.top + 'px';
+          dropdown.style.left = left + 'px';
+          dropdown.classList.add('show');
+        });
+      });
+    } catch (err) {
+      console.error('Error rendering users:', err);
+    }
   }
   
   window.filterUsers = function() {
@@ -1004,7 +1124,13 @@
       const session = await checkSession();
       const me=session.username;
       
-      tb.innerHTML=users.map(u=>{
+      // Paginación
+      usersCurrentPage = 1;
+      const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+      const start = (usersCurrentPage - 1) * USERS_PER_PAGE;
+      const paginatedUsers = users.slice(start, start + USERS_PER_PAGE);
+      
+      tb.innerHTML=paginatedUsers.map(u=>{
         const status = u.status||'pendiente';
         const statusText = status.toUpperCase();
         let statusClass = 'chip';
@@ -1111,6 +1237,31 @@
       await updateUsuariosPendientesCounter();
       await updateAdminNotifications();
       
+      // Renderizar controles de paginación
+      const paginationDiv = document.getElementById('usersPagination');
+      paginationDiv.innerHTML = '';
+      if(totalPages > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'btn sm';
+        prevBtn.textContent = '← Anterior';
+        prevBtn.disabled = usersCurrentPage === 1;
+        prevBtn.addEventListener('click', () => goToUsersPage(usersCurrentPage - 1, users));
+        paginationDiv.appendChild(prevBtn);
+        
+        const pageInfo = document.createElement('span');
+        pageInfo.style.fontSize = '14px';
+        pageInfo.style.color = 'var(--muted)';
+        pageInfo.textContent = `Página ${usersCurrentPage} de ${totalPages}`;
+        paginationDiv.appendChild(pageInfo);
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn sm';
+        nextBtn.textContent = 'Siguiente →';
+        nextBtn.disabled = usersCurrentPage === totalPages;
+        nextBtn.addEventListener('click', () => goToUsersPage(usersCurrentPage + 1, users));
+        paginationDiv.appendChild(nextBtn);
+      }
+      
       tb.querySelectorAll('[data-menu-toggle]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1141,7 +1292,7 @@
         }
       });
       
-      tb.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
+      userMenusContainer.querySelectorAll('[data-edit-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-edit-user');
         const users = await api('/users');
         const u=users.find(x=>x.username===username);
@@ -1168,7 +1319,7 @@
         openModal('modalUser',true);
       }));
       
-      tb.querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click',async()=>{
+      userMenusContainer.querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-approve');
         try {
           await api(`/users/${username}`, {
@@ -1182,7 +1333,7 @@
         }
       }));
       
-      tb.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',async()=>{
+      userMenusContainer.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-reject');
         try {
           await api(`/users/${username}`, {
@@ -1196,7 +1347,7 @@
         }
       }));
       
-      tb.querySelectorAll('[data-del-user]').forEach(b=>b.addEventListener('click',async()=>{
+      userMenusContainer.querySelectorAll('[data-del-user]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-del-user');
         if(!await showConfirm(`¿Eliminar usuario ${username}?`,'Confirmar eliminación'))return;
         try {
@@ -1208,7 +1359,7 @@
         }
       }));
       
-      tb.querySelectorAll('[data-resend-email]').forEach(b=>b.addEventListener('click',async()=>{
+      userMenusContainer.querySelectorAll('[data-resend-email]').forEach(b=>b.addEventListener('click',async()=>{
         const username=b.getAttribute('data-resend-email');
         if(!await showConfirm(`¿Reenviar correo de verificación a ${username}?`,'Reenviar correo'))return;
         try {
@@ -2341,8 +2492,8 @@
         });
       });
 
-      // Responder
-      tbody.querySelectorAll('[data-resp-sug]').forEach(b => b.addEventListener('click', (e) => {
+      // Responder (buscar en el contenedor global)
+      menusContainer.querySelectorAll('[data-resp-sug]').forEach(b => b.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = b.getAttribute('data-resp-sug');
         document.getElementById(`sug-expand-${id}`).classList.add('active');
@@ -2372,8 +2523,8 @@
         }
       }));
 
-      // Eliminar
-      tbody.querySelectorAll('[data-del-sug]').forEach(b => b.addEventListener('click', async (e) => {
+      // Eliminar (buscar en el contenedor global)
+      menusContainer.querySelectorAll('[data-del-sug]').forEach(b => b.addEventListener('click', async (e) => {
         e.stopPropagation();
         const id = b.getAttribute('data-del-sug');
         if(!await showConfirm('¿Eliminar esta sugerencia?','Confirmar eliminación')) return;

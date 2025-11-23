@@ -1654,7 +1654,7 @@ textarea{
 
 .action-menu-dropdown {
   position: fixed;
-  background: #f8fafc;
+  background: #f1f5f9;
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
@@ -1665,10 +1665,9 @@ textarea{
   pointer-events: auto;
 }
 
-@media (prefers-color-scheme: dark) {
-  .action-menu-dropdown {
-    background: #1a2332;
-  }
+html[data-theme="dark"] .action-menu-dropdown {
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .action-menu-dropdown.show {
