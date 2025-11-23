@@ -162,7 +162,7 @@ html.preload{
   align-items:center;
   justify-content:center;
   padding:24px;
-  padding-bottom:140px;
+  padding-bottom:160px;
   background:linear-gradient(135deg,var(--g1),var(--g2)) fixed;
   overflow-y:auto;
   box-sizing:border-box;
@@ -479,8 +479,8 @@ a.btn:hover{
   align-items:center;
   gap:12px;
   margin-bottom:16px;
-  padding:12px 16px;
-  padding-top:max(12px, env(safe-area-inset-top));
+  padding:14px 16px;
+  padding-top:max(14px, env(safe-area-inset-top));
   background:rgba(255,255,255,.85);
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
@@ -883,7 +883,9 @@ textarea{
     transition:left .3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height:100vh;
     height:100%;
-    box-shadow:4px 0 20px rgba(0,0,0,0.5);
+    box-shadow:4px 0 20px rgba(0,0,0,0.15);
+    background:var(--card);
+    backdrop-filter:blur(20px);
   }
   
   .layout.sidebar-open .sidebar{
@@ -959,7 +961,7 @@ textarea{
   }
   
   .auth-wrapper{
-    padding-bottom:180px;
+    padding-bottom:220px;
   }
 
   .btn{

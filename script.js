@@ -218,6 +218,7 @@
         if(isMobile()) {
           layout.classList.remove('sidebar-open');
           sidebarOverlay.style.display = 'none';
+          document.body.style.overflow = '';
         }
       });
     }
@@ -231,8 +232,11 @@
         layout.classList.toggle('sidebar-open');
         if(layout.classList.contains('sidebar-open')) {
           sidebarOverlay.style.display = 'block';
+          document.body.style.overflow = 'hidden';
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
           sidebarOverlay.style.display = 'none';
+          document.body.style.overflow = '';
         }
       } else {
         sidebar.classList.toggle('collapsed');
@@ -246,6 +250,7 @@
         if(isMobile()) {
           layout.classList.remove('sidebar-open');
           if(sidebarOverlay) sidebarOverlay.style.display = 'none';
+          document.body.style.overflow = '';
         }
       });
     });

@@ -4,7 +4,34 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
-**November 23, 2025 - Mobile-First UI Redesign & Corrections:**
+**November 23, 2025 - Mobile UI Fixes (Afternoon):**
+- **Turnos (Shifts Calendar) Mobile Fixes:**
+  - Fixed bottom navigation bar that was being cut off in mobile devices
+  - Adjusted content padding to properly account for safe-area-inset-bottom on iOS/Android
+  - Main content now has proper spacing (calc(90px + env(safe-area-inset-bottom))) to prevent overlap
+
+- **Sidebar Mobile Improvements:**
+  - Reduced harsh box-shadow from rgba(0,0,0,0.5) to rgba(0,0,0,0.15) for cleaner appearance
+  - Improved background with var(--card) and backdrop-filter for professional glass effect
+  - Sidebar now looks modern and clean instead of opaque on mobile devices
+
+- **Registration/Login Footer Fix:**
+  - Increased auth-wrapper padding-bottom from 140px to 160px (desktop) and 180px to 220px (mobile)
+  - Footer no longer overlaps with registration form content
+  - Resolved recurring issue with footer positioning on authentication pages
+
+- **Header Button Overflow Fix:**
+  - Increased header padding from 12px to 14px vertically
+  - "Salir" button now fits properly within header bounds
+  - Fixed visual overflow issue affecting all pages
+
+- **Sidebar Mobile Scroll Lock:**
+  - Added body scroll prevention when sidebar is open on mobile devices
+  - Blocks background scrolling to improve user experience
+  - Automatically scrolls to top when sidebar opens to ensure content visibility
+  - Automatically restores scroll when sidebar closes or when clicking overlay/links
+
+**November 23, 2025 - Mobile-First UI Redesign & Corrections (Morning):**
 - **Login Page Redesign (index.html):**
   - Implemented modern mobile-first design with circular MTH logo
   - Added "Bienvenido" welcome title with professional medical subtitle: "Accede a herramientas médicas especializadas en pediatría y neonatología"
