@@ -197,25 +197,21 @@ html[data-theme="dark"] {
 }
 
 .login-divider {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin: 24px 0;
-  position: relative;
 }
 
-.login-divider::before {
+.login-divider::before,
+.login-divider::after {
   content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 100%;
+  flex: 1;
   height: 1px;
   background: var(--border);
 }
 
 .login-divider span {
-  background: var(--card);
-  padding: 0 16px;
-  position: relative;
   font-size: 13px;
   color: var(--muted);
 }
@@ -299,6 +295,8 @@ html[data-theme="dark"] .modern-footer {
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
+  background: transparent;
+  padding: 0;
 }
 
 .modern-footer-info {
@@ -463,7 +461,7 @@ html[data-theme="dark"] .moon-icon {
           <svg class="faceid-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
           </svg>
-          <span class="faceid-text">Inicie sesión con FaceID</span>
+          <span class="faceid-text">Inicie sesión con FaceID o Huella</span>
         </button>
       </div>
       

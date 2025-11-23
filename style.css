@@ -487,6 +487,8 @@ a.btn:hover{
   border-radius:12px;
   box-shadow:0 2px 8px rgba(0,0,0,0.08);
   border:1px solid rgba(71,85,105,0.1);
+  flex-wrap:nowrap;
+  overflow:visible;
 }
 
 html[data-theme="dark"] .header{
@@ -500,7 +502,10 @@ html[data-theme="dark"] .header{
   font-weight:700;
   margin:0;
   color:var(--text);
-  flex-shrink:0;
+  flex-shrink:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 #colombiaClock{
@@ -508,6 +513,9 @@ html[data-theme="dark"] .header{
   color:var(--muted);
   margin-left:auto;
   white-space:nowrap;
+  flex-shrink:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 .user-info{
@@ -533,6 +541,25 @@ html[data-theme="dark"] .header{
   object-fit:cover;
   background:var(--card);
   flex-shrink:0;
+}
+
+.user-info .btn.danger{
+  background:transparent;
+  color:var(--danger);
+  border:1.5px solid var(--danger);
+  padding:6px 14px;
+  font-size:12px;
+  font-weight:600;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.user-info .btn.danger:hover{
+  background:var(--danger);
+  color:#ffffff;
+  transform:translateY(-1px);
+  box-shadow:0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 .card{
@@ -1237,6 +1264,8 @@ textarea{
   color: var(--muted);
   opacity: 0.5;
   pointer-events: none;
+  background: transparent;
+  padding: 0;
 }
 
 @media (max-width: 768px) {
