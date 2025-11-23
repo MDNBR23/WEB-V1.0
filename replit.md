@@ -4,6 +4,24 @@
 Med Tools Hub is a production-ready, Spanish-language web platform designed for pediatric and neonatal healthcare professionals. It serves as a centralized hub for essential medical resources, offering user management, medical announcements, clinical guidelines, medication information, and specialized medical tools. The platform features a robust backend API with user session management and data isolation, aiming to streamline operations and provide critical support for healthcare providers. The business vision is to become the go-to platform for pediatric and neonatal medical professionals, enhancing clinical decision-making and efficiency within the sector.
 
 ## Recent Changes
+**November 23, 2025 - Mobile-First UI Redesign & Corrections:**
+- **Login Page Redesign (index.html):**
+  - Implemented modern mobile-first design with circular MTH logo
+  - Added "Bienvenido" welcome title with professional medical subtitle: "Accede a herramientas médicas especializadas en pediatría y neonatología"
+  - Created tab navigation system (Iniciar sesión / Nuevo usuario)
+  - Clean, minimal form design with placeholders and labeled fields
+  - Responsive design optimized for both iOS and Android devices
+  - Complete legal footer with 4 links: Cookies, Política de Privacidad, Términos y Condiciones, Aviso Legal
+  - Maintained all existing authentication functionality and compatibility with script.js
+  
+- **Shifts Calendar Redesign (turnos.html):**
+  - Added mobile bottom navigation bar with Calendar, Reports, Shifts, and More sections
+  - Removed forced dark theme styles - now adapts naturally to user's theme preference (light/dark)
+  - Clean, card-based design that matches medical platform aesthetic
+  - Enhanced responsive design for better mobile usability on iOS and Android
+  - Preserved all existing shift management functionality (calendar, statistics, PDF export, multi-currency)
+  - Improved visual hierarchy with professional UI elements
+
 **November 21, 2025 - Session Persistence Fix:**
 - **Problem Fixed:** Users were losing their sessions after server restarts, preventing them from viewing their created shifts
 - **Root Cause:** Sessions were stored in memory (default express-session behavior) and were lost on every server restart

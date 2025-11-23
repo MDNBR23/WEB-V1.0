@@ -5,10 +5,303 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#475569">
+<meta name="theme-color" content="#0284c7">
 <title>Med Tools Hub</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
+<style>
+.modern-login-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
+  padding: 0;
+  position: relative;
+}
+
+.modern-login-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 20px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.login-logo {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.3);
+}
+
+.login-logo-text {
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  text-align: center;
+  line-height: 1;
+}
+
+.login-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.login-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+}
+
+.login-tabs {
+  display: flex;
+  width: 100%;
+  margin-bottom: 24px;
+  gap: 0;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #94a3b8;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.login-tab.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.login-field input {
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #0f172a;
+  background: white;
+  transition: all 0.2s;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.login-field input::placeholder {
+  color: #cbd5e0;
+}
+
+.recover-link {
+  text-align: right;
+  margin-top: -12px;
+}
+
+.recover-link a {
+  font-size: 14px;
+  color: #0369a1;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+}
+
+.login-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.login-button:disabled:hover {
+  transform: none;
+}
+
+.login-divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.login-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.login-divider span {
+  background: linear-gradient(135deg, #e0f7ff 0%, #f0f9ff 100%);
+  padding: 0 16px;
+  position: relative;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.faceid-button {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.faceid-icon {
+  width: 48px;
+  height: 48px;
+  color: #94a3b8;
+}
+
+.faceid-text {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.modern-footer {
+  padding: 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.modern-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.modern-footer-links a {
+  color: #64748b;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.modern-footer-links a:hover {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+.modern-footer-info {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 4px 0;
+}
+
+@media (max-width: 480px) {
+  .modern-login-container {
+    padding: 24px 16px 16px 16px;
+  }
+  
+  .login-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+  }
+  
+  .login-title {
+    font-size: 28px;
+  }
+  
+  .login-subtitle {
+    font-size: 14px;
+  }
+}
+
+.tab-content-login {
+  display: none;
+  animation: fadeInLogin 0.3s ease;
+}
+
+.tab-content-login.active {
+  display: block;
+}
+
+@keyframes fadeInLogin {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
@@ -17,34 +310,90 @@
   });
 </script>
 </head><body>
-  <div class="auth-wrapper">
-    <div class="auth-box glass">
-      <h2 class="auth-title">Med Tools Hub</h2>
-      <form id="loginForm" class="stack" autocomplete="off">
-        <div class="field"><label for="loginUser">Usuario</label><input id="loginUser" type="text" autocomplete="username" required></div>
-        <div class="field"><label for="loginPass">Contraseña</label><input id="loginPass" type="password" autocomplete="current-password" required></div>
-        <div class="auth-actions">
-          <button class="btn grow" type="submit">Ingresar</button>
-          <a class="btn secondary" href="register.html">Registrarme</a>
+  <div class="modern-login-wrapper">
+    <div class="modern-login-container">
+      <div class="login-logo">
+        <div class="login-logo-text">MTH</div>
+      </div>
+      
+      <h1 class="login-title">Bienvenido</h1>
+      <p class="login-subtitle">Accede a herramientas médicas especializadas en pediatría y neonatología.</p>
+      
+      <div class="login-tabs">
+        <button class="login-tab active" data-tab="signin" type="button">Iniciar sesión</button>
+        <button class="login-tab" data-tab="signup" type="button">Nuevo usuario</button>
+      </div>
+      
+      <div class="tab-content-login active" id="signin-tab">
+        <form id="loginForm" class="login-form" autocomplete="off">
+          <div class="login-field">
+            <label for="loginUser">Usuario</label>
+            <input id="loginUser" type="text" autocomplete="username" placeholder="Escriba aquí su usuario" required>
+          </div>
+          
+          <div class="login-field">
+            <label for="loginPass">Contraseña</label>
+            <input id="loginPass" type="password" autocomplete="current-password" placeholder="Escriba su contraseña" required>
+          </div>
+          
+          <div class="recover-link">
+            <a href="reset-password.html">¿Olvidaste tu contraseña?</a>
+          </div>
+          
+          <button class="login-button" id="loginSubmitBtn" type="submit">Ingresar</button>
+        </form>
+        
+        <div class="login-divider">
+          <span>o</span>
         </div>
-        <div style="text-align:center;margin-top:12px;">
-          <a href="reset-password.html" style="color:var(--text-muted);font-size:14px;text-decoration:none;">¿Olvidaste tu contraseña?</a>
+        
+        <button class="faceid-button" type="button" disabled title="Función no disponible">
+          <svg class="faceid-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+          </svg>
+          <span class="faceid-text">Inicie sesión con FaceID</span>
+        </button>
+      </div>
+      
+      <div class="tab-content-login" id="signup-tab">
+        <div class="login-form" style="text-align: center; padding: 40px 20px;">
+          <p style="color: #64748b; margin-bottom: 20px;">¿Nuevo en Med Tools Hub?</p>
+          <a href="register.html" class="login-button enabled" style="display: inline-block; text-decoration: none; max-width: 300px;">
+            Crear cuenta nueva
+          </a>
         </div>
-      </form>
+      </div>
     </div>
+    
+    <footer class="modern-footer">
+      <div class="modern-footer-links">
+        <a href="cookies.html">Cookies</a>
+        <a href="privacidad.html">Política de Privacidad</a>
+        <a href="terminos.html">Términos y Condiciones</a>
+        <a href="aviso-legal.html">Aviso Legal</a>
+      </div>
+      <p class="modern-footer-info">NBR® 2025 | Med Tools Hub</p>
+      <p class="modern-footer-info">contacto@medtoolshub.cloud</p>
+    </footer>
   </div>
-  <footer class="app-footer">
-    <div class="footer-links">
-      <a href="privacidad.html">Política de Privacidad</a>
-      <span class="separator">|</span>
-      <a href="terminos.html">Términos y Condiciones</a>
-      <span class="separator">|</span>
-      <a href="aviso-legal.html">Aviso Legal</a>
-      <span class="separator">|</span>
-      <a href="cookies.html">Cookies</a>
-    </div>
-    <p class="trademark">NBR® 2025 | Med Tools Hub</p>
-    <p class="contact">contacto@medtoolshub.cloud</p>
-  </footer>
+  
   <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.login-tab');
+      const tabContents = document.querySelectorAll('.tab-content-login');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.dataset.tab;
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          tabContents.forEach(tc => tc.classList.remove('active'));
+          
+          this.classList.add('active');
+          document.getElementById(targetTab + '-tab').classList.add('active');
+        });
+      });
+    });
+  </script>
 </body></html>
