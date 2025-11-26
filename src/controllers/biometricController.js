@@ -11,39 +11,69 @@ const {
 const RP_NAME = 'Med Tools Hub';
 
 // Get RP_ID: Configuration for different environments
-// Hostinger: Use domain directly (e.g., "medtoolshub.cloud")
-// Replit: Use last 2 parts (e.g., "kirk.replit.dev")
-// Local: Use "localhost"
+// RP_ID MUST be a valid domain suffix that matches the origin
+// - Hostinger production: Use domain directly (e.g., "medtoolshub.cloud")
+// - Replit dev: Extract apex domain from full domain (e.g., "kirk.replit.dev")
+// - Local development: Use "localhost"
 function getRP_ID() {
-  // Check for explicit RP_ID configuration (Hostinger production)
+  // Hostinger production - explicit RP_ID environment variable
   if (process.env.RP_ID) {
+    console.log(`[WebAuthn] Using explicit RP_ID: ${process.env.RP_ID}`);
     return process.env.RP_ID;
   }
   
-  if (!process.env.REPLIT_DEV_DOMAIN) return 'localhost';
-  
-  // For Replit: extract last 2 parts
-  const parts = process.env.REPLIT_DEV_DOMAIN.split('.');
-  if (parts.length >= 2) {
-    return parts.slice(-2).join('.');
+  // Replit development - extract apex domain
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    const parts = process.env.REPLIT_DEV_DOMAIN.split('.');
+    if (parts.length >= 2) {
+      const rpId = parts.slice(-2).join('.');
+      console.log(`[WebAuthn] Extracted RP_ID from Replit domain: ${rpId}`);
+      return rpId;
+    }
+    console.log(`[WebAuthn] Using full Replit domain as RP_ID: ${process.env.REPLIT_DEV_DOMAIN}`);
+    return process.env.REPLIT_DEV_DOMAIN;
   }
-  return process.env.REPLIT_DEV_DOMAIN;
+  
+  // Local fallback
+  console.log(`[WebAuthn] Using localhost for RP_ID (development)`);
+  return 'localhost';
 }
 
 const RP_ID = getRP_ID();
 
 // Get ORIGIN: Full URL for the application
+// ORIGIN must be https:// in production, can be http:// in development
 function getORIGIN() {
+  // Production override
   if (process.env.APP_ORIGIN) {
+    console.log(`[WebAuthn] Using explicit APP_ORIGIN: ${process.env.APP_ORIGIN}`);
     return process.env.APP_ORIGIN;
   }
+  
+  // Replit development
   if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    const origin = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    console.log(`[WebAuthn] Using Replit origin: ${origin}`);
+    return origin;
   }
+  
+  // Local fallback
+  console.log(`[WebAuthn] Using localhost origin`);
   return 'http://localhost:5000';
 }
 
 const ORIGIN = getORIGIN();
+
+// Log WebAuthn configuration on startup
+console.log(`
+╔════════════════════════════════════════╗
+║     WebAuthn Configuration Loaded      ║
+╠════════════════════════════════════════╣
+║ RP_NAME:  ${RP_NAME.padEnd(32)}║
+║ RP_ID:    ${RP_ID.padEnd(32)}║
+║ ORIGIN:   ${ORIGIN.padEnd(32)}║
+╚════════════════════════════════════════╝
+`);
 
 exports.registerOptions = async (req, res) => {
   try {

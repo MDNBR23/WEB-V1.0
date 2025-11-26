@@ -1,6 +1,13 @@
 <!doctype html><html lang="es"><head>
 <meta charset="utf-8">
-<script>(function(){var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var currentTheme = localStorage.getItem('currentTheme') || 'default';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">

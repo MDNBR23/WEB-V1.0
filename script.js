@@ -155,7 +155,19 @@
           ...options.headers
         }
       });
-      const data = await res.json();
+      
+      const contentType = res.headers.get('content-type');
+      let data = {};
+      
+      // Only parse JSON if response is JSON
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else if (!res.ok) {
+        // For non-JSON errors (HTML error pages), create a generic error
+        const text = await res.text();
+        data = { error: `Server error (${res.status}): ${text.substring(0, 100)}` };
+      }
+      
       if (!res.ok) {
         if (res.status === 401 && !isAuth && !isReg && !isReset) {
           toast('Sesión expirada. Redirigiendo al login...', 'error');
@@ -166,11 +178,11 @@
           error.code = 'SESSION_EXPIRED';
           throw error;
         }
-        throw new Error(data.error || 'Error en la solicitud');
+        throw new Error(data.error || `Error en la solicitud (${res.status})`);
       }
       return data;
     } catch (err) {
-      console.error('API Error:', err);
+      console.error('API Error:', err.message || err);
       throw err;
     }
   }
@@ -3452,3 +3464,98 @@
   
   addSmoothPageTransitions();
 })();
+
+// Apply saved theme globally on page load
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof themeCustomizer !== 'undefined') {
+    const savedTheme = localStorage.getItem('currentTheme') || 'default';
+    const savedMode = localStorage.getItem('themeMode') || (localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
+    themeCustomizer.apply(savedTheme, savedMode);
+  }
+});
+
+// Watch for theme changes in storage
+window.addEventListener('storage', function(e) {
+  if (e.key === 'currentTheme' || e.key === 'themeMode') {
+    if (typeof themeCustomizer !== 'undefined') {
+      const theme = localStorage.getItem('currentTheme') || 'default';
+      const mode = localStorage.getItem('themeMode') || 'light';
+      themeCustomizer.apply(theme, mode);
+    }
+  }
+});
+
+// Función para traducir textos dinámicos después de cargar desde API
+function translateDynamicContent() {
+  if (typeof i18n === 'undefined') return;
+  
+  // Traducir elementos con data-i18n si se agregaron dinámicamente
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (el.textContent.trim() && !el.textContent.includes(i18n.t(key))) {
+      el.textContent = i18n.t(key);
+    }
+  });
+  
+  // Traducir placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = i18n.t(key);
+  });
+}
+
+// Ejecutar traducción cada vez que se cargan datos
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(translateDynamicContent, 500);
+});
+
+// Escuchar cambios de idioma y re-aplicar traducciones
+window.addEventListener('languageChanged', (e) => {
+  const lang = e.detail?.lang;
+  console.log(`Idioma cambiado a: ${lang}`);
+  
+  // Re-aplicar traducciones después de cambio
+  if (typeof i18n !== 'undefined') {
+    i18n.applyTranslations();
+  }
+  
+  // Re-cargar contenido que pueda haber sido generado con idioma anterior
+  if (typeof loadAnnouncements === 'function') loadAnnouncements();
+  if (typeof loadGuides === 'function') loadGuides();
+  if (typeof loadDrugsTable === 'function') loadDrugsTable();
+});
+
+// Función global showTool para herramientas
+window.showTool = function(toolName) {
+  const toolsMap = {
+    'corrector': 'corrector-container',
+    'gases': 'gasometria-container',
+    'infusiones': 'infusiones-container',
+    'plantillas': 'plantillas-container',
+    'ia': 'ia-container',
+    'guias': 'guias-container',
+    'quiz': 'quiz-container',
+    'interacciones': 'interacciones-container'
+  };
+  
+  const containerId = toolsMap[toolName];
+  if(!containerId) return;
+  
+  // Ocultar todos
+  document.querySelectorAll('[id$="-container"]').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  // Mostrar seleccionado
+  const container = document.getElementById(containerId);
+  if(container) container.style.display = 'block';
+};
+
+// Función global showMenu
+window.showMenu = function() {
+  document.querySelectorAll('[id$="-container"]').forEach(el => {
+    el.style.display = 'none';
+  });
+  document.getElementById('toolsMenu').style.display = 'flex';
+};
+

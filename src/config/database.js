@@ -102,10 +102,28 @@ async function initializeDatabase() {
       )
     `;
 
+    const createAILogsQuery = `
+      CREATE TABLE IF NOT EXISTS ai_logs (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) NOT NULL,
+        query TEXT NOT NULL,
+        response TEXT,
+        rating VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    const createAILogsIndexQuery = `
+      CREATE INDEX IF NOT EXISTS idx_ai_logs_username ON ai_logs(username);
+      CREATE INDEX IF NOT EXISTS idx_ai_logs_created_at ON ai_logs(created_at);
+    `;
+
     await pool.query(createShiftsIndexQuery);
     await pool.query(createShiftConfigIndexQuery);
     await pool.query(createBiometricCredentialsQuery);
     await pool.query(createBiometricChallengesQuery);
+    await pool.query(createAILogsQuery);
+    await pool.query(createAILogsIndexQuery);
     console.log('Database indexes and biometric tables created successfully');
   } catch (err) {
     console.error('Error initializing database:', err);

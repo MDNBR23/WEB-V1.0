@@ -27,6 +27,8 @@ exports.getToolsStatus = async (req, res) => {
       plantillas: { enabled: true, name: 'Plantillas' },
       turnos: { enabled: true, name: 'Mis Turnos' },
       ia: { enabled: true, name: 'Asistente IA' },
+      guias: { enabled: true, name: 'Guías Clínicas' },
+      quiz: { enabled: true, name: 'Evaluaciones' },
       interacciones: { enabled: true, name: 'Interacciones Medicamentosas' }
     });
     res.json(toolsStatus);
