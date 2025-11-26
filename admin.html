@@ -309,6 +309,9 @@
             <button class="admin-tab" data-tab="anuncios" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
               📢 Anuncios
             </button>
+            <button class="admin-tab" data-tab="features" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ✨ Funciones
+            </button>
             <button class="admin-tab" data-tab="guias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
               📚 Guías
             </button>
@@ -379,6 +382,19 @@
             <div class="table-wrap">
               <table id="adminAnunciosTable"><thead>
                 <tr><th>Imagen</th><th>Título</th><th>Fecha</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Actualizaciones de Funciones -->
+          <div class="tab-content" id="tab-features" style="padding:24px;display:none;">
+            <div id="featuresHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">✨ Actualizaciones de Funciones</h3>
+              <button id="btnNuevaFeature" class="btn primary" type="button">+ Nueva actualización</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminFeaturesTable"><thead>
+                <tr><th>Icono</th><th>Título</th><th>Fecha</th><th style="width:180px;">Acciones</th></tr>
               </thead><tbody></tbody></table>
             </div>
           </div>
@@ -545,6 +561,22 @@
           <div class="field"><label>Estado</label><select id="u_status"><option value="pendiente">PENDIENTE</option><option value="aprobado">APROBADO</option><option value="rechazado">RECHAZADO</option><option value="suspendido">SUSPENDIDO</option></select></div>
         </div>
         <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar</button><button class="btn secondary" type="button" data-close-user>Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FEATURE UPDATE -->
+  <div class="modal-backdrop" id="modalFeature">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Nueva actualización de función</h3><button class="btn secondary sm" type="button" data-close-feature>✕</button></header>
+      <form id="featureForm"><input type="hidden" id="featureId">
+        <div class="grid">
+          <div class="field"><label for="featureTitulo">Título</label><input id="featureTitulo" type="text" placeholder="Ej: Nuevo widget de alertas" required></div>
+          <div class="field"><label for="featureIcono">Icono</label><input id="featureIcono" type="text" placeholder="✨" value="✨" maxlength="2" required></div>
+          <div class="field"><label for="featureFecha">Fecha</label><input id="featureFecha" type="date" required></div>
+          <div class="field" style="grid-column:1 / -1"><label for="featureDescripcion">Descripción</label><textarea id="featureDescripcion" rows="3" placeholder="Describe la nueva función..." required></textarea></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar</button><button class="btn secondary" type="button" data-close-feature>Cancelar</button></div>
       </form>
     </div>
   </div>

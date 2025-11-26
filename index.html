@@ -226,6 +226,16 @@ html[data-theme="dark"] {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.faceid-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.faceid-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -404,11 +414,67 @@ html[data-theme="dark"] .moon-icon {
   }
 }
 </style>
+<script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 <script>
   document.documentElement.classList.add('preload');
   window.addEventListener('DOMContentLoaded', function(){
     document.body.classList.add('loaded');
     document.documentElement.classList.remove('preload');
+    
+    // Biometric login handler
+    const bioLoginBtn = document.getElementById('bioLoginBtn');
+    if (bioLoginBtn) {
+      bioLoginBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        // Check WebAuthn support
+        if (!window.SimpleWebAuthnBrowser?.startAuthentication) {
+          alert('Tu navegador no soporta autenticación biométrica');
+          return;
+        }
+        
+        try {
+          bioLoginBtn.disabled = true;
+          const oldText = bioLoginBtn.querySelector('.faceid-text').textContent;
+          bioLoginBtn.querySelector('.faceid-text').textContent = '⏳ Esperando huella...';
+          
+          // Get login options from server
+          const optionsRes = await fetch('/api/biometric/login-options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (!optionsRes.ok) throw new Error('Failed to get login options');
+          
+          const options = await optionsRes.json();
+          
+          // Start biometric authentication
+          const credential = await window.SimpleWebAuthnBrowser.startAuthentication(options);
+          
+          // Verify with server
+          const verifyRes = await fetch('/api/biometric/login-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential })
+          });
+          
+          const verification = await verifyRes.json();
+          
+          if (verification.verified) {
+            localStorage.setItem('userRole', verification.user.role || 'user');
+            window.location.href = 'main.html';
+          } else {
+            throw new Error(verification.error || 'Verificación fallida');
+          }
+        } catch (err) {
+          console.error('Biometric login error:', err);
+          alert('Error: ' + (err.message || 'La autenticación biométrica falló'));
+          const oldText = bioLoginBtn.querySelector('.faceid-text').textContent;
+          bioLoginBtn.querySelector('.faceid-text').textContent = 'Ingresa con huella o Face ID';
+          bioLoginBtn.disabled = false;
+        }
+      });
+    }
   });
 </script>
 </head><body>
@@ -457,11 +523,11 @@ html[data-theme="dark"] .moon-icon {
           <span>o</span>
         </div>
         
-        <button class="faceid-button" type="button" disabled title="Función no disponible">
+        <button class="faceid-button" id="bioLoginBtn" type="button">
           <svg class="faceid-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
           </svg>
-          <span class="faceid-text">Inicie sesión con FaceID o Huella</span>
+          <span class="faceid-text">Ingresa con huella o Face ID</span>
         </button>
       </div>
       

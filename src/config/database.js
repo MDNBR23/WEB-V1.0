@@ -78,9 +78,35 @@ async function initializeDatabase() {
     await pool.query(createShiftConfigQuery);
     console.log('Database table "shift_config" initialized successfully');
     
+    const createBiometricCredentialsQuery = `
+      CREATE TABLE IF NOT EXISTS biometric_credentials (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(100) NOT NULL,
+        credential_id VARCHAR(500) NOT NULL UNIQUE,
+        public_key BYTEA NOT NULL,
+        counter INTEGER NOT NULL DEFAULT 0,
+        device_type VARCHAR(50),
+        transports TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    const createBiometricChallengesQuery = `
+      CREATE TABLE IF NOT EXISTS biometric_challenges (
+        id SERIAL PRIMARY KEY,
+        challenge VARCHAR(500) NOT NULL UNIQUE,
+        username VARCHAR(100),
+        challenge_type VARCHAR(20),
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
     await pool.query(createShiftsIndexQuery);
     await pool.query(createShiftConfigIndexQuery);
-    console.log('Database indexes created successfully');
+    await pool.query(createBiometricCredentialsQuery);
+    await pool.query(createBiometricChallengesQuery);
+    console.log('Database indexes and biometric tables created successfully');
   } catch (err) {
     console.error('Error initializing database:', err);
   }

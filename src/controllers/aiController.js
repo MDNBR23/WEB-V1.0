@@ -10,20 +10,11 @@ exports.streamAI = async (req, res) => {
       return res.status(503).json({error: 'Servicio de IA no configurado. Configure OLLAMA_HOST en variables de entorno.'});
     }
     
-    const systemPrompt = `Eres un asistente médico especializado en pediatría y neonatología. Tu objetivo es ayudar de manera clara, directa y útil.
-
-REGLAS IMPORTANTES:
-- Responde de forma conversacional y natural
-- Ajusta la longitud de tu respuesta a la pregunta: preguntas simples = respuestas breves, preguntas complejas = respuestas detalladas
-- Sé directo y ve al punto
-- No des disclaimers largos en cada respuesta
-- Proporciona información médica general basada en evidencia
+    const systemPrompt = `Eres un asistente médico en pediatría y neonatología. Responde claro, directo y profesional.
+- Sé breve en preguntas simples
+- Proporciona dosis pediátricas cuando sea relevante
 - No diagnostiques pacientes específicos
-- Recomienda consultar profesionales cuando sea necesario
-- Usa lenguaje técnico solo cuando sea apropiado
-- Si mencionas medicamentos, incluye dosis pediátricas relevantes
-
-Responde de manera profesional pero amigable, como un colega médico experimentado.`;
+- Recomienda consultar profesionales cuando sea necesario`;
     
     let conversationPrompt = systemPrompt + '\n\n';
     for (const msg of messages) {
@@ -49,9 +40,10 @@ Responde de manera profesional pero amigable, como un colega médico experimenta
         prompt: conversationPrompt,
         stream: true,
         options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          top_k: 40
+          temperature: 0.6,
+          top_p: 0.85,
+          top_k: 30,
+          num_predict: 256
         }
       })
     });

@@ -182,6 +182,9 @@
             <button class="config-tab" data-tab="preferencias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
               🎨 Preferencias
             </button>
+            <button class="config-tab" data-tab="biometria" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🔐 Biometría
+            </button>
             <button class="config-tab" data-tab="cuenta" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
               ⚠️ Cuenta
             </button>
@@ -313,6 +316,25 @@
               </div>
             </div>
 
+            <!-- BIOMETRIA TAB -->
+            <div class="tab-content" id="tab-biometria" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Autenticación Biométrica</h3>
+              <p class="text-muted" style="margin-bottom:24px;">Registra tu huella digital o Face ID para un acceso más rápido y seguro.</p>
+              
+              <div class="card glass" style="padding:20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                  <h4 style="margin:0;font-size:15px;">Dispositivos biométricos registrados</h4>
+                </div>
+                <div id="bioCredentialsList" style="max-height:300px;overflow-y:auto;">
+                  <p class="text-muted" style="text-align:center;padding:20px;">Cargando...</p>
+                </div>
+              </div>
+              
+              <div style="margin-top:24px;display:flex;gap:12px;">
+                <button class="btn grow" type="button" id="registerBioBtn" style="flex:1;">📱 Registrar nuevo dispositivo</button>
+              </div>
+            </div>
+
             <!-- CUENTA TAB -->
             <div class="tab-content" id="tab-cuenta" style="display:none;">
               <div class="card glass" style="border:2px solid #ff9800;background:rgba(255,152,0,0.05);padding:24px;margin-bottom:24px;">
@@ -377,6 +399,7 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
   <script src="script.js"></script>
   <script>
     // Tab switching functionality
@@ -395,7 +418,14 @@
             content.style.display = 'none';
           });
           
-          document.getElementById('tab-' + targetTab).style.display = 'block';
+          const targetContent = document.getElementById('tab-' + targetTab);
+          if (targetContent) {
+            targetContent.style.display = 'block';
+            // Load biometric credentials when biometria tab is opened
+            if (targetTab === 'biometria') {
+              loadBiometricCredentials();
+            }
+          }
         });
       });
 
@@ -442,6 +472,145 @@
           document.getElementById('userRoleBadge').textContent = '-';
           document.getElementById('accountStatusBadge').textContent = '?';
         }
+      }
+
+      // Biometric functions
+      async function loadBiometricCredentials() {
+        const listDiv = document.getElementById('bioCredentialsList');
+        if (!listDiv) return;
+        
+        try {
+          const response = await fetch('/api/biometric/credentials');
+          if (!response.ok) throw new Error('Failed to load credentials');
+          
+          const credentials = await response.json();
+          
+          if (credentials.length === 0) {
+            listDiv.innerHTML = '<p class="text-muted" style="text-align:center;padding:20px;">No hay dispositivos registrados.<br><small>Toca "Registrar nuevo dispositivo" para comenzar.</small></p>';
+            return;
+          }
+          
+          listDiv.innerHTML = credentials.map((cred, idx) => {
+            const created = new Date(cred.created_at);
+            const dateStr = created.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+            const deviceType = cred.device_type === 'platform' ? '📱 Dispositivo integrado' : '🔐 Clave de seguridad';
+            
+            return `
+              <div class="card glass" style="padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <h4 style="margin:0 0 4px 0;font-size:14px;">${deviceType}</h4>
+                  <p class="text-muted" style="margin:0;font-size:12px;">Registrado: ${dateStr}</p>
+                  <p class="text-muted" style="margin:4px 0 0 0;font-size:11px;">ID: ${cred.credential_id.substring(0, 20)}...</p>
+                </div>
+                <button class="btn danger sm" data-delete-bio="${cred.id}" type="button">🗑️ Eliminar</button>
+              </div>
+            `;
+          }).join('');
+          
+          // Add event listeners for delete buttons
+          listDiv.querySelectorAll('[data-delete-bio]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const credId = btn.getAttribute('data-delete-bio');
+              if (!confirm('¿Eliminar este dispositivo biométrico? Tendrás que registrarlo nuevamente para usarlo.')) return;
+              
+              try {
+                const delRes = await fetch(`/api/biometric/credentials/${credId}`, { method: 'DELETE' });
+                if (!delRes.ok) throw new Error('Failed to delete');
+                
+                await loadBiometricCredentials();
+                showNotification('Dispositivo eliminado correctamente', 'success');
+              } catch (err) {
+                console.error('Error deleting credential:', err);
+                showNotification('Error al eliminar dispositivo: ' + err.message, 'error');
+              }
+            });
+          });
+        } catch (err) {
+          console.error('Error loading credentials:', err);
+          listDiv.innerHTML = '<p class="text-muted" style="text-align:center;padding:20px;color:#d32f2f;">Error al cargar dispositivos:<br><small>' + err.message + '</small></p>';
+        }
+      }
+
+      async function registerBiometric() {
+        if (!window.SimpleWebAuthnBrowser?.startRegistration) {
+          showNotification('Tu navegador no soporta autenticación biométrica', 'error');
+          return;
+        }
+
+        try {
+          const registerBtn = document.getElementById('registerBioBtn');
+          registerBtn.disabled = true;
+          const oldText = registerBtn.textContent;
+          registerBtn.textContent = '⏳ Preparando...';
+
+          // Get session to get username
+          const sessionRes = await fetch('/api/session');
+          if (!sessionRes.ok) throw new Error('Not authenticated');
+          
+          const session = await sessionRes.json();
+          if (!session.authenticated) throw new Error('Not authenticated');
+          
+          const username = session.user.username;
+
+          // Get registration options
+          const optionsRes = await fetch('/api/biometric/register-options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+          });
+
+          if (!optionsRes.ok) throw new Error('Failed to get registration options');
+          
+          const options = await optionsRes.json();
+          registerBtn.textContent = '⏳ Coloca tu dedo o cara...';
+
+          // Start registration
+          const credential = await window.SimpleWebAuthnBrowser.startRegistration(options);
+
+          registerBtn.textContent = '⏳ Verificando...';
+
+          // Verify with server
+          const verifyRes = await fetch('/api/biometric/register-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, credential })
+          });
+
+          const verification = await verifyRes.json();
+
+          if (!verification.verified) throw new Error('Verification failed');
+
+          showNotification('✅ Dispositivo biométrico registrado exitosamente', 'success');
+          await loadBiometricCredentials();
+          registerBtn.textContent = oldText;
+          registerBtn.disabled = false;
+        } catch (err) {
+          console.error('Biometric registration error:', err);
+          showNotification('❌ Error: ' + err.message, 'error');
+          const registerBtn = document.getElementById('registerBioBtn');
+          registerBtn.textContent = '📱 Registrar nuevo dispositivo';
+          registerBtn.disabled = false;
+        }
+      }
+
+      function showNotification(msg, type = 'info') {
+        const notifDiv = document.createElement('div');
+        notifDiv.style.cssText = 'position:fixed;top:20px;right:20px;background:var(--card);border:1px solid var(--border);padding:16px 20px;border-radius:8px;z-index:10000;box-shadow:var(--shadow-lg);animation:slideIn 0.3s ease;max-width:300px;';
+        notifDiv.textContent = msg;
+        
+        if (type === 'success') notifDiv.style.borderLeft = '4px solid #16a34a';
+        else if (type === 'error') notifDiv.style.borderLeft = '4px solid #dc2626';
+        else notifDiv.style.borderLeft = '4px solid var(--primary)';
+        
+        document.body.appendChild(notifDiv);
+        setTimeout(() => notifDiv.remove(), 4000);
+      }
+
+      // Setup biometric button
+      const registerBioBtn = document.getElementById('registerBioBtn');
+      if (registerBioBtn) {
+        registerBioBtn.addEventListener('click', registerBiometric);
       }
       
       // Load stats on page load

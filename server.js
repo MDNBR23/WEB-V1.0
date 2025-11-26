@@ -22,6 +22,7 @@ const resetPasswordRoutes = require('./src/routes/resetPasswordRoutes');
 const backupRoutes = require('./src/routes/backupRoutes');
 const aiRoutes = require('./src/routes/aiRoutes');
 const toolsRoutes = require('./src/routes/toolsRoutes');
+const featureUpdatesRoutes = require('./src/routes/featureUpdatesRoutes');
 
 const app = express();
 const PORT = 5000;
@@ -33,6 +34,12 @@ app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({extended: true, limit: '50mb'}));
 
 app.use(session(sessionConfig));
+
+// Enable WebAuthn in cross-origin iframes (required for Replit)
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'publickey-credentials-get=*, publickey-credentials-create=*');
+  next();
+});
 
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
@@ -59,6 +66,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/medications', medicationsRoutes);
 app.use('/api/anuncios', anunciosRoutes);
+app.use('/api/feature-updates', featureUpdatesRoutes);
 app.use('/api/guias', guiasRoutes);
 app.use('/api/sugerencias', sugerenciasRoutes);
 app.use('/api/shifts', shiftsRoutes);

@@ -1756,6 +1756,78 @@
   
   if(adminAnTable) await renderAnunciosAdmin();
 
+  // FEATURE UPDATES ADMIN
+  const adminFeaturesTable=document.getElementById('adminFeaturesTable');
+  const modalFeature=document.getElementById('modalFeature');
+  const featureForm=document.getElementById('featureForm');
+  const btnNewFeature=document.getElementById('btnNuevaFeature');
+  
+  async function renderFeaturesAdmin(){
+    if(!adminFeaturesTable) return;
+    const tb=adminFeaturesTable.querySelector('tbody');
+    
+    try {
+      const list = await api('/feature-updates');
+      tb.innerHTML=list.map(f=>`<tr><td>${f.icono}</td><td>${f.titulo}</td><td>${f.fecha}</td><td><div style='display:flex;gap:6px;white-space:nowrap'><button class='btn sm danger' data-del-f='${f.id}'>Eliminar</button></div></td></tr>`).join('');
+      
+      tb.querySelectorAll('[data-del-f]').forEach(b=>b.addEventListener('click',async()=>{
+        const id=b.getAttribute('data-del-f');
+        if(!await showConfirm('¿Eliminar esta actualización?','Confirmar eliminación')) return;
+        try {
+          await api(`/feature-updates/${id}`, {method: 'DELETE'});
+          await renderFeaturesAdmin();
+          await renderAnunciosMain();
+          toast('Actualización eliminada.','info');
+        } catch (err) {
+          toast('Error al eliminar.','error');
+        }
+      }));
+    } catch (err) {
+      console.error('Error rendering features admin:', err);
+    }
+  }
+  
+  if(btnNewFeature) {
+    btnNewFeature.addEventListener('click', ()=>{
+      document.getElementById('featureId').value='';
+      document.getElementById('featureTitulo').value='';
+      document.getElementById('featureIcono').value='✨';
+      document.getElementById('featureFecha').value=new Date().toISOString().split('T')[0];
+      document.getElementById('featureDescripcion').value='';
+      modalFeature.style.display='flex';
+    });
+  }
+  
+  if(featureForm) {
+    featureForm.addEventListener('submit', async(e)=>{
+      e.preventDefault();
+      const obj={
+        titulo: document.getElementById('featureTitulo').value.trim(),
+        descripcion: document.getElementById('featureDescripcion').value.trim(),
+        icono: document.getElementById('featureIcono').value.trim()||'✨',
+        fecha: document.getElementById('featureFecha').value||new Date().toISOString().split('T')[0]
+      };
+      
+      try {
+        await api('/feature-updates', {
+          method: 'POST',
+          body: JSON.stringify(obj)
+        });
+        
+        modalFeature.style.display='none';
+        await renderFeaturesAdmin();
+        await renderAnunciosMain();
+        toast('Actualización creada.','success');
+      } catch (err) {
+        toast('Error al guardar.','error');
+      }
+    });
+    
+    document.querySelectorAll('[data-close-feature]').forEach(x=>x.addEventListener('click',()=>modalFeature.style.display='none'));
+  }
+  
+  if(adminFeaturesTable) await renderFeaturesAdmin();
+
   const adminGTable=document.getElementById('adminGuiasTable');
   const modalG=document.getElementById('modalGuia');
   const guiaForm=document.getElementById('guiaForm');
@@ -1879,6 +1951,107 @@
     showAnuncio(prevIndex);
   }
 
+  function openAnuncioModal(id) {
+    const anuncio = anunciosList.find(a => a.id === id);
+    if (!anuncio) return;
+
+    const isFeature = anuncio.is_feature_update || anuncio.descripcion;
+    const contenido = isFeature ? anuncio.descripcion : anuncio.texto;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'anuncio-backdrop';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    
+    const modal = document.createElement('div');
+    const bgColor = document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e293b' : '#ffffff';
+    modal.className = 'anuncio-modal-box';
+    modal.style.cssText = `background:${bgColor};border-radius:16px;padding:24px;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.5);`;
+    
+    let imagenHtml = '';
+    if (anuncio.img && anuncio.img.startsWith('data:')) {
+      imagenHtml = `<img src="${anuncio.img}" alt="${escapeHtml(anuncio.titulo)}" style="width:100%;max-height:300px;object-fit:cover;border-radius:8px;margin-bottom:16px;">`;
+    }
+    
+    modal.innerHTML = `
+      <h2 style="margin:0 0 12px 0;color:var(--text);font-size:22px;">${isFeature ? (anuncio.icono || '✨') + ' ' : ''}${escapeHtml(anuncio.titulo)}</h2>
+      <div style="margin:0 0 16px 0;color:var(--muted);font-size:13px;">📅 ${anuncio.fecha || 'Sin fecha'}</div>
+      ${imagenHtml}
+      <div style="color:var(--text);font-size:15px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(contenido)}</div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+        <button class="close-anuncio-modal" style="background:var(--primary);color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:500;font-size:14px;">Cerrar</button>
+      </div>
+    `;
+    
+    backdrop.appendChild(modal);
+    
+    const closeBtn = modal.querySelector('.close-anuncio-modal');
+    const close = () => backdrop.remove();
+    
+    closeBtn.onclick = close;
+    backdrop.onclick = (e) => {
+      if (e.target === backdrop) close();
+    };
+    
+    document.body.appendChild(backdrop);
+  }
+  window.openAnuncioModal = openAnuncioModal;
+
+  async function renderProximosTurnos(){
+    const cont=document.getElementById('proximosTurnosList');
+    if(!cont) return;
+    
+    try {
+      const shifts = await api('/shifts');
+      if(!shifts || shifts.length === 0) {
+        cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">No hay turnos próximos</div>';
+        return;
+      }
+      
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      const proximosTurnos = shifts
+        .filter(s => {
+          try {
+            const shiftDate = new Date(s.fecha);
+            shiftDate.setHours(0,0,0,0);
+            return shiftDate >= today;
+          } catch {
+            return false;
+          }
+        })
+        .sort((a,b) => new Date(a.fecha) - new Date(b.fecha))
+        .slice(0, 5);
+      
+      if(proximosTurnos.length === 0) {
+        cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">No hay turnos próximos</div>';
+        return;
+      }
+      
+      const turnosHtml = proximosTurnos.map(t => {
+        const fecha = t.fecha ? new Date(t.fecha).toLocaleDateString('es-CO', {weekday:'short', day:'2-digit', month:'short'}) : 'Sin fecha';
+        const hora = t.hora || 'Sin hora';
+        const lugar = t.lugar || 'Lugar no especificado';
+        
+        return `
+          <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:200px;">
+              <div style="font-weight:600;color:var(--text);font-size:15px;">${fecha}</div>
+              <div style="color:var(--muted);font-size:13px;">⏰ ${hora}</div>
+              <div style="color:var(--muted);font-size:13px;">📍 ${lugar}</div>
+            </div>
+            <a href="turnos.html" class="btn sm" style="text-decoration:none;white-space:nowrap;">Ver →</a>
+          </div>
+        `;
+      }).join('');
+      
+      cont.innerHTML = `<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">${turnosHtml}</div>`;
+    } catch (err) {
+      console.error('Error rendering próximos turnos:', err);
+      cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">Error al cargar turnos</div>';
+    }
+  }
+
   async function renderAnunciosMain(){
     const cont=document.getElementById('anunciosList');
     if(!cont) return;
@@ -1888,7 +2061,16 @@
     }
     
     try {
-      const list = await api('/anuncios');
+      const anuncios = await api('/anuncios');
+      let features = [];
+      
+      try {
+        features = await api('/feature-updates');
+      } catch (e) {
+        console.log('Features no disponibles, mostrando solo anuncios');
+      }
+      
+      const list = [...anuncios, ...(features || [])];
       anunciosList = list.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
       
       if(anunciosList.length === 0) {
@@ -1896,20 +2078,25 @@
         return;
       }
       
-      const anunciosHtml = anunciosList.map((a, index) => `
-        <article class='anuncio-item${index === 0 ? ' active' : ''}'>
-          <div class='anuncio-header'>
-            <h3 class='anuncio-titulo'>${escapeHtml(a.titulo)}</h3>
-            <span class='anuncio-fecha'>${a.fecha || 'Sin fecha'}</span>
-          </div>
-          <div class='anuncio-body'>
-            ${a.img && a.img.startsWith('data:') ? 
-              `<img src='${a.img}' alt='${escapeHtml(a.titulo)}' class='anuncio-imagen'>` : 
-              ''}
-            <div class='anuncio-texto'>${escapeHtml(a.texto)}</div>
-          </div>
-        </article>
-      `).join('');
+      const anunciosHtml = anunciosList.map((a, index) => {
+        const isFeature = a.is_feature_update || a.descripcion;
+        const contenido = isFeature ? a.descripcion : a.texto;
+        
+        return `
+          <article class='anuncio-item${index === 0 ? ' active' : ''}' data-anuncio-id='${a.id}' style="cursor:pointer;" onclick="openAnuncioModal('${a.id}')">
+            <div class='anuncio-header'>
+              <h3 class='anuncio-titulo'>${isFeature ? (a.icono || '✨') + ' ' : ''}${escapeHtml(a.titulo)}</h3>
+              <span class='anuncio-fecha'>${a.fecha || 'Sin fecha'}</span>
+            </div>
+            <div class='anuncio-body'>
+              ${a.img && a.img.startsWith('data:') ? 
+                `<img src='${a.img}' alt='${escapeHtml(a.titulo)}' class='anuncio-imagen'>` : 
+                ''}
+              <div class='anuncio-texto'>${escapeHtml(contenido)}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
       
       const indicators = anunciosList.map((_, index) => 
         `<div class='anuncio-indicator${index === 0 ? ' active' : ''}' data-index='${index}'></div>`
@@ -2096,6 +2283,7 @@
     }
   };
   
+  await renderProximosTurnos();
   await renderAnunciosMain();
   await renderGuiasMain();
 

@@ -11,41 +11,6 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="style.css">
 <style>
-  .quick-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .quick-action-card {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-  }
-  .quick-action-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--primary);
-    box-shadow: 0 8px 20px rgba(0,139,139,0.15);
-  }
-  .quick-action-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    display: block;
-  }
-  .quick-action-card h4 {
-    margin: 0 0 6px 0;
-    font-size: 16px;
-    color: var(--text);
-  }
-  .quick-action-card p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
-  }
   .section-header {
     display: flex;
     align-items: center;
@@ -151,29 +116,14 @@
       </header>
       <main>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-          <div class="quick-action-card" onclick="location.href='vademecum.html'">
-            <span class="quick-action-icon">💊</span>
-            <h4>Vademecum</h4>
-            <p>Consulta medicamentos</p>
+        <!-- Próximos Turnos Section -->
+        <section class="card glass" style="margin-bottom:16px;">
+          <div class="section-header">
+            <h3>📅 Mis Próximos Turnos</h3>
+            <a href="turnos.html" class="btn sm" type="button" style="text-decoration:none;">Ver calendario →</a>
           </div>
-          <div class="quick-action-card" onclick="location.href='herramientas.html'">
-            <span class="quick-action-icon">🔧</span>
-            <h4>Herramientas</h4>
-            <p>Calculadoras médicas</p>
-          </div>
-          <div class="quick-action-card" onclick="location.href='herramientas.html#asistente'">
-            <span class="quick-action-icon">🤖</span>
-            <h4>Asistente IA</h4>
-            <p>Consulta inteligente</p>
-          </div>
-          <div class="quick-action-card" onclick="location.href='sugerencias.html'">
-            <span class="quick-action-icon">💬</span>
-            <h4>Sugerencias</h4>
-            <p>Envía tu feedback</p>
-          </div>
-        </div>
+          <div id="proximosTurnosList"></div>
+        </section>
 
         <div class="grid-2col">
           <!-- Anuncios Section -->
