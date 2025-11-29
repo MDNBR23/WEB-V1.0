@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const { initializeDatabase } = require('./src/config/database');
 const sessionConfig = require('./src/config/session');
 const { initializeData } = require('./src/services/initService');
+const { initializeInfusionMedications } = require('./src/services/infusionInitService');
 const { htmlRedirectMiddleware, htmlFileMiddleware } = require('./src/middleware/static');
 
 const authRoutes = require('./src/routes/authRoutes');
@@ -78,7 +79,8 @@ app.use('/api', toolsRoutes);
 
 Promise.all([
   initializeDatabase(),
-  initializeData()
+  initializeData(),
+  initializeInfusionMedications()
 ]).then(() => {
   app.listen(PORT, HOST, () => {
     console.log(`Med Tools Hub Server running at http://${HOST}:${PORT}/`);

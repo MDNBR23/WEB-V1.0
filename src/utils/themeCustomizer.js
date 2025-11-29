@@ -240,8 +240,17 @@ const themeCustomizer = {
       document.documentElement.style.setProperty(key, value);
     });
 
+    document.documentElement.setAttribute('data-theme', mode);
     localStorage.setItem('currentTheme', themeName);
     localStorage.setItem('themeMode', mode);
+    
+    // Force recalculation of all CSS variables
+    document.documentElement.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    setTimeout(() => {
+      document.querySelectorAll('[style*="color:var"]').forEach(el => {
+        el.style.transition = 'color 0.3s ease';
+      });
+    }, 0);
   },
 
   loadSaved: function() {

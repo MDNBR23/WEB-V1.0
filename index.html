@@ -597,11 +597,14 @@ html[data-theme="dark"] .moon-icon {
       const themeToggle = document.getElementById('themeToggle');
       
       themeToggle.addEventListener('click', function() {
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        const currentMode = localStorage.getItem('themeMode') || 'light';
+        const newMode = currentMode === 'light' ? 'dark' : 'light';
+        const currentTheme = localStorage.getItem('currentTheme') || 'default';
         
-        localStorage.setItem('theme', newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
+        if (typeof themeCustomizer !== 'undefined') {
+          themeCustomizer.apply(currentTheme, newMode);
+        }
+        document.documentElement.setAttribute('data-theme', newMode);
       });
     });
   </script>

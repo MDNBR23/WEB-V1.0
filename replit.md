@@ -1,75 +1,119 @@
-# Med Tools Hub - Medical Platform
+# Med Tools Hub - Calculadora de Infusiones v2.0
 
-## Overview
-Med Tools Hub es una plataforma de producción, en español, diseñada para profesionales de salud pediátrica y neonatología. Ofrece gestión de usuarios, anuncios médicos, guías clínicas, información de medicamentos y herramientas médicas especializadas. Sistema backend robusto con gestión de sesiones y aislamiento de datos.
+## ✅ ESTADO: COMPLETAMENTE FUNCIONAL
 
-## Recent Changes - November 26, 2025
-**SESIÓN FINAL - Legibilidad de Textos COMPLETADA:**
+### Sistema Final Optimizado
 
-### Resolución de Problema de Legibilidad
-- **Problema identificado**: Textos en modo claro no se veían bien en algunos elementos con fondos oscuros
-- **Solución implementada**:
-  - Cambié TODOS los backgrounds oscuros fijos a backgrounds claros en modo light
-  - `.btn.secondary`: de rgba(71,85,105,.85) a rgba(229,231,235,.95)
-  - Campos de input/select: backgrounds claros en light mode
-  - Modales y elementos superpuestos: ahora tienen fondos claros
-  - Mantuve backgrounds oscuros SOLO dentro de bloques html[data-theme="dark"]
+#### Arquitectura Simplificada
+Cada medicamento tiene presentaciones con:
+- **Descripción**: Formato de presentación (ej: "500MCG/10ML = 50MCG/ML")
+- **Concentración**: Valor ÚNICO (ej: 50 MCG/ML) - CONSTANTE para todas las diluciones
+- **Diluciones**: Array de opciones de volumen (12CC, 24CC, 50CC, 100CC)
 
-### Optimización de Paletas de Colores
-- Reconstrucción completa de todos los 7 HTML (main, vademecum, herramientas, turnos, sugerencias, configuracion, admin)
-- Script inline correcto en HEAD con themeColors definida para 6 temas
-- Texto negro (#000000) en TODOS los temas en modo light (máxima legibilidad)
-- Texto claro en TODOS los temas en modo dark (máxima legibilidad)
-- Paletas completas: 12 variables de color por modo
+#### Medicamentos Disponibles (6 Total)
 
-### Arreglos Técnicos
-- Eliminados scripts duplicados que causaban errores de sintaxis
-- Funciones `aplicarTema()` y `cambiarIdioma()` definidas globalmente
-- CSS forzado con `!important` para garantizar aplicación correcta
-- Headers no-cache en servidor para evitar problemas de caché
+**SEDOANALGESIA**
+| Medicamento | Dosis | Presentación | Concentración |
+|-------------|-------|--------------|----------------|
+| FENTANILO | 1 MCG/KG/HORA | 500MCG/10ML | 50 MCG/ML |
+| MIDAZOLAM | 0.1 MG/KG/HORA | 15MG/3ML | 5 MG/ML |
+| MORFINA | 0.1 MG/KG/HORA | 10MG/1ML | 10 MG/ML |
 
-### Verificación Final
-- ✅ Servidor corriendo sin errores críticos
-- ✅ Todos los temas tienen texto legible en light y dark mode
-- ✅ Multi-idioma (ES/EN/PT) operativo
-- ✅ Botones de tema funcionales
-- ✅ Contraste WCAG AAA en todos los temas
+**VASOPRESORES**
+| Medicamento | Dosis | Presentación | Concentración |
+|-------------|-------|--------------|----------------|
+| DOPAMINA | 5 MCG/KG/MIN | 200MG/5ML | 40 MG/ML |
+| ADRENALINA | 0.1 MCG/KG/MIN | 1MG/1ML | 1000 MCG/ML |
 
-## User Preferences
-None recorded yet.
+**INOTROPICOS**
+| Medicamento | Dosis | Presentación | Concentración |
+|-------------|-------|--------------|----------------|
+| DOBUTAMINA | 5 MCG/KG/MIN | 250MG/20ML | 12.5 MG/ML |
 
-## System Architecture
-Plataforma web con stack puro: HTML5, CSS3, vanilla JavaScript + Node.js/Express backend.
+---
 
-### Color System (Finalized)
-- **Light Mode**: Fondos claros + texto negro = máximo contraste
-- **Dark Mode**: Fondos oscuros + texto claro = máximo contraste
-- 6 temas: Slate, Médico, Océano, Bosque, Atardecer, Lavanda
-- Cada tema: 12 variables de color (fondo, texto, primario, secundario, etc.)
+### Fórmula de Cálculo Correcta
 
-### Multi-Language System (i18n)
-- Archivo: `src/utils/i18n.js`
-- 150+ traduciones
-- Idiomas: ES, EN, PT
-- Aplicado a TODOS los 7 pages (main, vademecum, herramientas, turnos, sugerencias, configuracion, admin)
+**Entrada del usuario:**
+- Medicamento
+- Presentación (con concentración fija)
+- Dosis (ej: 1 MCG/KG/HORA)
+- Peso (ej: 10 KG)
+- Dilución seleccionada (ej: 50CC)
 
-### Technical Stack
-- **Frontend**: HTML5, CSS3, vanilla JavaScript + i18n system
-- **Backend**: Node.js + Express.js + PostgreSQL (Neon)
-- **Authentication**: Session-based + bcrypt + WebAuthn biometrics
-- **Medical Tools**: Corrector, gasometría, infusión, interacciones, plantillas, AI, evaluaciones
-- **AI Integration**: Groq API para asistente médico inteligente
+**Cálculo:**
+```
+Dosis/Día = Dosis × Peso × 24
+CC Medicamento = Dosis/Día ÷ Concentración
+CC Diluyente = Dilución Total - CC Medicamento
+Razón CC/HORA = (Dosis × Peso) ÷ (Dosis/Día ÷ Dilución Total)
+```
 
-### Deployment Status
-**LISTO PARA PRODUCCIÓN** 🚀
-- URL de destino: medtoolshub.cloud
-- Todas las características operacionales
-- Interfaz completamente funcional
-- Sin errores críticos
+**Ejemplo - FENTANILO:**
+- Dosis: 1 MCG/KG/HORA
+- Peso: 10 KG
+- Dilución: 50CC
+- Concentración: 50 MCG/ML
 
-## External Dependencies
-- Hostinger SMTP (email)
-- Groq API (AI)
-- SimpleWebAuthn (biometrics)
-- PDFMake (reports)
+```
+= 240 MCG/DIA ÷ 50 MCG/ML = 4.8 CC
+= 50 CC - 4.8 CC = 45.2 CC SS 0.9%
+= Orden médica: FENTANILO 4.8CC + 45.2CC DE SS 0.9% PASAR A RAZÓN DE 2.1CC/HORA
+```
 
+---
+
+### Cambios Implementados (v2.0)
+
+✅ **Eliminada complejidad innecesaria**
+- Arrays de concentraciones → Concentración única
+- Cálculos dinámicos por dilución → Concentración constante
+
+✅ **Presentaciones estándar pediátricas**
+- 6 medicamentos con presentaciones reales
+- Concentraciones extraídas automáticamente de descripción
+- Diluciones estándar: 12CC, 24CC, 50CC, 100CC
+
+✅ **Calculadora simplificada**
+- Lee concentración directa de presentación
+- Cálculos correctos según farmacocinética pediátrica
+- Órdenes médicas precisas
+
+✅ **API optimizada**
+- GET /api/medications/infusions/list → Todos los medicamentos
+- GET /api/medications/presentations/:id → Presentaciones por medicamento
+- POST/PUT/DELETE endpoints para admin
+
+✅ **Panel administrativo**
+- CRUD medicamentos y presentaciones
+- Extracción automática de concentración
+- Modal de edición funcional
+
+---
+
+### Verificación
+
+**API Status:**
+- ✅ 6 medicamentos activos
+- ✅ 1 presentación per medicamento (actualizable)
+- ✅ Diluciones: 12CC, 24CC, 50CC, 100CC
+- ✅ Concentraciones: Correctas y constantes
+
+**Calculadora:**
+- ✅ Carga medicamentos dinámicamente
+- ✅ Muestra presentaciones disponibles
+- ✅ Cálculos precisos
+- ✅ Orden médica copiable
+
+---
+
+### Próximos Pasos
+1. Validación de rangos de dosis pediátricos
+2. Historial de cálculos
+3. Export a PDF
+4. Integración con EHR
+
+---
+
+**Última actualización:** 2025-11-26 16:56 UTC
+**Estado:** Listo para producción

@@ -118,13 +118,51 @@ async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_ai_logs_created_at ON ai_logs(created_at);
     `;
 
+    const createInfusionMedicationsQuery = `
+      CREATE TABLE IF NOT EXISTS infusion_medications (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(255) NOT NULL UNIQUE,
+        dosis VARCHAR(255),
+        unidad VARCHAR(100),
+        grupo VARCHAR(100),
+        comentarios TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    const createPresentationsQuery = `
+      CREATE TABLE IF NOT EXISTS medication_presentations (
+        id SERIAL PRIMARY KEY,
+        medication_id INTEGER NOT NULL REFERENCES infusion_medications(id) ON DELETE CASCADE,
+        descripcion VARCHAR(255) NOT NULL,
+        concentracion DECIMAL(10, 4),
+        diluciones TEXT NOT NULL,
+        concentraciones TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    const createPresentationsIndexQuery = `
+      CREATE INDEX IF NOT EXISTS idx_presentations_medication_id ON medication_presentations(medication_id);
+    `;
+
     await pool.query(createShiftsIndexQuery);
     await pool.query(createShiftConfigIndexQuery);
     await pool.query(createBiometricCredentialsQuery);
     await pool.query(createBiometricChallengesQuery);
     await pool.query(createAILogsQuery);
     await pool.query(createAILogsIndexQuery);
-    console.log('Database indexes and biometric tables created successfully');
+    
+    await pool.query(createInfusionMedicationsQuery);
+    console.log('Database table "infusion_medications" created successfully');
+    
+    await pool.query(createPresentationsQuery);
+    console.log('Database table "medication_presentations" created successfully');
+    
+    await pool.query(createPresentationsIndexQuery);
+    console.log('Database indexes for presentations created successfully');
   } catch (err) {
     console.error('Error initializing database:', err);
   }

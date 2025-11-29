@@ -2014,7 +2014,7 @@
     
     try {
       const shifts = await api('/shifts');
-      if(!shifts || shifts.length === 0) {
+      if(!shifts || !Array.isArray(shifts) || shifts.length === 0) {
         cont.innerHTML = '<div class="text-muted" style="padding:20px;text-align:center;">No hay turnos próximos</div>';
         return;
       }
@@ -3281,126 +3281,10 @@
   }
 
   async function renderInfusionesAdmin() {
-    if(!adminInfusionesTable) return;
-    const tbody = adminInfusionesTable.querySelector('tbody');
-    
-    initDefaultInfusions();
-    const list = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-    
-    tbody.innerHTML = list.map(m => 
-      `<tr>
-        <td>${m.nombre}</td>
-        <td>${m.presentacion}</td>
-        <td>${m.dosis}</td>
-        <td>${m.diluciones.join(', ')}</td>
-        <td>
-          <div style='display:flex;gap:6px;white-space:nowrap'>
-            <button class='btn sm info' data-edit-inf='${m.id}'>Editar</button>
-            <button class='btn sm danger' data-del-inf='${m.id}'>Eliminar</button>
-          </div>
-        </td>
-      </tr>`
-    ).join('');
-
-    tbody.querySelectorAll('[data-edit-inf]').forEach(b => b.addEventListener('click', () => openInfusion(b.getAttribute('data-edit-inf'))));
-    tbody.querySelectorAll('[data-del-inf]').forEach(b => b.addEventListener('click', async () => {
-      const id = parseInt(b.getAttribute('data-del-inf'));
-      if(!await showConfirm('¿Eliminar este medicamento de infusión?','Confirmar eliminación')) return;
-
-      const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-      const filtered = meds.filter(m => m.id !== id);
-      localStorage.setItem('infusion_medications_global', JSON.stringify(filtered));
-      await renderInfusionesAdmin();
-      toast('Medicamento eliminado.', 'info');
-    }));
-  }
-
-  function openInfusion(id) {
-    const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-    const m = meds.find(x => x.id === parseInt(id));
-    
-    if(m) {
-      document.getElementById('infId').value = m.id;
-      document.getElementById('infNombre').value = m.nombre;
-      document.getElementById('infPresentacion').value = m.presentacion;
-      document.getElementById('infDosis').value = m.dosis;
-      document.getElementById('infUnidad').value = m.unidad || 'mcg/kg/h';
-      document.getElementById('infDiluciones').value = m.diluciones.join(', ');
-    } else {
-      document.getElementById('infId').value = '';
-      document.getElementById('infNombre').value = '';
-      document.getElementById('infPresentacion').value = '';
-      document.getElementById('infDosis').value = '';
-      document.getElementById('infUnidad').value = 'mcg/kg/h';
-      document.getElementById('infDiluciones').value = '';
+    // Usar la nueva función API basada en infusionAdmin.js
+    if (typeof cargarMedicamentosInfusiones === 'function') {
+      await cargarMedicamentosInfusiones();
     }
-    
-    modalInfusion.style.display = 'flex';
-  }
-
-  if(btnNuevaInfusion) {
-    btnNuevaInfusion.addEventListener('click', () => openInfusion(''));
-  }
-
-  if(infusionForm) {
-    infusionForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const id = document.getElementById('infId').value;
-      const nombre = document.getElementById('infNombre').value.trim();
-      const presentacion = document.getElementById('infPresentacion').value.trim();
-      const dosis = document.getElementById('infDosis').value.trim();
-      const unidad = document.getElementById('infUnidad').value;
-      const diluciones = document.getElementById('infDiluciones').value.split(',').map(d => d.trim());
-      
-      const concentraciones = diluciones.map(() => 0);
-      const ssn = '0';
-      const ssn_percentage = '0.9%';
-
-      if(!nombre || !presentacion || !dosis || diluciones.length === 0) {
-        toast('Por favor completa todos los campos.', 'error');
-        return;
-      }
-
-      const meds = JSON.parse(localStorage.getItem('infusion_medications_global') || '[]');
-      
-      if(id) {
-        const index = meds.findIndex(m => m.id === parseInt(id));
-        if(index !== -1) {
-          meds[index] = {
-            id: parseInt(id),
-            nombre,
-            presentacion,
-            dosis,
-            unidad,
-            diluciones,
-            concentraciones,
-            ssn,
-            ssn_percentage
-          };
-        }
-      } else {
-        const newId = meds.length > 0 ? Math.max(...meds.map(m => m.id)) + 1 : 1;
-        meds.push({
-          id: newId,
-          nombre,
-          presentacion,
-          dosis,
-          unidad,
-          diluciones,
-          concentraciones,
-          ssn,
-          ssn_percentage
-        });
-      }
-
-      localStorage.setItem('infusion_medications_global', JSON.stringify(meds));
-      modalInfusion.style.display = 'none';
-      await renderInfusionesAdmin();
-      toast('Medicamento guardado.', 'success');
-    });
-
-    document.querySelectorAll('[data-close-infusion]').forEach(x => x.addEventListener('click', () => modalInfusion.style.display = 'none'));
   }
 
   if(adminInfusionesTable) {
@@ -3528,34 +3412,41 @@ window.addEventListener('languageChanged', (e) => {
 // Función global showTool para herramientas
 window.showTool = function(toolName) {
   const toolsMap = {
-    'corrector': 'corrector-container',
-    'gases': 'gasometria-container',
-    'infusiones': 'infusiones-container',
-    'plantillas': 'plantillas-container',
-    'ia': 'ia-container',
-    'guias': 'guias-container',
-    'quiz': 'quiz-container',
-    'interacciones': 'interacciones-container'
+    'corrector': 'correctorTool',
+    'gases': 'gasesTool',
+    'infusiones': 'infusionesTool',
+    'plantillas': 'plantillasTool',
+    'ia': 'iaTool',
+    'guias': 'guiasTool',
+    'quiz': 'quizTool',
+    'interacciones': 'interaccionesTool'
   };
   
   const containerId = toolsMap[toolName];
   if(!containerId) return;
   
-  // Ocultar todos
-  document.querySelectorAll('[id$="-container"]').forEach(el => {
+  // Ocultar menú principal
+  const toolMenu = document.getElementById('toolMenu');
+  if(toolMenu) toolMenu.style.display = 'none';
+  
+  // Ocultar todas las herramientas
+  document.querySelectorAll('[id$="Tool"]').forEach(el => {
     el.style.display = 'none';
   });
   
-  // Mostrar seleccionado
+  // Mostrar herramienta seleccionada
   const container = document.getElementById(containerId);
   if(container) container.style.display = 'block';
 };
 
 // Función global showMenu
 window.showMenu = function() {
-  document.querySelectorAll('[id$="-container"]').forEach(el => {
+  // Ocultar todas las herramientas
+  document.querySelectorAll('[id$="Tool"]').forEach(el => {
     el.style.display = 'none';
   });
-  document.getElementById('toolsMenu').style.display = 'flex';
+  // Mostrar menú principal
+  const toolMenu = document.getElementById('toolMenu');
+  if(toolMenu) toolMenu.style.display = 'flex';
 };
 
