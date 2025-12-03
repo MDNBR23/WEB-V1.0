@@ -1,0 +1,190 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/i18n.js"></script>
+  <script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<script>(function(){var r=localStorage.getItem('userRole');if(r==='admin'){document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('adminNavLink');if(a)a.style.display='flex';});}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text);
+  }
+  .anuncio-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+  }
+  .anuncio-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .anuncio-card h4 {
+    margin: 0 0 8px 0;
+    color: var(--text);
+    font-size: 18px;
+  }
+  .anuncio-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .anuncio-text {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .guia-card {
+    background: linear-gradient(135deg, rgba(0,139,139,0.05), rgba(0,128,128,0.05));
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .guia-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,139,139,0.1);
+  }
+  .guia-card h4 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .guia-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
+      <nav>
+        <a href="main.html" class="active"><span class="icon">🏠</span><span  data-i18n="header.principal">Principal</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span  data-i18n="header.vademecum">Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span  data-i18n="header.herramientas">Herramientas</span></a>
+        <a href="turnos.html"><span class="icon">📅</span><span  data-i18n="header.turnos">Turnos</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span  data-i18n="header.sugerencias">Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="configuracion.html"><span class="icon">⚙️</span><span  data-i18n="header.configuracion">Configuración</span></a>
+        <a href="admin.html" id="adminNavLink" style="display:none;"><span class="icon">🛠️</span><span  data-i18n="header.admin">Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <div class="header-title-group">
+          <h2 id="welcomeTitle"  data-i18n="header.principal">Principal</h2>
+          <p class="header-subtitle">Tu plataforma integral de herramientas médicas para pediatría y neonatología</p>
+        </div>
+        <div id="colombiaClock"></div>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()"  data-i18n="header.logout">Salir</button>
+        </div>
+      </header>
+      <main>
+
+        <!-- Próximos Turnos Section -->
+        <section class="card glass" style="margin-bottom:16px;">
+          <div class="section-header">
+            <h3>📅 Mis Próximos Turnos</h3>
+            <a href="turnos.html" class="btn sm" type="button" style="text-decoration:none;">Ver calendario →</a>
+          </div>
+          <div id="proximosTurnosList"></div>
+        </section>
+
+        <div class="grid-2col">
+          <!-- Anuncios Section -->
+          <section class="card glass">
+            <div class="section-header">
+              <h3 data-i18n="admin.anuncios">📢 Anuncios</h3>
+            </div>
+            <div id="anunciosList"></div>
+          </section>
+
+          <!-- Guías Section -->
+          <aside class="card glass">
+            <div class="section-header">
+              <h3 data-i18n="admin.guias">📚 Guías Destacadas</h3>
+              <button class="btn sm" onclick="verTodasGuias()" type="button">Ver todas →</button>
+            </div>
+            <div id="guiasList"></div>
+          </aside>
+        </div>
+
+        <footer class="app-footer">
+          <div class="footer-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <span class="separator">|</span>
+            <a href="terminos.html">Términos y Condiciones</a>
+            <span class="separator">|</span>
+            <a href="aviso-legal.html">Aviso Legal</a>
+            <span class="separator">|</span>
+            <a href="cookies.html">Cookies</a>
+          </div>
+          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+          <p class="contact">contacto@medtoolshub.cloud</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+  <script src="script.js"></script>
+  <script>
+    // Personalize welcome message
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        const session = await checkSession();
+        if (session) {
+          const profile = await api('/profile');
+          const name = profile.name || profile.username;
+          const welcomeTitle = document.getElementById('welcomeTitle');
+          if (welcomeTitle) {
+            welcomeTitle.textContent = `¡Bienvenido(a), ${name}!`;
+          }
+        }
+      } catch (e) {
+        console.log('Could not personalize welcome');
+      }
+    });
+  </script>
+</body></html>

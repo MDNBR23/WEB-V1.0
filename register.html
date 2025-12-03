@@ -1,0 +1,77 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var currentTheme = localStorage.getItem('currentTheme') || 'default';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="auth-wrapper">
+    <div class="auth-box glass">
+      <h2 class="auth-title">Registro - Med Tools Hub</h2>
+      <p class="auth-subtitle">Crea tu cuenta para acceder a las herramientas médicas</p>
+      <form id="registerForm" class="stack" autocomplete="off">
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="field"><label for="registerFirstName">Nombre</label><input id="registerFirstName" type="text" required></div>
+          <div class="field"><label for="registerLastName">Apellido</label><input id="registerLastName" type="text" required></div>
+          <div class="field"><label for="registerUser">Usuario</label><input id="registerUser" type="text" required></div>
+          <div class="field"><label for="registerEmail">Email</label><input id="registerEmail" type="email" required></div>
+          <div class="field"><label for="registerCat">Categoría</label>
+            <select id="registerCat" required>
+              <option value="">Selecciona una opción</option>
+              <option>Estudiante</option><option>Interno</option><option>Médico General</option><option>Residente</option><option>Pediatra</option><option>Fisioterapeuta</option>
+            </select>
+          </div>
+          <div class="field"><label for="registerPhone">Número de teléfono</label><input id="registerPhone" type="tel" required></div>
+          <div class="field"><label for="registerInst">Institución</label><input id="registerInst" type="text" required></div>
+          <div class="field"></div>
+          <div class="field"><label for="registerPass">Contraseña</label><input id="registerPass" type="password" autocomplete="new-password" required></div>
+          <div class="field"><label for="registerPassConfirm">Confirmar Contraseña</label><input id="registerPassConfirm" type="password" autocomplete="new-password" required></div>
+        </div>
+        <div style="margin-top:20px;padding:16px;background:rgba(0,139,139,0.05);border-radius:8px;border:1px solid rgba(0,139,139,0.2);">
+          <label style="display:flex;align-items:start;gap:10px;cursor:pointer;font-size:14px;line-height:1.6;">
+            <input type="checkbox" id="acceptTerms" required style="margin-top:4px;cursor:pointer;width:18px;height:18px;flex-shrink:0;">
+            <span>
+              He leído y acepto la <a href="privacidad.html" target="_blank" style="color:#008B8B;text-decoration:underline;">Política de Privacidad</a> 
+              y los <a href="terminos.html" target="_blank" style="color:#008B8B;text-decoration:underline;">Términos y Condiciones</a> de MedToolsHub.cloud
+            </span>
+          </label>
+        </div>
+        <div class="auth-actions"><button class="btn grow" type="submit" id="btnRegisterSubmit">Enviar registro</button><a class="btn secondary" href="index.html">Ya tengo cuenta</a></div>
+        <p class="text-muted" style="text-align:center;margin-top:8px;">Tu registro quedará en <strong>pendiente</strong> hasta que un administrador lo apruebe.</p>
+      </form>
+    </div>
+  </div>
+  <footer class="app-footer">
+    <div class="footer-links">
+      <a href="privacidad.html">Política de Privacidad</a>
+      <span class="separator">|</span>
+      <a href="terminos.html">Términos y Condiciones</a>
+      <span class="separator">|</span>
+      <a href="aviso-legal.html">Aviso Legal</a>
+      <span class="separator">|</span>
+      <a href="cookies.html">Cookies</a>
+    </div>
+    <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+    <p class="contact">contacto@medtoolshub.cloud</p>
+  </footer>
+  <script src="script.js"></script>
+</body></html>

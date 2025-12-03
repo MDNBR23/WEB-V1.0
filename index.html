@@ -1,0 +1,611 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var currentTheme = localStorage.getItem('currentTheme') || 'default';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  var oldTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0284c7">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+:root {
+  --text-on-primary: #ffffff;
+  --footer-bg: #2d3748;
+  --footer-text: #cbd5e0;
+  --footer-text-hover: #ffffff;
+  --footer-info: #a0aec0;
+  --focus-ring: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+html[data-theme="dark"] {
+  --footer-bg: var(--g2);
+  --footer-text: var(--muted);
+  --footer-text-hover: var(--text);
+  --footer-info: var(--muted);
+  --focus-ring: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
+.modern-login-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--g1) 0%, var(--g2) 100%);
+  padding: 0;
+  position: relative;
+}
+
+.modern-login-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 20px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.login-logo {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
+  border-radius: 50%;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-logo-text {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-on-primary);
+  text-align: center;
+  line-height: 1;
+}
+
+.login-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.login-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+  text-align: left;
+  width: 100%;
+}
+
+.login-tabs {
+  display: flex;
+  width: 100%;
+  margin-bottom: 24px;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+}
+
+.login-tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.login-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.login-field input {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--card);
+  transition: all 0.2s;
+}
+
+.login-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+
+.login-field input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.recover-link {
+  text-align: right;
+  margin-top: -12px;
+}
+
+.recover-link a {
+  font-size: 14px;
+  color: var(--primary-600);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-600) 100%);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.login-button:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.login-button:disabled:hover {
+  transform: none;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.login-divider span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.faceid-button {
+  width: 100%;
+  padding: 16px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.faceid-button:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+}
+
+.faceid-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.faceid-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--muted);
+}
+
+.faceid-text {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.signup-prompt {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.signup-text {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.signup-link {
+  display: inline-block;
+  text-decoration: none;
+  max-width: 300px;
+}
+
+.modern-footer {
+  padding: 24px 20px;
+  text-align: center;
+  background: var(--footer-bg);
+  border-top: none;
+}
+
+html[data-theme="dark"] .modern-footer {
+  border-top: 1px solid var(--border);
+}
+
+.modern-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 13px;
+  align-items: center;
+}
+
+.modern-footer-links a {
+  color: var(--footer-text);
+  text-decoration: none;
+  transition: all 0.2s;
+  padding: 0 4px;
+}
+
+.modern-footer-links a:hover {
+  color: var(--footer-text-hover);
+}
+
+.modern-footer-links .separator {
+  color: var(--footer-text);
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+  background: transparent;
+  padding: 0;
+}
+
+.modern-footer-info {
+  font-size: 12px;
+  color: var(--footer-info);
+  margin: 4px 0;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle svg {
+  width: 24px;
+  height: 24px;
+  color: var(--text);
+  transition: all 0.3s;
+}
+
+.sun-icon {
+  display: none;
+}
+
+html[data-theme="dark"] .sun-icon {
+  display: block;
+}
+
+html[data-theme="dark"] .moon-icon {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .theme-toggle {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .theme-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .modern-login-container {
+    padding: 24px 16px 16px 16px;
+  }
+  
+  .login-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+  }
+  
+  .login-title {
+    font-size: 28px;
+  }
+  
+  .login-subtitle {
+    font-size: 14px;
+  }
+  
+  .modern-footer-links {
+    flex-direction: row;
+    font-size: 11px;
+  }
+}
+
+.tab-content-login {
+  display: none;
+  animation: fadeInLogin 0.3s ease;
+}
+
+.tab-content-login.active {
+  display: block;
+}
+
+@keyframes fadeInLogin {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+<script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+    
+    // Biometric login handler
+    const bioLoginBtn = document.getElementById('bioLoginBtn');
+    if (bioLoginBtn) {
+      bioLoginBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        // Check WebAuthn support
+        if (!window.SimpleWebAuthnBrowser?.startAuthentication) {
+          alert('Tu navegador no soporta autenticación biométrica');
+          return;
+        }
+        
+        try {
+          bioLoginBtn.disabled = true;
+          const oldText = bioLoginBtn.querySelector('.faceid-text').textContent;
+          bioLoginBtn.querySelector('.faceid-text').textContent = '⏳ Esperando huella...';
+          
+          // Get login options from server
+          const optionsRes = await fetch('/api/biometric/login-options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (!optionsRes.ok) throw new Error('Failed to get login options');
+          
+          const options = await optionsRes.json();
+          
+          // Validate options structure before calling startAuthentication
+          if (!options.challenge || !options.rpId) {
+            throw new Error('Opciones de autenticación inválidas del servidor');
+          }
+          
+          // Start biometric authentication with proper structure
+          const credential = await window.SimpleWebAuthnBrowser.startAuthentication({
+            challenge: options.challenge,
+            timeout: options.timeout,
+            rpId: options.rpId,
+            userVerification: options.userVerification,
+            allowCredentials: options.allowCredentials
+          });
+          
+          // Verify with server
+          const verifyRes = await fetch('/api/biometric/login-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential })
+          });
+          
+          const verification = await verifyRes.json();
+          
+          if (verification.verified) {
+            localStorage.setItem('userRole', verification.user.role || 'user');
+            window.location.href = 'main.html';
+          } else {
+            throw new Error(verification.error || 'Verificación fallida');
+          }
+        } catch (err) {
+          console.error('Biometric login error:', err);
+          alert('Error: ' + (err.message || 'La autenticación biométrica falló'));
+          const oldText = bioLoginBtn.querySelector('.faceid-text').textContent;
+          bioLoginBtn.querySelector('.faceid-text').textContent = 'Ingresa con huella o Face ID';
+          bioLoginBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>
+<script src="src/utils/deviceManager.js"></script>
+</head><body>
+  <button class="theme-toggle" id="themeToggle" type="button" title="Cambiar tema">
+    <svg class="sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <svg class="moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+    </svg>
+  </button>
+  <div class="modern-login-wrapper">
+    <div class="modern-login-container">
+      <div class="login-logo">
+        <div class="login-logo-text">MTH</div>
+      </div>
+      
+      <h1 class="login-title">Bienvenido</h1>
+      <p class="login-subtitle">Accede a herramientas médicas especializadas en pediatría y neonatología.</p>
+      
+      <div class="login-tabs">
+        <button class="login-tab active" data-tab="signin" type="button">Iniciar sesión</button>
+        <button class="login-tab" data-tab="signup" type="button">Nuevo usuario</button>
+      </div>
+      
+      <div class="tab-content-login active" id="signin-tab">
+        <form id="loginForm" class="login-form" autocomplete="off">
+          <div class="login-field">
+            <label for="loginUser">Usuario</label>
+            <input id="loginUser" type="text" autocomplete="username" placeholder="Escriba aquí su usuario" required>
+          </div>
+          
+          <div class="login-field">
+            <label for="loginPass">Contraseña</label>
+            <input id="loginPass" type="password" autocomplete="current-password" placeholder="Escriba su contraseña" required>
+          </div>
+          
+          <div class="recover-link">
+            <a href="reset-password.html">¿Olvidaste tu contraseña?</a>
+          </div>
+          
+          <button class="login-button" id="loginSubmitBtn" type="submit">Ingresar</button>
+        </form>
+        
+        <div class="login-divider">
+          <span>o</span>
+        </div>
+        
+        <button class="faceid-button" id="bioLoginBtn" type="button">
+          <svg class="faceid-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+          </svg>
+          <span class="faceid-text">Ingresa con huella o Face ID</span>
+        </button>
+      </div>
+      
+      <div class="tab-content-login" id="signup-tab">
+        <div class="login-form signup-prompt">
+          <p class="signup-text">¿Nuevo en Med Tools Hub?</p>
+          <a href="register.html" class="login-button enabled signup-link">
+            Crear cuenta nueva
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <footer class="modern-footer">
+      <div class="modern-footer-links">
+        <a href="privacidad.html">Política de Privacidad</a>
+        <span class="separator">|</span>
+        <a href="terminos.html">Términos y Condiciones</a>
+        <span class="separator">|</span>
+        <a href="aviso-legal.html">Aviso Legal</a>
+        <span class="separator">|</span>
+        <a href="cookies.html">Cookies</a>
+      </div>
+      <p class="modern-footer-info">NBR® 2025 | Med Tools Hub</p>
+      <p class="modern-footer-info">contacto@medtoolshub.cloud</p>
+    </footer>
+  </div>
+  
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.login-tab');
+      const tabContents = document.querySelectorAll('.tab-content-login');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.dataset.tab;
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          tabContents.forEach(tc => tc.classList.remove('active'));
+          
+          this.classList.add('active');
+          document.getElementById(targetTab + '-tab').classList.add('active');
+        });
+      });
+      
+      const themeToggle = document.getElementById('themeToggle');
+      
+      themeToggle.addEventListener('click', function() {
+        const currentMode = localStorage.getItem('themeMode') || 'light';
+        const newMode = currentMode === 'light' ? 'dark' : 'light';
+        const currentTheme = localStorage.getItem('currentTheme') || 'default';
+        
+        if (typeof themeCustomizer !== 'undefined') {
+          themeCustomizer.apply(currentTheme, newMode);
+        }
+        document.documentElement.setAttribute('data-theme', newMode);
+      });
+    });
+  </script>
+</body></html>

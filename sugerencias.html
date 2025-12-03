@@ -1,0 +1,228 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/i18n.js"></script>
+  <script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<script>(function(){var r=localStorage.getItem('userRole');if(r==='admin'){document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('adminNavLink');if(a)a.style.display='flex';});}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  .suggestion-tab {
+    color: var(--muted);
+    position: relative;
+  }
+  .suggestion-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary) !important;
+  }
+  .suggestion-tab:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .suggestion-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 16px;
+    transition: all 0.2s ease;
+  }
+  .suggestion-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0,139,139,0.1);
+  }
+  .suggestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .suggestion-meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .suggestion-text {
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .suggestion-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-pendiente {
+    background: rgba(255,140,0,0.1);
+    color: #ff8c00;
+  }
+  .status-respondida {
+    background: rgba(67,233,123,0.1);
+    color: #43e97b;
+  }
+  .char-counter {
+    text-align: right;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .char-counter.warning {
+    color: #ff8c00;
+  }
+  .char-counter.limit {
+    color: #d32f2f;
+    font-weight: 600;
+  }
+</style>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
+      <nav>
+        <a href="main.html"><span class="icon">🏠</span><span  data-i18n="header.principal">Principal</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span  data-i18n="header.vademecum">Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span  data-i18n="header.herramientas">Herramientas</span></a>
+        <a href="turnos.html"><span class="icon">📅</span><span  data-i18n="header.turnos">Turnos</span></a>
+        <a href="sugerencias.html" class="active"><span class="icon">💬</span><span  data-i18n="header.sugerencias">Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="configuracion.html"><span class="icon">⚙️</span><span  data-i18n="header.configuracion">Configuración</span></a>
+        <a href="admin.html" id="adminNavLink" style="display:none;"><span class="icon">🛠️</span><span  data-i18n="header.admin">Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <div class="header-title-group">
+          <h2>💡 Tu opinión nos importa</h2>
+          <p class="header-subtitle">Ayúdanos a mejorar Med Tools Hub reportando errores o sugiriendo nuevas funcionalidades</p>
+        </div>
+        <div id="colombiaClock"></div>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()"  data-i18n="header.logout">Salir</button>
+        </div>
+      </header>
+      <main>
+
+        <!-- Tabs -->
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="suggestion-tab active" data-tab="nueva" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ✏️ Nueva Sugerencia
+            </button>
+            <button class="suggestion-tab" data-tab="enviadas" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📋 Mis Sugerencias
+            </button>
+          </div>
+
+          <div style="padding:24px;">
+            <!-- NUEVA SUGERENCIA TAB -->
+            <div class="tab-content" id="tab-nueva">
+              <h3 style="margin:0 0 16px 0;">Envía tu sugerencia</h3>
+              <p class="text-muted" style="margin-bottom:20px;">Describe tu idea o reporta un problema. Revisaremos tu mensaje y te responderemos lo antes posible.</p>
+              
+              <form id="sugerenciaForm">
+                <div class="field">
+                  <label>💬 Mensaje</label>
+                  <textarea id="sugerenciaTexto" maxlength="155" rows="5" placeholder="Ejemplo: Sería útil agregar una calculadora de dosis de paracetamol..." required style="resize:vertical;"></textarea>
+                  <div class="char-counter">
+                    <span id="charCount">0</span>/155 caracteres
+                  </div>
+                </div>
+                <div style="margin-top:20px;">
+                  <button class="btn grow" type="submit">📤 Enviar sugerencia</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- MIS SUGERENCIAS TAB -->
+            <div class="tab-content" id="tab-enviadas" style="display:none;">
+              <h3 style="margin:0 0 16px 0;">Mis sugerencias enviadas</h3>
+              <div id="misSugerenciasList"></div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="app-footer">
+          <div class="footer-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <span class="separator">|</span>
+            <a href="terminos.html">Términos y Condiciones</a>
+            <span class="separator">|</span>
+            <a href="aviso-legal.html">Aviso Legal</a>
+            <span class="separator">|</span>
+            <a href="cookies.html">Cookies</a>
+          </div>
+          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+          <p class="contact">contacto@medtoolshub.cloud</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+  <script src="script.js"></script>
+  <script>
+    // Tab switching
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.suggestion-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.getAttribute('data-tab');
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          tabContents.forEach(content => {
+            content.style.display = 'none';
+          });
+          
+          document.getElementById('tab-' + targetTab).style.display = 'block';
+        });
+      });
+
+      // Character counter
+      const textarea = document.getElementById('sugerenciaTexto');
+      const charCount = document.getElementById('charCount');
+      const charCounter = textarea.parentElement.querySelector('.char-counter');
+      
+      textarea.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        
+        charCounter.classList.remove('warning', 'limit');
+        if (count >= 155) {
+          charCounter.classList.add('limit');
+        } else if (count >= 130) {
+          charCounter.classList.add('warning');
+        }
+      });
+    });
+  </script>
+</body></html>

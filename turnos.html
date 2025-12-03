@@ -1,0 +1,2398 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/i18n.js"></script>
+  <script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<script>(function(){var r=localStorage.getItem('userRole');if(r==='admin'){document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('adminNavLink');if(a)a.style.display='flex';});}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Gestión de Turnos - Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<style>
+.turnos-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.turnos-tab {
+  color: var(--muted);
+  position: relative;
+}
+.turnos-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary) !important;
+}
+.turnos-tab:hover {
+  background: rgba(var(--primary-rgb), 0.05);
+}
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 20px 0;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 600;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.calendar-day {
+  min-height: 70px;
+  padding: 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--card);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+  border-color: var(--primary);
+}
+
+.calendar-day.today {
+  border-color: var(--primary);
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
+}
+
+.calendar-day.holiday {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.08), rgba(220, 38, 38, 0.03));
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.calendar-day.has-shifts {
+  background: rgba(var(--primary-rgb), 0.08);
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+  color: var(--text);
+}
+
+.calendar-day.today .calendar-day-number {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.calendar-day.holiday .calendar-day-number {
+  color: #dc2626;
+}
+
+.holiday-name {
+  font-size: 9px;
+  color: #dc2626;
+  font-weight: 600;
+  margin-top: 2px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.shift-badge {
+  font-size: 8px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin: 1px 0;
+  text-align: left;
+  font-weight: 600;
+  color: white;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shift-badge.tipo-manana {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.shift-badge.tipo-tarde {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.shift-badge.tipo-corrido {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.7));
+}
+
+.shift-badge.tipo-noche {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+
+.shift-badge.tipo-consulta {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.shift-badge.tipo-cambio {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border: 1px dashed white;
+}
+
+.shift-badge.pago-ops {
+  border-left: 3px solid #ef4444;
+}
+
+.shift-badge.pago-nomina {
+  border-left: 3px solid #3b82f6;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.calendar-month-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  flex: 1;
+  text-align: center;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+  border-radius: 10px;
+  padding: 14px 12px;
+  text-align: center;
+  border: 2px solid rgba(var(--primary-rgb), 0.2);
+  transition: all 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
+}
+
+.summary-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.summary-card-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.shift-form-container {
+  background: var(--card);
+  border: 2px solid var(--primary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.shifts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.shift-item {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s;
+}
+
+.shift-item:hover {
+  box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.15);
+  transform: translateY(-4px);
+  border-color: var(--primary);
+}
+
+.legend-container {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(var(--primary-rgb), 0.05);
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.legend-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+.payment-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.payment-type-badge.ops {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.payment-type-badge.nomina {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.field select,
+.field input[type="text"],
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="number"] {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.field select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field select option {
+  padding: 8px;
+  font-size: 14px;
+}
+
+.shift-form-container form {
+  padding-bottom: 20px;
+}
+
+.shift-form-container .field {
+  margin-bottom: 12px;
+}
+
+/* Mobile Navigation Bar */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.mobile-bottom-nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--muted);
+  transition: all 0.2s;
+  border: none;
+  background: none;
+}
+
+.mobile-nav-item.active {
+  color: var(--primary);
+}
+
+.mobile-nav-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mobile-nav-label {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: block;
+  }
+  
+  .layout {
+    padding-bottom: 0;
+  }
+  
+  .content {
+    margin-left: 0;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+  
+  .header {
+    padding-left: 16px;
+  }
+  
+  .calendar-grid {
+    gap: 3px;
+  }
+  
+  .calendar-day {
+    min-height: 70px;
+    padding: 4px;
+  }
+  
+  .calendar-day-number {
+    font-size: 14px;
+  }
+  
+  .shift-badge {
+    font-size: 7px;
+    padding: 2px 3px;
+  }
+  
+  .holiday-name {
+    font-size: 7px;
+  }
+  
+  .calendar-month-title {
+    font-size: 24px;
+  }
+  
+  .calendar-controls button {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  
+  main {
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+</style>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
+      <nav>
+        <a href="main.html"><span class="icon">🏠</span><span  data-i18n="header.principal">Principal</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span  data-i18n="header.vademecum">Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span  data-i18n="header.herramientas">Herramientas</span></a>
+        <a href="turnos.html" class="active"><span class="icon">📅</span><span  data-i18n="header.turnos">Turnos</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span  data-i18n="header.sugerencias">Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="configuracion.html"><span class="icon">⚙️</span><span  data-i18n="header.configuracion">Configuración</span></a>
+        <a href="admin.html" id="adminNavLink" style="display:none;"><span class="icon">🛠️</span><span  data-i18n="header.admin">Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <div class="header-title-group">
+          <h2>📅 Gestión de Turnos</h2>
+          <p class="header-subtitle">Organiza tus turnos, visualiza festivos colombianos y gestiona cambios con colegas</p>
+        </div>
+        <div id="colombiaClock"></div>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()"  data-i18n="header.logout">Salir</button>
+        </div>
+      </header>
+      <main>
+
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="turnos-tab active" data-tab="calendar" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📅 Calendario
+            </button>
+            <button class="turnos-tab" data-tab="list" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📋 Lista de Turnos
+            </button>
+            <button class="turnos-tab" data-tab="exchanges" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🔄 Cambios de Turno
+            </button>
+            <button class="turnos-tab" data-tab="summary" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📊 Estadísticas
+            </button>
+          </div>
+
+          <div style="padding:24px;">
+            <!-- TAB: CALENDARIO -->
+            <div class="tab-content" id="tab-calendar">
+              <div class="turnos-actions">
+                <button class="btn" id="btnNewShiftQuick">➕ Nuevo Turno</button>
+                <button class="btn secondary" id="btnBulkShifts">📅 Crear Secuencia</button>
+                <button class="btn secondary" id="btnExportPDF">📄 Exportar PDF</button>
+              </div>
+
+              <div class="calendar-controls">
+                <button class="btn sm" onclick="cambiarMes(-1)">← Anterior</button>
+                <h3 class="calendar-month-title" id="calendarMonthYear"></h3>
+                <button class="btn sm" onclick="cambiarMes(1)">Siguiente →</button>
+              </div>
+
+              <div class="legend-container">
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);"></div>
+                  <span>Mañana</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #fb923c, #f97316);"></div>
+                  <span>Tarde</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.7));"></div>
+                  <span>Corrido</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #6366f1, #4f46e5);"></div>
+                  <span>Noche</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                  <span>Consulta</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: 1px dashed #666;"></div>
+                  <span>Cambio</span>
+                </div>
+                <div class="legend-item">
+                  <div style="width: 3px; height: 18px; background: #ef4444; border-radius: 1px;"></div>
+                  <span>OPS</span>
+                </div>
+                <div class="legend-item">
+                  <div style="width: 3px; height: 18px; background: #3b82f6; border-radius: 1px;"></div>
+                  <span>Nómina</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-badge" style="border: 2px solid #dc2626;"></div>
+                  <span>Festivo</span>
+                </div>
+              </div>
+
+              <div class="calendar-grid" id="calendarGrid"></div>
+
+              <div class="summary-cards" id="monthSummary"></div>
+
+              <div id="shiftFormQuick" style="display:none;" class="shift-form-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h4 style="margin: 0;" id="formQuickTitle">Agregar Turno</h4>
+                  <button class="btn secondary sm" onclick="closeShiftForm()">✕</button>
+                </div>
+                
+                <div id="existingShiftsDay" style="display:none; margin-bottom: 16px; padding: 12px; background: rgba(var(--primary-rgb), 0.08); border-radius: 6px;">
+                  <h5 style="margin: 0 0 8px 0; color: var(--primary);">Turnos en este día:</h5>
+                  <div id="existingShiftsList"></div>
+                </div>
+
+                <form id="shiftFormData" onsubmit="saveShift(event)">
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <div class="field">
+                      <label>📅 Fecha</label>
+                      <input type="date" id="shiftDate" required>
+                    </div>
+                    <div class="field">
+                      <label>📋 Tipo de Turno</label>
+                      <select id="shiftType" required onchange="toggleExchangeFields()">
+                        <option value="manana">Mañana</option>
+                        <option value="tarde">Tarde</option>
+                        <option value="corrido">Corrido</option>
+                        <option value="noche">Noche</option>
+                        <option value="consulta">Consulta</option>
+                        <option value="24horas">Turno 24 horas</option>
+                        <option value="cambio">Cambio de Turno</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>💱 Moneda</label>
+                      <select id="shiftCurrency">
+                        <option value="COP" selected>COP (Peso Colombiano)</option>
+                        <option value="USD">USD (Dólar Estadounidense)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                      </select>
+                    </div>
+                    <div class="field" id="fieldPaymentType">
+                      <label>💼 Tipo de Pago</label>
+                      <select id="paymentType" required>
+                        <option value="ops">OPS (Prestación de Servicios)</option>
+                        <option value="nomina">Nómina</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>🏥 Lugar</label>
+                      <input type="text" id="shiftPlace" required placeholder="Hospital, Clínica..." list="placesList">
+                      <datalist id="placesList"></datalist>
+                    </div>
+                    <div class="field">
+                      <label>🕐 Hora Inicio</label>
+                      <input type="time" id="shiftStartTime" value="07:00">
+                    </div>
+                    <div class="field">
+                      <label>🕐 Hora Fin</label>
+                      <input type="time" id="shiftEndTime" value="19:00">
+                    </div>
+                    <div class="field">
+                      <label>💵 Valor Total ($)</label>
+                      <input type="number" id="shiftValue" step="0.01" min="0" value="0">
+                    </div>
+                  </div>
+                  
+                  <div id="exchangeFields" style="display:none; margin-top: 12px; padding: 12px; background: rgba(139, 92, 246, 0.08); border-radius: 6px; border: 2px solid rgba(139, 92, 246, 0.2);">
+                    <h5 style="margin: 0 0 12px 0; color: #8b5cf6;">🔄 Información del Cambio</h5>
+                    <div class="field">
+                      <label>👤 Persona con quien cambió</label>
+                      <input type="text" id="exchangeWith" placeholder="Nombre del colega">
+                    </div>
+                    <div class="field" style="margin-top: 8px;">
+                      <label>📝 Detalles del cambio</label>
+                      <textarea id="exchangeDetails" rows="2" placeholder="Ej: Cambié mi turno de noche del 15 por su turno de mañana del 20"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 12px;">
+                    <label>📝 Notas</label>
+                    <textarea id="shiftNotes" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                  </div>
+                  <div style="margin-top: 16px; display: flex; gap: 8px;">
+                    <button type="submit" class="btn primary grow">💾 Guardar</button>
+                    <button type="button" class="btn secondary" onclick="closeShiftForm()"  data-i18n="common.cancelar">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+
+              <div id="bulkShiftForm" style="display:none;" class="shift-form-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h4 style="margin: 0; font-size: 16px;">📅 Crear Secuencia de Turnos</h4>
+                  <button class="btn secondary sm" onclick="closeBulkShiftForm()">✕</button>
+                </div>
+                
+                <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
+                  Crea múltiples turnos de forma rápida
+                </p>
+
+                <form id="bulkShiftFormData" onsubmit="saveBulkShifts(event)">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field">
+                      <label>📅 Fecha Inicio</label>
+                      <input type="date" id="bulkStartDate" required>
+                    </div>
+                    <div class="field">
+                      <label>📅 Fecha Fin</label>
+                      <input type="date" id="bulkEndDate" required>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>🔄 Patrón de repetición</label>
+                    <select id="bulkPatternType" onchange="toggleBulkPattern()">
+                      <option value="weekdays">Días de la semana</option>
+                      <option value="interval">Cada N días</option>
+                    </select>
+                  </div>
+
+                  <div id="bulkWeekdaysSection" class="field" style="margin-top: 10px;">
+                    <label>📋 Días de la semana</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px;">
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayLun" value="1">
+                        <span>Lun</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayMar" value="2">
+                        <span>Mar</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayMie" value="3">
+                        <span>Mié</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayJue" value="4">
+                        <span>Jue</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayVie" value="5">
+                        <span>Vie</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDaySab" value="6">
+                        <span>Sáb</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 6px; background: var(--card); border: 2px solid var(--border); border-radius: 4px; font-size: 12px;">
+                        <input type="checkbox" id="bulkDayDom" value="0">
+                        <span>Dom</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div id="bulkIntervalSection" class="field" style="display:none; margin-top: 10px;">
+                    <label>🔢 Repetir cada cuántos días</label>
+                    <input type="number" id="bulkInterval" min="1" max="30" value="6" placeholder="Ej: 6 para turnos cada 6 días">
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="field">
+                      <label>📋 Tipo de Turno</label>
+                      <select id="bulkShiftType" required onchange="updateBulkTimeDefaults()">
+                        <option value="manana">Mañana</option>
+                        <option value="tarde">Tarde</option>
+                        <option value="corrido">Corrido</option>
+                        <option value="noche">Noche</option>
+                        <option value="consulta">Consulta</option>
+                        <option value="24horas">Turno 24 horas</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>💱 Moneda</label>
+                      <select id="bulkShiftCurrency">
+                        <option value="COP" selected>COP (Peso Colombiano)</option>
+                        <option value="USD">USD (Dólar Estadounidense)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                      </select>
+                    </div>
+                    <div class="field" style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="excludeHolidays" style="width: auto; margin: 0;">
+                      <label for="excludeHolidays" style="margin: 0; cursor: pointer;">🎉 Excluir festivos colombianos en secuencias de nómina</label>
+                    </div>
+                    <div class="field">
+                      <label>💼 Tipo de Pago</label>
+                      <select id="bulkPaymentType" required onchange="updateBulkValueLabel()">
+                        <option value="ops">OPS</option>
+                        <option value="nomina">Nómina</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>🏥 Lugar</label>
+                    <input type="text" id="bulkShiftPlace" required placeholder="Hospital, Clínica..." list="placesList">
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="field">
+                      <label>🕐 Hora Inicio</label>
+                      <input type="time" id="bulkShiftStartTime" value="07:00">
+                    </div>
+                    <div class="field">
+                      <label>🕐 Hora Fin</label>
+                      <input type="time" id="bulkShiftEndTime" value="19:00">
+                    </div>
+                    <div class="field">
+                      <label id="bulkValueLabel">💵 Valor por Turno ($)</label>
+                      <input type="number" id="bulkShiftValue" step="0.01" min="0" value="0">
+                    </div>
+                  </div>
+
+                  <div class="field" style="margin-top: 10px;">
+                    <label>📝 Notas</label>
+                    <textarea id="bulkShiftNotes" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                  </div>
+
+                  <div id="bulkPreview" style="display:none; margin-top: 12px; padding: 10px; background: rgba(var(--primary-rgb), 0.08); border-radius: 6px;">
+                    <h5 style="margin: 0 0 6px 0; color: var(--primary); font-size: 13px;">Vista Previa:</h5>
+                    <div id="bulkPreviewContent" style="font-size: 12px;"></div>
+                  </div>
+
+                  <div style="margin-top: 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center;">
+                    <button type="button" class="btn secondary" onclick="previewBulkShifts()" style="white-space: nowrap;">👁️ Vista Previa</button>
+                    <button type="submit" class="btn primary" style="width: 100%;">💾 Crear Turnos</button>
+                    <button type="button" class="btn secondary" onclick="closeBulkShiftForm()" style="white-space: nowrap;"  data-i18n="common.cancelar">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- TAB: LISTA -->
+            <div class="tab-content" id="tab-list" style="display:none;">
+              <div style="margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                  <div class="field" style="margin:0;">
+                    <label>📅 Desde</label>
+                    <input type="date" id="filterStartDate">
+                  </div>
+                  <div class="field" style="margin:0;">
+                    <label>📅 Hasta</label>
+                    <input type="date" id="filterEndDate">
+                  </div>
+                  <div class="field" style="margin:0;">
+                    <label>💼 Tipo de Pago</label>
+                    <select id="filterPaymentType">
+                      <option value="">Todos</option>
+                      <option value="ops">OPS</option>
+                      <option value="nomina">Nómina</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                  <button class="btn" id="btnApplyFilter">Filtrar</button>
+                  <button class="btn secondary" id="btnClearFilter">Limpiar</button>
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 20px; padding: 12px; background: rgba(var(--primary-rgb), 0.05); border-radius: 8px; border-left: 4px solid var(--primary);">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="selectAllShifts" style="cursor: pointer;">
+                    <span style="font-weight: 600;">Seleccionar todos</span>
+                  </label>
+                  <span id="selectedCount" style="color: var(--primary); font-weight: 600; margin-left: 8px;">0 seleccionados</span>
+                  <div style="margin-left: auto; display: flex; gap: 8px;">
+                    <button class="btn danger sm" id="btnDeleteSelected" onclick="deleteSelectedShifts()" style="display: none;">
+                      🗑️ Eliminar seleccionados
+                    </button>
+                    <button class="btn danger sm" id="btnDeleteByDate" onclick="showDeleteByDateDialog()">
+                      📅 Eliminar por fecha
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="shiftsList" class="shifts-list"></div>
+              <div id="emptyState" style="display:none; text-align: center; padding: 60px 20px; color: var(--muted);">
+                <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">📅</div>
+                <div style="font-size: 1.2em; margin-bottom: 10px; font-weight: 600;">No hay turnos registrados</div>
+                <p>Comienza agregando tu primer turno desde el calendario</p>
+              </div>
+            </div>
+
+            <!-- TAB: CAMBIOS DE TURNO -->
+            <div class="tab-content" id="tab-exchanges" style="display:none;">
+              <div style="margin-bottom: 20px;">
+                <h3 style="margin: 0 0 8px 0;">🔄 Cambios de Turno Registrados</h3>
+                <p class="text-muted" style="margin: 0;">Historial de turnos intercambiados con colegas</p>
+              </div>
+              <div id="exchangesList" class="shifts-list"></div>
+              <div id="emptyExchanges" style="display:none; text-align: center; padding: 60px 20px; color: var(--muted);">
+                <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">🔄</div>
+                <div style="font-size: 1.2em; margin-bottom: 10px; font-weight: 600;">No hay cambios de turno registrados</div>
+                <p>Los cambios de turno aparecerán aquí automáticamente</p>
+              </div>
+            </div>
+
+            <!-- TAB: RESUMEN -->
+            <div class="tab-content" id="tab-summary" style="display:none;">
+              <div style="background: rgba(var(--primary-rgb), 0.05); padding: 16px; border-radius: 10px; margin-bottom: 24px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <div class="field" style="margin:0;flex:1;min-width:200px;">
+                    <label>📅 Desde</label>
+                    <input type="date" id="summaryStartDate">
+                  </div>
+                  <div class="field" style="margin:0;flex:1;min-width:200px;">
+                    <label>📅 Hasta</label>
+                    <input type="date" id="summaryEndDate">
+                  </div>
+                  <button class="btn" id="btnApplySummaryFilter" style="align-self:flex-end;">Filtrar</button>
+                  <button class="btn secondary" id="btnClearSummaryFilter" style="align-self:flex-end;">Limpiar</button>
+                </div>
+              </div>
+
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin-bottom: 16px;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">📊 Totales Generales</h3>
+                <div class="summary-cards" id="summaryTotals"></div>
+              </div>
+              
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin: 32px 0 16px 0;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">💼 Distribución por Tipo de Pago</h3>
+                <div class="summary-cards" id="summaryByPaymentType"></div>
+              </div>
+              
+              <div style="border-left: 4px solid var(--primary); padding-left: 16px; margin: 32px 0 16px 0;">
+                <h3 style="margin:0 0 12px 0; color: var(--primary); font-size: 18px;">🏥 Distribución por Lugar</h3>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Lugar</th>
+                        <th  data-i18n="header.turnos">Turnos</th>
+                        <th>Horas</th>
+                        <th>Valor Promedio</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="summaryByPlace"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+<script src="script.js"></script>
+<script>
+  function getColombiaDate() {
+    const now = new Date();
+    const colombiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return colombiaTime;
+  }
+
+  function getColombiaDateString() {
+    const date = getColombiaDate();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function normalizeString(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  function toggleExchangeFields() {
+    const tipo = document.getElementById('shiftType').value;
+    const exchangeFields = document.getElementById('exchangeFields');
+    const paymentField = document.getElementById('fieldPaymentType');
+    
+    if (tipo === 'cambio') {
+      exchangeFields.style.display = 'block';
+      paymentField.style.display = 'none';
+      document.getElementById('shiftValue').value = '0';
+    } else {
+      exchangeFields.style.display = 'none';
+      paymentField.style.display = 'block';
+    }
+  }
+
+  const FESTIVOS_COLOMBIA = {
+    2025: [
+      {fecha: '2025-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2025-01-06', nombre: 'Reyes Magos'},
+      {fecha: '2025-03-24', nombre: 'San José'},
+      {fecha: '2025-04-17', nombre: 'Jueves Santo'},
+      {fecha: '2025-04-18', nombre: 'Viernes Santo'},
+      {fecha: '2025-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2025-06-02', nombre: 'Ascensión'},
+      {fecha: '2025-06-23', nombre: 'Corpus Christi'},
+      {fecha: '2025-06-30', nombre: 'Sagrado Corazón'},
+      {fecha: '2025-07-07', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2025-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2025-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2025-08-18', nombre: 'Asunción'},
+      {fecha: '2025-10-13', nombre: 'Día de la Raza'},
+      {fecha: '2025-11-03', nombre: 'Todos los Santos'},
+      {fecha: '2025-11-17', nombre: 'Independencia de Cartagena'},
+      {fecha: '2025-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2025-12-25', nombre: 'Navidad'}
+    ],
+    2026: [
+      {fecha: '2026-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2026-01-12', nombre: 'Reyes Magos'},
+      {fecha: '2026-03-23', nombre: 'San José'},
+      {fecha: '2026-04-02', nombre: 'Jueves Santo'},
+      {fecha: '2026-04-03', nombre: 'Viernes Santo'},
+      {fecha: '2026-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2026-05-18', nombre: 'Ascensión'},
+      {fecha: '2026-06-08', nombre: 'Corpus Christi'},
+      {fecha: '2026-06-15', nombre: 'Sagrado Corazón'},
+      {fecha: '2026-06-29', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2026-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2026-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2026-08-17', nombre: 'Asunción'},
+      {fecha: '2026-10-12', nombre: 'Día de la Raza'},
+      {fecha: '2026-11-02', nombre: 'Todos los Santos'},
+      {fecha: '2026-11-16', nombre: 'Independencia de Cartagena'},
+      {fecha: '2026-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2026-12-25', nombre: 'Navidad'}
+    ],
+    2027: [
+      {fecha: '2027-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2027-01-11', nombre: 'Reyes Magos'},
+      {fecha: '2027-03-22', nombre: 'San José'},
+      {fecha: '2027-04-01', nombre: 'Jueves Santo'},
+      {fecha: '2027-04-02', nombre: 'Viernes Santo'},
+      {fecha: '2027-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2027-05-17', nombre: 'Ascensión'},
+      {fecha: '2027-06-07', nombre: 'Corpus Christi'},
+      {fecha: '2027-06-14', nombre: 'Sagrado Corazón'},
+      {fecha: '2027-06-28', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2027-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2027-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2027-08-16', nombre: 'Asunción'},
+      {fecha: '2027-10-11', nombre: 'Día de la Raza'},
+      {fecha: '2027-11-01', nombre: 'Todos los Santos'},
+      {fecha: '2027-11-15', nombre: 'Independencia de Cartagena'},
+      {fecha: '2027-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2027-12-25', nombre: 'Navidad'}
+    ],
+    2028: [
+      {fecha: '2028-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2028-01-10', nombre: 'Reyes Magos'},
+      {fecha: '2028-03-20', nombre: 'San José'},
+      {fecha: '2028-04-13', nombre: 'Jueves Santo'},
+      {fecha: '2028-04-14', nombre: 'Viernes Santo'},
+      {fecha: '2028-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2028-05-29', nombre: 'Ascensión'},
+      {fecha: '2028-06-19', nombre: 'Corpus Christi'},
+      {fecha: '2028-06-26', nombre: 'Sagrado Corazón'},
+      {fecha: '2028-07-03', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2028-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2028-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2028-08-21', nombre: 'Asunción'},
+      {fecha: '2028-10-16', nombre: 'Día de la Raza'},
+      {fecha: '2028-11-06', nombre: 'Todos los Santos'},
+      {fecha: '2028-11-13', nombre: 'Independencia de Cartagena'},
+      {fecha: '2028-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2028-12-25', nombre: 'Navidad'}
+    ],
+    2029: [
+      {fecha: '2029-01-01', nombre: 'Año Nuevo'},
+      {fecha: '2029-01-08', nombre: 'Reyes Magos'},
+      {fecha: '2029-03-19', nombre: 'San José'},
+      {fecha: '2029-03-29', nombre: 'Jueves Santo'},
+      {fecha: '2029-03-30', nombre: 'Viernes Santo'},
+      {fecha: '2029-05-01', nombre: 'Día del Trabajo'},
+      {fecha: '2029-05-14', nombre: 'Ascensión'},
+      {fecha: '2029-06-04', nombre: 'Corpus Christi'},
+      {fecha: '2029-06-11', nombre: 'Sagrado Corazón'},
+      {fecha: '2029-07-02', nombre: 'San Pedro y San Pablo'},
+      {fecha: '2029-07-20', nombre: 'Día de la Independencia'},
+      {fecha: '2029-08-07', nombre: 'Batalla de Boyacá'},
+      {fecha: '2029-08-20', nombre: 'Asunción'},
+      {fecha: '2029-10-15', nombre: 'Día de la Raza'},
+      {fecha: '2029-11-05', nombre: 'Todos los Santos'},
+      {fecha: '2029-11-12', nombre: 'Independencia de Cartagena'},
+      {fecha: '2029-12-08', nombre: 'Inmaculada Concepción'},
+      {fecha: '2029-12-25', nombre: 'Navidad'}
+    ]
+  };
+
+  const colombiaDate = getColombiaDate();
+  let currentMonth = colombiaDate.getMonth();
+  let currentYear = colombiaDate.getFullYear();
+  let allShifts = [];
+  let editingShiftId = null;
+
+  async function initTurnos() {
+    await loadShifts();
+    renderCalendar();
+    setupTabs();
+    setupEventListeners();
+  }
+
+  function setupTabs() {
+    document.querySelectorAll('.turnos-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.getAttribute('data-tab');
+        document.querySelectorAll('.turnos-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(`tab-${targetTab}`).style.display = 'block';
+        
+        if (targetTab === 'calendar') {
+          renderCalendar();
+        } else if (targetTab === 'list') {
+          renderShiftsList();
+        } else if (targetTab === 'exchanges') {
+          renderExchangesList();
+        } else if (targetTab === 'summary') {
+          loadSummary();
+        }
+      });
+    });
+  }
+
+  function setupEventListeners() {
+    document.getElementById('btnNewShiftQuick').addEventListener('click', () => openShiftForm());
+    document.getElementById('btnBulkShifts').addEventListener('click', () => openBulkShiftForm());
+    document.getElementById('btnExportPDF').addEventListener('click', exportPDF);
+    document.getElementById('btnApplyFilter').addEventListener('click', renderShiftsList);
+    document.getElementById('btnClearFilter').addEventListener('click', () => {
+      document.getElementById('filterStartDate').value = '';
+      document.getElementById('filterEndDate').value = '';
+      document.getElementById('filterPaymentType').value = '';
+      renderShiftsList();
+    });
+    document.getElementById('btnApplySummaryFilter').addEventListener('click', loadSummary);
+    document.getElementById('btnClearSummaryFilter').addEventListener('click', () => {
+      document.getElementById('summaryStartDate').value = '';
+      document.getElementById('summaryEndDate').value = '';
+      loadSummary();
+    });
+    document.getElementById('selectAllShifts').addEventListener('change', toggleSelectAll);
+  }
+
+  async function loadShifts() {
+    try {
+      const response = await api('/shifts');
+      allShifts = response.shifts || [];
+      updatePlacesList();
+    } catch (err) {
+      console.error('Error loading shifts:', err);
+    }
+  }
+
+  function updatePlacesList() {
+    const places = [...new Set(allShifts.map(s => s.entity_name).filter(Boolean))];
+    const datalist = document.getElementById('placesList');
+    datalist.innerHTML = places.map(p => `<option value="${p}">`).join('');
+  }
+
+  function cambiarMes(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    } else if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    renderCalendar();
+  }
+
+  function getPaymentType(shift) {
+    if (!shift.notes) return 'ops';
+    const match = shift.notes.match(/Tipo pago: (ops|nomina)/i);
+    return match ? match[1].toLowerCase() : 'ops';
+  }
+
+  function getStartTime(shift) {
+    if (!shift.notes) return '';
+    const match = shift.notes.match(/(\d{2}:\d{2})-\d{2}:\d{2}/);
+    return match ? match[1] : '';
+  }
+
+  function formatCurrency(value, currency = 'COP') {
+    const num = parseFloat(value);
+    if (isNaN(num)) return '$0';
+    
+    const roundedNum = Math.round(num);
+    
+    const currencyConfig = {
+      'COP': { locale: 'es-CO', currency: 'COP', format: (n) => {
+        const formatted = n.toFixed(0);
+        const parts = formatted.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return '$' + parts[0];
+      }},
+      'USD': { locale: 'en-US', currency: 'USD', format: (n) => {
+        return n.toLocaleString('en-US', { 
+          style: 'currency', 
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        });
+      }},
+      'EUR': { locale: 'de-DE', currency: 'EUR', format: (n) => {
+        return n.toLocaleString('de-DE', { 
+          style: 'currency', 
+          currency: 'EUR',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        });
+      }}
+    };
+    
+    const config = currencyConfig[currency] || currencyConfig['COP'];
+    return config.format(roundedNum);
+  }
+  
+  function formatCOP(value) {
+    return formatCurrency(value, 'COP');
+  }
+
+  function groupByCurrency(shifts) {
+    const groups = {};
+    shifts.forEach(shift => {
+      const curr = shift.currency || 'COP';
+      if (!groups[curr]) groups[curr] = { shifts: [], total: 0 };
+      groups[curr].shifts.push(shift);
+      groups[curr].total += parseFloat(shift.hours || 0) * parseFloat(shift.hourly_rate || 0);
+    });
+    return groups;
+  }
+
+  function renderCalendar() {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+    
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div></div>';
+    }
+    
+    const today = getColombiaDateString();
+    const holidaysThisYear = FESTIVOS_COLOMBIA[currentYear] || [];
+    
+    for (let day = 1; day <= lastDate; day++) {
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayShifts = allShifts.filter(s => s.shift_date === dateStr);
+      const isToday = dateStr === today;
+      const holiday = holidaysThisYear.find(h => h.fecha === dateStr);
+      
+      let classes = 'calendar-day';
+      if (isToday) classes += ' today';
+      if (holiday) classes += ' holiday';
+      if (dayShifts.length > 0) classes += ' has-shifts';
+      
+      html += `<div class="${classes}" onclick="openShiftForm('${dateStr}')">`;
+      html += `<div class="calendar-day-number">${day}</div>`;
+      if (holiday) {
+        html += `<div class="holiday-name">${holiday.nombre}</div>`;
+      }
+      
+      dayShifts.sort((a, b) => {
+        const timeA = getStartTime(a);
+        const timeB = getStartTime(b);
+        return timeA.localeCompare(timeB);
+      });
+      
+      dayShifts.forEach(shift => {
+        const tipo = normalizeString(shift.shift_type);
+        const paymentType = getPaymentType(shift);
+        const startTime = getStartTime(shift);
+        const displayTime = startTime ? startTime.substring(0, 5) + ' ' : '';
+        html += `<div class="shift-badge tipo-${tipo} pago-${paymentType}">${displayTime}${shift.shift_type}</div>`;
+      });
+      html += '</div>';
+    }
+    
+    document.getElementById('calendarGrid').innerHTML = html;
+    updateMonthSummary();
+  }
+
+  function updateMonthSummary() {
+    const monthShifts = allShifts.filter(s => {
+      if (!s.shift_date) return false;
+      const [year, month] = s.shift_date.split('-');
+      return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
+    });
+
+    const totalShifts = monthShifts.length;
+    const totalHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+
+    const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
+    const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
+    
+    const opsByCurrency = groupByCurrency(opsShifts);
+    const nominaByCurrency = groupByCurrency(nominaShifts);
+    const allByCurrency = groupByCurrency(monthShifts);
+    
+    const currencies = new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)]);
+    const currencyArray = Array.from(currencies);
+    const hasMultipleCurrencies = currencyArray.length > 1;
+    
+    let summaryHTML = `
+      <div class="summary-card">
+        <div class="summary-card-value">${totalShifts}</div>
+        <div class="summary-card-label"  data-i18n="header.turnos">Turnos</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">${totalHours.toFixed(1)}</div>
+        <div class="summary-card-label">Horas</div>
+      </div>
+    `;
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(opsByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">OPS${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(nominaByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">Nómina${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    currencyArray.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      
+      summaryHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(allByCurrency[curr]?.total || 0, curr)}</div>
+          <div class="summary-card-label">Total${currLabel}</div>
+        </div>
+      `;
+    });
+
+    document.getElementById('monthSummary').innerHTML = summaryHTML;
+  }
+
+  function openShiftForm(date = null) {
+    editingShiftId = null;
+    document.getElementById('shiftFormQuick').style.display = 'block';
+    document.getElementById('formQuickTitle').textContent = 'Agregar Turno';
+    toggleExchangeFields();
+    
+    if (date) {
+      document.getElementById('shiftDate').value = date;
+      const dayShifts = allShifts.filter(s => s.shift_date === date);
+      
+      if (dayShifts.length > 0) {
+        document.getElementById('existingShiftsDay').style.display = 'block';
+        document.getElementById('existingShiftsList').innerHTML = dayShifts.map(s => {
+          const paymentType = getPaymentType(s);
+          const startTime = getStartTime(s);
+          const paymentBadge = (s.shift_type && s.shift_type.toLowerCase() !== 'cambio') ? 
+            `<span class="payment-type-badge ${paymentType}">${paymentType.toUpperCase()}</span>` : '';
+          return `
+          <div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px;">
+                ${startTime ? startTime + ' - ' : ''}${s.shift_type} - ${s.hours}h ${paymentBadge}
+              </div>
+              <div style="font-size: 12px; color: var(--muted);">${s.entity_name || 'Sin lugar'} - ${formatCurrency(parseFloat(s.hours) * parseFloat(s.hourly_rate), s.currency || 'COP')}</div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn sm secondary" onclick="editShift(${s.id})">✏️</button>
+              <button type="button" class="btn sm danger" onclick="deleteShift(${s.id})">🗑️</button>
+            </div>
+          </div>
+        `}).join('');
+      } else {
+        document.getElementById('existingShiftsDay').style.display = 'none';
+      }
+    } else {
+      document.getElementById('shiftDate').value = getColombiaDateString();
+      document.getElementById('existingShiftsDay').style.display = 'none';
+    }
+    
+    document.getElementById('shiftFormQuick').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeShiftForm() {
+    document.getElementById('shiftFormQuick').style.display = 'none';
+    clearShiftForm();
+  }
+
+  function clearShiftForm() {
+    editingShiftId = null;
+    document.getElementById('shiftFormData').reset();
+    document.getElementById('shiftStartTime').value = '07:00';
+    document.getElementById('shiftEndTime').value = '19:00';
+    document.getElementById('shiftType').value = 'manana';
+    document.getElementById('paymentType').value = 'ops';
+    toggleExchangeFields();
+  }
+
+  async function saveShift(event) {
+    event.preventDefault();
+    
+    const date = document.getElementById('shiftDate').value;
+    const place = document.getElementById('shiftPlace').value;
+    const type = document.getElementById('shiftType').value;
+    const paymentType = document.getElementById('paymentType').value;
+    const startTime = document.getElementById('shiftStartTime').value;
+    const endTime = document.getElementById('shiftEndTime').value;
+    const value = parseFloat(document.getElementById('shiftValue').value) || 0;
+    let notes = document.getElementById('shiftNotes').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours < 0) hours += 24;
+    
+    if (type === 'cambio') {
+      const exchangeWith = document.getElementById('exchangeWith').value;
+      const exchangeDetails = document.getElementById('exchangeDetails').value;
+      if (exchangeWith) {
+        notes = `Cambio con: ${exchangeWith}. ${exchangeDetails ? exchangeDetails + '. ' : ''}${notes}`;
+      }
+    } else {
+      notes = `Tipo pago: ${paymentType} | ${startTime}-${endTime}` + (notes ? ' | ' + notes : '');
+    }
+    
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta',
+      '24horas': 'Turno 24 horas',
+      'cambio': 'Cambio'
+    }[type] || type;
+    
+    const currency = document.getElementById('shiftCurrency').value;
+    
+    const data = {
+      entity_name: place,
+      shift_date: date,
+      shift_type: displayType,
+      hours: hours,
+      hourly_rate: hours > 0 ? (value / hours) : 0,
+      notes: notes,
+      currency: currency || 'COP'
+    };
+    
+    console.log('Guardando turno con datos:', data);
+    
+    try {
+      if (editingShiftId) {
+        await api(`/shifts/${editingShiftId}`, { method: 'PUT', body: JSON.stringify(data) });
+        showToast('Turno actualizado exitosamente', 'success');
+      } else {
+        await api('/shifts', { method: 'POST', body: JSON.stringify(data) });
+        showToast('Turno guardado exitosamente', 'success');
+      }
+      
+      closeShiftForm();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
+    } catch (err) {
+      console.error('Error al guardar turno:', err);
+      showToast(err.message || 'Error al guardar turno', 'error');
+    }
+  }
+
+  async function editShift(id) {
+    const shift = allShifts.find(s => s.id === id);
+    if (!shift) return;
+    
+    editingShiftId = id;
+    document.getElementById('formQuickTitle').textContent = 'Editar Turno';
+    document.getElementById('shiftDate').value = shift.shift_date;
+    document.getElementById('shiftPlace').value = shift.entity_name || '';
+    const typeMap = {
+      'Mañana': 'manana',
+      'Tarde': 'tarde',
+      'Corrido': 'corrido',
+      'Noche': 'noche',
+      'Consulta': 'consulta',
+      'Turno 24 horas': '24horas',
+      'Cambio': 'cambio'
+    };
+    document.getElementById('shiftType').value = typeMap[shift.shift_type] || normalizeString(shift.shift_type);
+    document.getElementById('shiftCurrency').value = shift.currency || 'COP';
+    
+    const paymentType = getPaymentType(shift);
+    document.getElementById('paymentType').value = paymentType;
+    
+    const notesMatch = shift.notes ? shift.notes.match(/(\d{2}:\d{2})-(\d{2}:\d{2})/) : null;
+    if (notesMatch) {
+      document.getElementById('shiftStartTime').value = notesMatch[1];
+      document.getElementById('shiftEndTime').value = notesMatch[2];
+    }
+    
+    const totalValue = parseFloat(shift.hours) * parseFloat(shift.hourly_rate);
+    document.getElementById('shiftValue').value = totalValue.toFixed(2);
+    
+    if (shift.shift_type && shift.shift_type.toLowerCase() === 'cambio') {
+      const exchangeMatch = shift.notes ? shift.notes.match(/Cambio con: ([^.]+)\.?\s*(.*)/) : null;
+      if (exchangeMatch) {
+        document.getElementById('exchangeWith').value = exchangeMatch[1].trim();
+        const details = exchangeMatch[2].split('|')[0].trim();
+        document.getElementById('exchangeDetails').value = details;
+      }
+    }
+    
+    const cleanNotes = shift.notes ? shift.notes.split('|').pop().trim() : '';
+    document.getElementById('shiftNotes').value = cleanNotes;
+    
+    toggleExchangeFields();
+    document.getElementById('shiftFormQuick').style.display = 'block';
+    document.getElementById('shiftFormQuick').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function deleteShift(id) {
+    if (!confirm('¿Eliminar este turno?')) return;
+    
+    try {
+      await api(`/shifts/${id}`, { method: 'DELETE' });
+      showToast('Turno eliminado', 'success');
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
+    } catch (err) {
+      showToast('Error al eliminar turno', 'error');
+    }
+  }
+
+  let selectedShiftIds = new Set();
+
+  function toggleShiftSelection(id, checkbox) {
+    if (checkbox.checked) {
+      selectedShiftIds.add(id);
+    } else {
+      selectedShiftIds.delete(id);
+    }
+    updateSelectionUI();
+  }
+
+  function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllShifts');
+    const checkboxes = document.querySelectorAll('.shift-checkbox');
+    
+    checkboxes.forEach(cb => {
+      cb.checked = selectAllCheckbox.checked;
+      const shiftId = parseInt(cb.dataset.shiftId);
+      if (selectAllCheckbox.checked) {
+        selectedShiftIds.add(shiftId);
+      } else {
+        selectedShiftIds.delete(shiftId);
+      }
+    });
+    
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    const count = selectedShiftIds.size;
+    const countElement = document.getElementById('selectedCount');
+    const deleteButton = document.getElementById('btnDeleteSelected');
+    
+    countElement.textContent = `${count} seleccionado${count !== 1 ? 's' : ''}`;
+    deleteButton.style.display = count > 0 ? 'inline-block' : 'none';
+    
+    const selectAllCheckbox = document.getElementById('selectAllShifts');
+    const checkboxes = document.querySelectorAll('.shift-checkbox');
+    selectAllCheckbox.checked = checkboxes.length > 0 && count === checkboxes.length;
+  }
+
+  async function deleteSelectedShifts() {
+    if (selectedShiftIds.size === 0) {
+      showToast('No hay turnos seleccionados', 'info');
+      return;
+    }
+    
+    if (!confirm(`¿Eliminar ${selectedShiftIds.size} turno(s) seleccionado(s)?`)) return;
+    
+    try {
+      const response = await api('/shifts/delete-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedShiftIds) })
+      });
+      
+      showToast(`${response.deletedCount} turno(s) eliminado(s)`, 'success');
+      selectedShiftIds.clear();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
+    } catch (err) {
+      showToast('Error al eliminar turnos', 'error');
+    }
+  }
+
+  function showDeleteByDateDialog() {
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    
+    if (!startDate || !endDate) {
+      showToast('Por favor selecciona un rango de fechas en los filtros', 'info');
+      return;
+    }
+    
+    const message = `¿Eliminar TODOS los turnos entre ${new Date(startDate).toLocaleDateString('es-CO')} y ${new Date(endDate).toLocaleDateString('es-CO')}?`;
+    if (!confirm(message)) return;
+    
+    deleteByDateRange(startDate, endDate);
+  }
+
+  async function deleteByDateRange(startDate, endDate) {
+    try {
+      const response = await api('/shifts/delete-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate, endDate })
+      });
+      
+      showToast(`${response.deletedCount} turno(s) eliminado(s)`, 'success');
+      selectedShiftIds.clear();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+      renderExchangesList();
+    } catch (err) {
+      showToast('Error al eliminar turnos', 'error');
+    }
+  }
+
+  function openBulkShiftForm() {
+    closeShiftForm();
+    document.getElementById('bulkShiftForm').style.display = 'block';
+    document.getElementById('bulkPreview').style.display = 'none';
+    const today = getColombiaDateString();
+    document.getElementById('bulkStartDate').value = today;
+    document.getElementById('bulkEndDate').value = today;
+    document.getElementById('bulkShiftForm').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeBulkShiftForm() {
+    document.getElementById('bulkShiftForm').style.display = 'none';
+    document.getElementById('bulkShiftFormData').reset();
+    document.getElementById('bulkPreview').style.display = 'none';
+    document.getElementById('bulkWeekdaysSection').style.display = 'block';
+    document.getElementById('bulkIntervalSection').style.display = 'none';
+  }
+
+  function toggleBulkPattern() {
+    const patternType = document.getElementById('bulkPatternType').value;
+    if (patternType === 'weekdays') {
+      document.getElementById('bulkWeekdaysSection').style.display = 'block';
+      document.getElementById('bulkIntervalSection').style.display = 'none';
+    } else {
+      document.getElementById('bulkWeekdaysSection').style.display = 'none';
+      document.getElementById('bulkIntervalSection').style.display = 'block';
+    }
+    document.getElementById('bulkPreview').style.display = 'none';
+  }
+
+  function updateBulkTimeDefaults() {
+    const type = document.getElementById('bulkShiftType').value;
+    const timeDefaults = {
+      'manana': { start: '07:00', end: '13:00' },
+      'tarde': { start: '13:00', end: '19:00' },
+      'corrido': { start: '07:00', end: '19:00' },
+      'noche': { start: '19:00', end: '07:00' },
+      'consulta': { start: '08:00', end: '12:00' }
+    };
+    
+    const defaults = timeDefaults[type];
+    if (defaults) {
+      document.getElementById('bulkShiftStartTime').value = defaults.start;
+      document.getElementById('bulkShiftEndTime').value = defaults.end;
+    }
+  }
+
+  function updateBulkValueLabel() {
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const label = document.getElementById('bulkValueLabel');
+    if (paymentType === 'nomina') {
+      label.textContent = '💵 Salario Mensual Total ($)';
+    } else {
+      label.textContent = '💵 Valor por Turno ($)';
+    }
+  }
+
+  function getSelectedDays() {
+    const days = [];
+    if (document.getElementById('bulkDayDom').checked) days.push(0);
+    if (document.getElementById('bulkDayLun').checked) days.push(1);
+    if (document.getElementById('bulkDayMar').checked) days.push(2);
+    if (document.getElementById('bulkDayMie').checked) days.push(3);
+    if (document.getElementById('bulkDayJue').checked) days.push(4);
+    if (document.getElementById('bulkDayVie').checked) days.push(5);
+    if (document.getElementById('bulkDaySab').checked) days.push(6);
+    return days;
+  }
+
+  function calculateBulkDates() {
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
+    const patternType = document.getElementById('bulkPatternType').value;
+    const dates = [];
+    
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) return null;
+      
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        if (selectedDays.includes(currentDate.getDay())) {
+          const dateStr = currentDate.toISOString().split('T')[0];
+          dates.push(dateStr);
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    } else {
+      const interval = parseInt(document.getElementById('bulkInterval').value) || 6;
+      let currentDate = new Date(startDate);
+      
+      while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        dates.push(dateStr);
+        currentDate.setDate(currentDate.getDate() + interval);
+      }
+    }
+    
+    return dates;
+  }
+
+  function previewBulkShifts() {
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
+    const patternType = document.getElementById('bulkPatternType').value;
+    
+    if (startDate > endDate) {
+      showToast('La fecha de inicio debe ser anterior a la fecha de fin', 'warning');
+      return;
+    }
+
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) {
+        showToast('Selecciona al menos un día de la semana', 'warning');
+        return;
+      }
+    }
+
+    let dates = calculateBulkDates();
+    
+    if (!dates || dates.length === 0) {
+      showToast('No hay fechas en el rango seleccionado', 'warning');
+      return;
+    }
+
+    const type = document.getElementById('bulkShiftType').value;
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta'
+    }[type] || type;
+
+    const patternDesc = patternType === 'weekdays' ? 
+      'por días de la semana' : 
+      `cada ${document.getElementById('bulkInterval').value} días`;
+    
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const value = parseFloat(document.getElementById('bulkShiftValue').value) || 0;
+    const currency = document.getElementById('bulkShiftCurrency').value || 'COP';
+    const startTime = document.getElementById('bulkShiftStartTime').value;
+    const endTime = document.getElementById('bulkShiftEndTime').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours <= 0) hours += 24;
+    
+    const excludeHolidays = document.getElementById('excludeHolidays').checked && paymentType === 'nomina';
+    let filteredDates = dates;
+    
+    if (excludeHolidays) {
+      const currentYear = new Date().getFullYear();
+      const holidayDates = new Set();
+      for (let year = currentYear - 1; year <= currentYear + 10; year++) {
+        if (FESTIVOS_COLOMBIA[year]) {
+          FESTIVOS_COLOMBIA[year].forEach(f => holidayDates.add(f.fecha));
+        }
+      }
+      filteredDates = dates.filter(date => !holidayDates.has(date));
+    }
+    
+    if (filteredDates.length === 0) {
+      showToast('No hay turnos para crear después de excluir festivos', 'warning');
+      return;
+    }
+    
+    let valueInfo = '';
+    if (paymentType === 'nomina') {
+      const perShiftValue = value / filteredDates.length;
+      const hourlyRate = hours > 0 ? (perShiftValue / hours) : 0;
+      valueInfo = `
+        <div style="margin-top: 8px; padding: 8px; background: rgba(59, 130, 246, 0.1); border-radius: 4px;">
+          <strong>💼 Distribución Nómina:</strong><br>
+          <span style="font-size: 11px;">
+            • Salario mensual total: ${formatCurrency(value, currency)}<br>
+            • Turnos a crear: ${filteredDates.length}${excludeHolidays ? ' (festivos excluidos)' : ''}<br>
+            • Valor por turno: ${formatCurrency(perShiftValue, currency)}<br>
+            ${hours > 0 ? `• Tarifa por hora: ${formatCurrency(hourlyRate, currency)}/h` : ''}
+          </span>
+        </div>
+      `;
+    } else {
+      const totalOPS = value * filteredDates.length;
+      valueInfo = `
+        <div style="margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 4px;">
+          <strong>💰 Valor OPS:</strong><br>
+          <span style="font-size: 11px;">
+            • Valor por turno: ${formatCurrency(value, currency)}<br>
+            • Total estimado: ${formatCurrency(totalOPS, currency)}
+          </span>
+        </div>
+      `;
+    }
+
+    document.getElementById('bulkPreviewContent').innerHTML = `
+      <p><strong>Se crearán ${filteredDates.length} turnos (${patternDesc}):</strong></p>
+      ${valueInfo}
+      <ul style="margin: 6px 0; padding-left: 20px; max-height: 180px; overflow-y: auto;">
+        ${filteredDates.map(d => {
+          const date = new Date(d + 'T00:00:00');
+          return `<li style="font-size: 11px;">${date.toLocaleDateString('es-CO', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })} - ${displayType}</li>`;
+        }).join('')}
+      </ul>
+    `;
+    document.getElementById('bulkPreview').style.display = 'block';
+  }
+
+  async function saveBulkShifts(event) {
+    event.preventDefault();
+    
+    const startDateStr = document.getElementById('bulkStartDate').value;
+    const endDateStr = document.getElementById('bulkEndDate').value;
+    const startDate = new Date(startDateStr + 'T00:00:00');
+    const endDate = new Date(endDateStr + 'T23:59:59');
+    const patternType = document.getElementById('bulkPatternType').value;
+    
+    if (startDate > endDate) {
+      showToast('La fecha de inicio debe ser anterior a la fecha de fin', 'warning');
+      return;
+    }
+
+    if (patternType === 'weekdays') {
+      const selectedDays = getSelectedDays();
+      if (selectedDays.length === 0) {
+        showToast('Selecciona al menos un día de la semana', 'warning');
+        return;
+      }
+    }
+
+    const dates = calculateBulkDates();
+    
+    if (!dates || dates.length === 0) {
+      showToast('No hay fechas en el rango seleccionado', 'warning');
+      return;
+    }
+
+    const place = document.getElementById('bulkShiftPlace').value;
+    const type = document.getElementById('bulkShiftType').value;
+    const paymentType = document.getElementById('bulkPaymentType').value;
+    const startTime = document.getElementById('bulkShiftStartTime').value;
+    const endTime = document.getElementById('bulkShiftEndTime').value;
+    const value = parseFloat(document.getElementById('bulkShiftValue').value) || 0;
+    const notes = document.getElementById('bulkShiftNotes').value;
+    
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let hours = (end - start) / (1000 * 60 * 60);
+    if (hours < 0) hours += 24;
+
+    const displayType = {
+      'manana': 'Mañana',
+      'tarde': 'Tarde',
+      'corrido': 'Corrido',
+      'noche': 'Noche',
+      'consulta': 'Consulta',
+      '24horas': 'Turno 24 horas'
+    }[type] || type;
+
+    const currency = document.getElementById('bulkShiftCurrency').value;
+    const excludeHolidays = document.getElementById('excludeHolidays').checked && paymentType === 'nomina';
+    const notesFormatted = `Tipo pago: ${paymentType} | ${startTime}-${endTime}` + (notes ? ' | ' + notes : '');
+
+    try {
+      let created = 0;
+      let filteredDates = dates;
+      
+      if (excludeHolidays) {
+        const currentYear = new Date().getFullYear();
+        const holidayDates = new Set();
+        for (let year = currentYear - 1; year <= currentYear + 10; year++) {
+          if (FESTIVOS_COLOMBIA[year]) {
+            FESTIVOS_COLOMBIA[year].forEach(f => holidayDates.add(f.fecha));
+          }
+        }
+        filteredDates = dates.filter(date => !holidayDates.has(date));
+      }
+      
+      if (filteredDates.length === 0) {
+        showToast('No hay turnos para crear después de excluir festivos', 'warning');
+        return;
+      }
+      
+      let perShiftValue = value;
+      let hourlyRate = hours > 0 ? (value / hours) : 0;
+      
+      if (paymentType === 'nomina') {
+        perShiftValue = value / filteredDates.length;
+        hourlyRate = hours > 0 ? (perShiftValue / hours) : 0;
+      }
+      
+      for (const date of filteredDates) {
+        const data = {
+          entity_name: place,
+          shift_date: date,
+          shift_type: displayType,
+          hours: hours,
+          hourly_rate: hourlyRate,
+          notes: notesFormatted,
+          currency: currency || 'COP'
+        };
+        
+        await api('/shifts', { method: 'POST', body: JSON.stringify(data) });
+        created++;
+      }
+      
+      showToast(`${created} turnos creados exitosamente`, 'success');
+      closeBulkShiftForm();
+      await loadShifts();
+      renderCalendar();
+      renderShiftsList();
+    } catch (err) {
+      showToast('Error al crear turnos', 'error');
+      console.error(err);
+    }
+  }
+
+  function renderShiftsList() {
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    const filterPayment = document.getElementById('filterPaymentType').value;
+    
+    let filtered = [...allShifts];
+    if (startDate) filtered = filtered.filter(s => s.shift_date >= startDate);
+    if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
+    if (filterPayment) filtered = filtered.filter(s => getPaymentType(s) === filterPayment);
+    
+    filtered = filtered.filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
+    filtered.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
+    
+    if (filtered.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+      document.getElementById('shiftsList').innerHTML = '';
+      return;
+    }
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('shiftsList').innerHTML = filtered.map(shift => {
+      const total = parseFloat(shift.hours) * parseFloat(shift.hourly_rate);
+      const paymentType = getPaymentType(shift);
+      const startTime = getStartTime(shift);
+      const isSelected = selectedShiftIds.has(shift.id);
+      return `
+        <div class="shift-item">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" class="shift-checkbox" data-shift-id="${shift.id}" 
+                     onchange="toggleShiftSelection(${shift.id}, this)" ${isSelected ? 'checked' : ''}
+                     style="width: 18px; height: 18px; cursor: pointer;">
+              <div style="font-size: 1.15em; font-weight: 700; color: var(--text);">${shift.entity_name || 'Sin lugar'}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="shift-badge tipo-${normalizeString(shift.shift_type)} pago-${paymentType}" style="display: inline-block; width: auto;">${shift.shift_type}</div>
+              <span class="payment-type-badge ${paymentType}">${paymentType.toUpperCase()}</span>
+            </div>
+          </div>
+          <div style="font-size: 0.9em; color: var(--muted); margin-bottom: 12px;">
+            📅 ${new Date(shift.shift_date).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            ${startTime ? `<br/>🕐 Inicio: ${startTime}` : ''}
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;">
+            <div>
+              <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase;">Horas</div>
+              <div style="font-size: 1em; font-weight: 600; color: var(--text);">${shift.hours}h</div>
+            </div>
+            <div>
+              <div style="font-size: 0.75em; color: var(--muted); text-transform: uppercase;">Valor/Hora</div>
+              <div style="font-size: 1em; font-weight: 600; color: var(--text);">${formatCurrency(shift.hourly_rate, shift.currency || 'COP')}</div>
+            </div>
+          </div>
+          <div style="font-size: 1.25em; font-weight: 700; color: var(--success); text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--border);">
+            ${formatCurrency(total, shift.currency || 'COP')}
+          </div>
+          ${shift.notes && shift.notes.split('|').pop().trim() ? `<div style="font-size: 0.85em; color: var(--muted); margin-top: 10px; font-style: italic; padding: 8px; background: rgba(var(--primary-rgb), 0.03); border-radius: 6px;">${shift.notes.split('|').pop().trim()}</div>` : ''}
+          <div style="display: flex; gap: 8px; margin-top: 15px;">
+            <button class="btn sm secondary" onclick="editShift(${shift.id})">✏️ Editar</button>
+            <button class="btn sm danger" onclick="deleteShift(${shift.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    updateSelectionUI();
+  }
+
+  function renderExchangesList() {
+    const exchanges = allShifts.filter(s => s.shift_type && s.shift_type.toLowerCase() === 'cambio');
+    exchanges.sort((a, b) => b.shift_date.localeCompare(a.shift_date));
+    
+    if (exchanges.length === 0) {
+      document.getElementById('emptyExchanges').style.display = 'block';
+      document.getElementById('exchangesList').innerHTML = '';
+      return;
+    }
+    
+    document.getElementById('emptyExchanges').style.display = 'none';
+    document.getElementById('exchangesList').innerHTML = exchanges.map(shift => {
+      const exchangeMatch = shift.notes ? shift.notes.match(/Cambio con: ([^.]+)/) : null;
+      const exchangeWith = exchangeMatch ? exchangeMatch[1].trim() : 'No especificado';
+      const startTime = getStartTime(shift);
+      
+      return `
+        <div class="shift-item" style="border-color: #8b5cf6;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <div style="font-size: 1.15em; font-weight: 700; color: var(--text);">${shift.entity_name || 'Sin lugar'}</div>
+              <div style="font-size: 0.9em; color: #8b5cf6; margin-top: 4px;">🔄 Cambio con: <strong>${exchangeWith}</strong></div>
+            </div>
+            <div class="shift-badge tipo-cambio" style="display: inline-block; width: auto;">Cambio</div>
+          </div>
+          <div style="font-size: 0.9em; color: var(--muted); margin-bottom: 12px;">
+            📅 ${new Date(shift.shift_date).toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            ${startTime ? `<br/>🕐 Inicio: ${startTime}` : ''}
+          </div>
+          <div style="padding: 12px; background: rgba(139, 92, 246, 0.08); border-radius: 6px; margin: 12px 0;">
+            <div style="font-size: 0.85em; color: var(--muted);">${shift.notes ? shift.notes.split('Cambio con:')[1] || 'Sin detalles' : 'Sin detalles'}</div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 15px;">
+            <button class="btn sm secondary" onclick="editShift(${shift.id})">✏️ Editar</button>
+            <button class="btn sm danger" onclick="deleteShift(${shift.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadSummary() {
+    const startDate = document.getElementById('summaryStartDate').value;
+    const endDate = document.getElementById('summaryEndDate').value;
+    
+    let filtered = [...allShifts].filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
+    if (startDate) filtered = filtered.filter(s => s.shift_date >= startDate);
+    if (endDate) filtered = filtered.filter(s => s.shift_date <= endDate);
+    
+    const totalShifts = filtered.length;
+    const totalHours = filtered.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+    
+    const allByCurrency = groupByCurrency(filtered);
+    const opsShifts = filtered.filter(s => getPaymentType(s) === 'ops');
+    const nominaShifts = filtered.filter(s => getPaymentType(s) === 'nomina');
+    const opsByCurrency = groupByCurrency(opsShifts);
+    const nominaByCurrency = groupByCurrency(nominaShifts);
+    
+    const currencies = Object.keys(allByCurrency);
+    const hasMultipleCurrencies = currencies.length > 1;
+    
+    let totalsHTML = `
+      <div class="summary-card">
+        <div class="summary-card-value">${totalShifts}</div>
+        <div class="summary-card-label">Total Turnos</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-value">${totalHours.toFixed(1)}</div>
+        <div class="summary-card-label">Total Horas</div>
+      </div>
+    `;
+    
+    currencies.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      totalsHTML += `
+        <div class="summary-card">
+          <div class="summary-card-value">${formatCurrency(allByCurrency[curr].total, curr)}</div>
+          <div class="summary-card-label">Total General${currLabel}</div>
+        </div>
+      `;
+    });
+    
+    document.getElementById('summaryTotals').innerHTML = totalsHTML;
+
+    let paymentHTML = '';
+    currencies.forEach(curr => {
+      const currLabel = hasMultipleCurrencies ? ` (${curr})` : '';
+      const opsTotal = opsByCurrency[curr]?.total || 0;
+      const nominaTotal = nominaByCurrency[curr]?.total || 0;
+      const opsCount = opsByCurrency[curr]?.shifts.length || 0;
+      const nominaCount = nominaByCurrency[curr]?.shifts.length || 0;
+      
+      paymentHTML += `
+        <div class="summary-card" style="border-color: rgba(239, 68, 68, 0.3);">
+          <div class="summary-card-value">${opsCount}</div>
+          <div class="summary-card-label">Turnos OPS${currLabel}</div>
+          <div style="font-size: 20px; font-weight: 700; color: #ef4444; margin-top: 8px;">${formatCurrency(opsTotal, curr)}</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago por turno</div>
+        </div>
+        <div class="summary-card" style="border-color: rgba(59, 130, 246, 0.3);">
+          <div class="summary-card-value">${nominaCount}</div>
+          <div class="summary-card-label">Turnos Nómina${currLabel}</div>
+          <div style="font-size: 20px; font-weight: 700; color: #3b82f6; margin-top: 8px;">${formatCurrency(nominaTotal, curr)}</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Pago único consolidado</div>
+        </div>
+      `;
+    });
+    
+    document.getElementById('summaryByPaymentType').innerHTML = paymentHTML;
+    
+    const byPlace = {};
+    filtered.forEach(s => {
+      const place = s.entity_name || 'Sin especificar';
+      const curr = s.currency || 'COP';
+      const key = `${place}|${curr}`;
+      if (!byPlace[key]) {
+        byPlace[key] = { place, currency: curr, count: 0, hours: 0, amount: 0 };
+      }
+      byPlace[key].count++;
+      byPlace[key].hours += parseFloat(s.hours || 0);
+      byPlace[key].amount += parseFloat(s.hours || 0) * parseFloat(s.hourly_rate || 0);
+    });
+    
+    document.getElementById('summaryByPlace').innerHTML = Object.values(byPlace).map(data => `
+      <tr>
+        <td>${data.place} (${data.currency})</td>
+        <td style="text-align: center;">${data.count}</td>
+        <td style="text-align: center;">${data.hours.toFixed(1)}h</td>
+        <td style="text-align: right;">${formatCurrency(data.amount / data.hours, data.currency)}</td>
+        <td style="text-align: right; font-weight: 700; color: var(--success);">${formatCurrency(data.amount, data.currency)}</td>
+      </tr>
+    `).join('');
+  }
+
+  async function exportPDF() {
+    try {
+      const monthShifts = allShifts.filter(s => {
+        if (!s.shift_date) return false;
+        const [year, month] = s.shift_date.split('-');
+        return parseInt(year) === currentYear && parseInt(month) === currentMonth + 1;
+      }).filter(s => s.shift_type && s.shift_type.toLowerCase() !== 'cambio');
+
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      
+      const opsShifts = monthShifts.filter(s => getPaymentType(s) === 'ops');
+      const nominaShifts = monthShifts.filter(s => getPaymentType(s) === 'nomina');
+      
+      const opsByCurrency = groupByCurrency(opsShifts);
+      const nominaByCurrency = groupByCurrency(nominaShifts);
+      const allByCurrency = groupByCurrency(monthShifts);
+      
+      const currencies = [...new Set([...Object.keys(opsByCurrency), ...Object.keys(nominaByCurrency)])];
+      const hasMultipleCurrencies = currencies.length > 1;
+      
+      const content = [
+        { 
+          text: 'Med Tools Hub', 
+          style: 'header', 
+          color: '#475569',
+          alignment: 'center',
+          margin: [0, 0, 0, 2]
+        },
+        { 
+          text: `Reporte de Turnos - ${monthNames[currentMonth]} ${currentYear}`, 
+          fontSize: 14, 
+          bold: true, 
+          color: '#475569',
+          alignment: 'center',
+          margin: [0, 2, 0, 2]
+        },
+        { 
+          text: `Generado el ${new Date().toLocaleDateString('es-CO')}`, 
+          style: 'date', 
+          alignment: 'center',
+          margin: [0, 0, 0, 10] 
+        }
+      ];
+
+      currencies.forEach((currency, index) => {
+        const currencyOps = opsByCurrency[currency] || { shifts: [], total: 0 };
+        const currencyNomina = nominaByCurrency[currency] || { shifts: [], total: 0 };
+        const currencyAll = allByCurrency[currency] || { shifts: [], total: 0 };
+        
+        const currencyShifts = [...currencyOps.shifts, ...currencyNomina.shifts];
+        const currencyHours = currencyShifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+        
+        if (index > 0) {
+          content.push({ 
+            canvas: [{ 
+              type: 'line', 
+              x1: 0, y1: 0, 
+              x2: 515, y2: 0, 
+              lineWidth: 2, 
+              lineColor: '#0ea5e9' 
+            }], 
+            margin: [0, 12, 0, 12] 
+          });
+        }
+        
+        if (hasMultipleCurrencies) {
+          content.push({
+            text: `REPORTE EN ${currency}`, 
+            style: 'currencyHeader', 
+            alignment: 'center',
+            color: '#0ea5e9',
+            margin: [0, index === 0 ? 5 : 0, 0, 5] 
+          });
+        }
+        
+        content.push(
+          {
+            columns: [
+              {
+                width: '*',
+                stack: [
+                  { text: 'Turnos', fontSize: 8, color: '#64748b' },
+                  { text: currencyShifts.length.toString(), fontSize: 16, bold: true, color: '#475569', margin: [0, 2, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'Horas', fontSize: 8, color: '#64748b' },
+                  { text: `${currencyHours.toFixed(1)}h`, fontSize: 16, bold: true, color: '#475569', margin: [0, 2, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'OPS', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyOps.total, currency), fontSize: 14, bold: true, color: '#ef4444', margin: [0, 2, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'Nómina', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyNomina.total, currency), fontSize: 14, bold: true, color: '#3b82f6', margin: [0, 2, 0, 0] }
+                ]
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: 'Total', fontSize: 8, color: '#64748b' },
+                  { text: formatCurrency(currencyAll.total, currency), fontSize: 14, bold: true, color: '#10b981', margin: [0, 2, 0, 0] }
+                ]
+              }
+            ],
+            margin: [0, 0, 0, 10]
+          }
+        );
+        
+        const shiftsTableBody = [];
+        
+        currencyOps.shifts.forEach(shift => {
+          const startTime = getStartTime(shift);
+          const hourlyRateValue = parseFloat(shift.hourly_rate || 0);
+          const totalValue = parseFloat(shift.hours || 0) * hourlyRateValue;
+          shiftsTableBody.push([
+            { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
+            { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
+            { text: shift.shift_type, fontSize: 9 },
+            { text: startTime || '-', fontSize: 9, alignment: 'center' },
+            { text: 'OPS', fontSize: 9, alignment: 'center', color: '#ef4444' },
+            { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
+            { text: formatCurrency(hourlyRateValue, currency), fontSize: 9, alignment: 'right' },
+            { text: formatCurrency(totalValue, currency), fontSize: 9, alignment: 'right', bold: true }
+          ]);
+        });
+        
+        if (currencyNomina.shifts.length > 0) {
+          const nominaHours = currencyNomina.shifts.reduce((sum, s) => sum + parseFloat(s.hours || 0), 0);
+          
+          currencyNomina.shifts.forEach(shift => {
+            const startTime = getStartTime(shift);
+            shiftsTableBody.push([
+              { text: new Date(shift.shift_date).toLocaleDateString('es-CO'), fontSize: 9 },
+              { text: shift.entity_name || 'Sin lugar', fontSize: 9 },
+              { text: shift.shift_type, fontSize: 9 },
+              { text: startTime || '-', fontSize: 9, alignment: 'center' },
+              { text: 'NÓMINA', fontSize: 9, alignment: 'center', color: '#3b82f6' },
+              { text: `${shift.hours}h`, fontSize: 9, alignment: 'center' },
+              { text: '-', fontSize: 9, alignment: 'right' },
+              { text: '-', fontSize: 9, alignment: 'right' }
+            ]);
+          });
+          
+          shiftsTableBody.push([
+            { text: `TOTAL NÓMINA (${currencyNomina.shifts.length} turnos)`, fontSize: 9, colSpan: 5, bold: true, fillColor: '#eff6ff' },
+            {},
+            {},
+            {},
+            {},
+            { text: `${nominaHours.toFixed(1)}h`, fontSize: 9, alignment: 'center', bold: true, fillColor: '#eff6ff' },
+            { text: '-', fontSize: 9, alignment: 'right', fillColor: '#eff6ff' },
+            { text: formatCurrency(currencyNomina.total, currency), fontSize: 9, alignment: 'right', bold: true, color: '#3b82f6', fillColor: '#eff6ff' }
+          ]);
+        }
+        
+        const detailTitle = hasMultipleCurrencies ? `Detalle de Turnos (${currency})` : 'Detalle de Turnos';
+        content.push(
+          { text: detailTitle, style: 'sectionHeader', margin: [0, 8, 0, 6] },
+          {
+            table: {
+              headerRows: 1,
+              widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+              body: [
+                [
+                  { text: 'Fecha', style: 'tableHeader' },
+                  { text: 'Lugar', style: 'tableHeader' },
+                  { text: 'Tipo', style: 'tableHeader' },
+                  { text: 'Hora', style: 'tableHeader', alignment: 'center' },
+                  { text: 'Pago', style: 'tableHeader', alignment: 'center' },
+                  { text: 'Horas', style: 'tableHeader', alignment: 'center' },
+                  { text: 'Valor/h', style: 'tableHeader', alignment: 'right' },
+                  { text: 'Total', style: 'tableHeader', alignment: 'right' }
+                ],
+                ...shiftsTableBody
+              ]
+            },
+            layout: {
+              fillColor: function(rowIndex) {
+                return rowIndex === 0 ? '#f1f5f9' : (rowIndex % 2 === 0 ? '#f8fafc' : null);
+              },
+              hLineWidth: function(i, node) {
+                return i === 0 || i === 1 || i === node.table.body.length ? 1 : 0.5;
+              },
+              vLineWidth: function() { return 0; },
+              hLineColor: function() { return '#e2e8f0'; },
+              paddingTop: function() { return 3; },
+              paddingBottom: function() { return 3; }
+            }
+          }
+        );
+      });
+
+      const docDefinition = {
+        pageSize: 'A4',
+        pageOrientation: 'landscape',
+        pageMargins: [30, 30, 30, 30],
+        content: content,
+        styles: {
+          header: { fontSize: 18, bold: true, margin: [0, 0, 0, 2] },
+          subheader: { fontSize: 12, margin: [0, 0, 0, 2] },
+          date: { fontSize: 8, color: '#64748b', italics: true },
+          sectionHeader: { fontSize: 11, bold: true, color: '#475569' },
+          currencyHeader: { fontSize: 12, bold: true, color: '#0ea5e9' },
+          tableHeader: { fontSize: 8, bold: true, color: '#475569', fillColor: '#f1f5f9' }
+        },
+        defaultStyle: { font: 'Roboto', fontSize: 8 }
+      };
+
+      pdfMake.createPdf(docDefinition).download(`turnos_${monthNames[currentMonth]}_${currentYear}.pdf`);
+      showToast('PDF generado exitosamente', 'success');
+    } catch (err) {
+      console.error('Error al generar PDF:', err);
+      showToast('Error al generar PDF', 'error');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTurnos);
+  } else {
+    initTurnos();
+  }
+</script>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav">
+  <div class="mobile-bottom-nav-container">
+    <button class="mobile-nav-item active" data-mobile-tab="calendar" type="button">
+      <span class="mobile-nav-icon">📅</span>
+      <span class="mobile-nav-label"  data-i18n="turnos.calendario">Calendario</span>
+    </button>
+    <button class="mobile-nav-item" data-mobile-tab="list" type="button">
+      <span class="mobile-nav-icon">📊</span>
+      <span class="mobile-nav-label">Informes</span>
+    </button>
+    <button class="mobile-nav-item" data-mobile-tab="summary" type="button">
+      <span class="mobile-nav-icon">📋</span>
+      <span class="mobile-nav-label"  data-i18n="header.turnos">Turnos</span>
+    </button>
+    <a href="main.html" class="mobile-nav-item">
+      <span class="mobile-nav-icon">☰</span>
+      <span class="mobile-nav-label">Más</span>
+    </a>
+  </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileNavItems = document.querySelectorAll('.mobile-nav-item[data-mobile-tab]');
+  
+  mobileNavItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const targetTab = this.dataset.mobileTab;
+      
+      mobileNavItems.forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      
+      const desktopTab = document.querySelector(`.turnos-tab[data-tab="${targetTab}"]`);
+      if (desktopTab) {
+        desktopTab.click();
+      }
+    });
+  });
+});
+</script>
+</body></html>
