@@ -1,0 +1,1 @@
+Admin con password (admin/1234), login sin placeholders, Anuncios/Guías reparados. Tema solo en Configuración. Incluye scripts para servidor local Windows/Mac.

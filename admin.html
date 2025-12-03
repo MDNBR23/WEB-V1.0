@@ -1,0 +1,1051 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/i18n.js"></script>
+  <script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+})();
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  .admin-tab {
+    color: var(--muted);
+    position: relative;
+  }
+  .admin-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary) !important;
+  }
+  .admin-tab:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Mobile-only stats card optimization */
+  @media (max-width: 768px) {
+    #dashboardStats {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+      gap: 12px !important;
+    }
+    #dashboardStats .card {
+      padding: 12px !important;
+    }
+    #dashboardStats .card > div {
+      gap: 8px !important;
+    }
+    #dashboardStats .card div:first-child {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 8px !important;
+      font-size: 18px !important;
+    }
+    #dashboardStats .card p:first-of-type {
+      font-size: 11px !important;
+    }
+    #dashboardStats .card p:last-of-type {
+      font-size: 18px !important;
+      margin-top: 2px !important;
+    }
+  }
+  
+  /* Mobile-only usuarios tab optimization */
+  @media (max-width: 768px) {
+    #usuariosFiltersGrid {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+    }
+    #tab-usuarios {
+      padding: 16px !important;
+    }
+    .admin-tab {
+      padding: 12px 16px !important;
+      font-size: 13px !important;
+    }
+    #adminUsersTable {
+      font-size: 13px !important;
+    }
+    #adminUsersTable th, #adminUsersTable td {
+      padding: 8px 6px !important;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  /* Mobile-only Anuncios, Guías y Vademecum optimization */
+  @media (max-width: 768px) {
+    #tab-anuncios, #tab-guias, #tab-vademecum, #tab-infusiones, #tab-sugerencias, #tab-evaluaciones {
+      padding: 16px !important;
+    }
+    #anunciosHeader, #guiasHeader, #vademecumHeader {
+      flex-direction: column !important;
+      gap: 12px !important;
+      align-items: flex-start !important;
+    }
+    #anunciosHeader h3, #guiasHeader h3, #vademecumHeader h3 {
+      margin-bottom: 0 !important;
+    }
+    #anunciosHeader button, #guiasHeader button, #vademecumHeader button {
+      width: 100% !important;
+    }
+    #adminAnunciosTable, #adminGuiasTable, #adminMedicamentosTable, #adminInfusionesTable, #adminSugerenciasTable {
+      font-size: 12px !important;
+    }
+    #adminAnunciosTable th, #adminAnunciosTable td, 
+    #adminGuiasTable th, #adminGuiasTable td,
+    #adminMedicamentosTable th, #adminMedicamentosTable td,
+    #adminInfusionesTable th, #adminInfusionesTable td,
+    #adminSugerenciasTable th, #adminSugerenciasTable td {
+      padding: 8px 6px !important;
+    }
+  }
+  
+  /* Sugerencias expandible accordion styles */
+  .sug-accordion {
+    display: none;
+    background: var(--card);
+    border-left: 4px solid var(--primary);
+    padding: 16px;
+    margin: 12px 0;
+    border-radius: 8px;
+    animation: slideDown 0.3s ease-out;
+  }
+  .sug-accordion.active {
+    display: block;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sug-accordion textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    resize: vertical;
+    background: var(--input-bg);
+    color: var(--text);
+  }
+  .sug-accordion .mensaje-text {
+    background: rgba(0,0,0,0.05);
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+  
+  /* Menu hamburguesa para sugerencias */
+  .sug-menu-container {
+    position: relative;
+  }
+  .sug-menu-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sug-menu-btn:hover {
+    color: var(--text);
+  }
+  .sug-menu-dropdown {
+    position: fixed;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 0;
+    display: none;
+    z-index: 100000;
+    min-width: 160px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events:auto;
+  }
+  
+  html[data-theme="dark"] .sug-menu-dropdown {
+    background: #1e293b;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .sug-menu-dropdown.show {
+    display: flex;
+    flex-direction: column;
+  }
+  .sug-menu-item {
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 14px;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .sug-menu-item:hover {
+    background: var(--border);
+  }
+  .sug-menu-item.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+  
+  /* Tabla de sugerencias compacta */
+  #adminSugerenciasTable {
+    font-size: 13px !important;
+  }
+  #adminSugerenciasTable thead th {
+    padding: 8px 10px !important;
+    font-weight: 600;
+  }
+  #adminSugerenciasTable tbody td {
+    padding: 6px 10px !important;
+    line-height: 1.3 !important;
+  }
+  #adminSugerenciasTable tbody tr {
+    height: auto !important;
+  }
+  .sug-menu-container {
+    display: flex;
+    align-items: center;
+  }
+</style>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
+      <nav>
+        <a href="main.html"><span class="icon">🏠</span><span  data-i18n="header.principal">Principal</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span  data-i18n="header.vademecum">Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span  data-i18n="header.herramientas">Herramientas</span></a>
+        <a href="turnos.html"><span class="icon">📅</span><span  data-i18n="header.turnos">Turnos</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span  data-i18n="header.sugerencias">Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="configuracion.html"><span class="icon">⚙️</span><span  data-i18n="header.configuracion">Configuración</span></a>
+        <a href="admin.html" class="active" id="adminNavLink"><span class="icon">🛠️</span><span  data-i18n="header.admin">Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <div class="header-title-group">
+          <h2>🛠️ Administración</h2>
+          <p class="header-subtitle">Gestiona usuarios, contenido y configuración del sistema</p>
+        </div>
+        <div id="colombiaClock"></div>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()"  data-i18n="header.logout">Salir</button>
+        </div>
+      </header>
+      <main>
+        <!-- Dashboard Stats -->
+        <div id="dashboardStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+          <div class="card glass" style="padding:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">👥</div>
+              <div>
+                <p style="margin:0;font-size:13px;color:var(--muted);">Total Usuarios</p>
+                <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="totalUsersCount">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="card glass" style="padding:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:48px;height:48px;background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">⏳</div>
+              <div>
+                <p style="margin:0;font-size:13px;color:var(--muted);">Pendientes</p>
+                <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="pendingUsersCount">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="card glass" style="padding:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:48px;height:48px;background:linear-gradient(135deg,#4facfe,#00f2fe);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">🟢</div>
+              <div>
+                <p style="margin:0;font-size:13px;color:var(--muted);">En línea</p>
+                <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="onlineUsersCount">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="card glass" style="padding:20px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:48px;height:48px;background:linear-gradient(135deg,#43e97b,#38f9d7);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">💬</div>
+              <div>
+                <p style="margin:0;font-size:13px;color:var(--muted);"  data-i18n="header.sugerencias">Sugerencias</p>
+                <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="totalSugerenciasCount">0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modern Tabs Navigation -->
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="admin-tab active" data-tab="usuarios" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              👥 Usuarios<span id="usuariosPendientesCounter" class="chip" style="display:none;margin-left:8px;background:#ff8c00;color:#fff;font-size:11px;">0</span>
+            </button>
+            <button class="admin-tab" data-tab="anuncios" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📢 Anuncios
+            </button>
+            <button class="admin-tab" data-tab="features" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ✨ Funciones
+            </button>
+            <button class="admin-tab" data-tab="guias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📚 Guías
+            </button>
+            <button class="admin-tab" data-tab="vademecum" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              💊 Vademecum
+            </button>
+            <button class="admin-tab" data-tab="infusiones" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              💉 Infusiones
+            </button>
+            <button class="admin-tab" data-tab="sugerencias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              💭 Sugerencias<span id="sugerenciasCounter" class="chip" style="display:none;margin-left:8px;background:#ff8c00;color:#fff;font-size:11px;">0</span>
+            </button>
+            <button class="admin-tab" data-tab="evaluaciones" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ❓ Evaluaciones
+            </button>
+            <button class="admin-tab" data-tab="analytics" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📊 Analítica IA
+            </button>
+            <button class="admin-tab" data-tab="sistema" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ⚙️ Sistema
+            </button>
+          </div>
+
+          <!-- Tab Content: Usuarios -->
+          <div class="tab-content active" id="tab-usuarios" style="padding:24px;">
+            <div id="usuariosFiltersGrid" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div class="field" style="margin:0;">
+                <label>🔍 Buscar usuario</label>
+                <input id="searchUsers" type="text" placeholder="Buscar por usuario o nombre..." oninput="filterUsers()">
+              </div>
+              <div class="field" style="margin:0;">
+                <label>Rol</label>
+                <select id="filterRol" onchange="filterUsers()">
+                  <option value="">Todos</option>
+                  <option value="user">USER</option>
+                  <option value="admin">ADMIN</option>
+                </select>
+              </div>
+              <div class="field" style="margin:0;">
+                <label>Estado</label>
+                <select id="filterEstado" onchange="filterUsers()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">PENDIENTE</option>
+                  <option value="aprobado">APROBADO</option>
+                  <option value="rechazado">RECHAZADO</option>
+                  <option value="suspendido">SUSPENDIDO</option>
+                </select>
+              </div>
+              <div class="field" style="margin:0;">
+                <label>Email</label>
+                <select id="filterEmail" onchange="filterUsers()">
+                  <option value="">Todos</option>
+                  <option value="verified">✅ Verificado</option>
+                  <option value="notverified">⚠️ Sin verificar</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="adminUsersTable">
+                <thead><tr>
+                  <th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th style="width:80px;">Online</th><th style="width:120px;">Última vez</th><th style="width:100px;text-align:center;">Acciones</th>
+                </tr></thead><tbody></tbody>
+              </table>
+            </div>
+            <div id="usersPagination" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:16px;"></div>
+          </div>
+
+          <!-- Tab Content: Anuncios -->
+          <div class="tab-content" id="tab-anuncios" style="padding:24px;display:none;">
+            <div id="anunciosHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Gestión de Anuncios</h3>
+              <button id="btnNuevoAnuncio" class="btn primary" type="button">+ Nuevo anuncio</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminAnunciosTable"><thead>
+                <tr><th>Imagen</th><th>Título</th><th>Fecha</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Actualizaciones de Funciones -->
+          <div class="tab-content" id="tab-features" style="padding:24px;display:none;">
+            <div id="featuresHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">✨ Actualizaciones de Funciones</h3>
+              <button id="btnNuevaFeature" class="btn primary" type="button">+ Nueva actualización</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminFeaturesTable"><thead>
+                <tr><th>Icono</th><th>Título</th><th>Fecha</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Guías -->
+          <div class="tab-content" id="tab-guias" style="padding:24px;display:none;">
+            <div id="guiasHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Gestión de Guías</h3>
+              <button id="btnNuevaGuia" class="btn primary" type="button">+ Nueva guía</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminGuiasTable"><thead>
+                <tr><th>Título</th><th>Fecha</th><th>Enlace</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Vademecum -->
+          <div class="tab-content" id="tab-vademecum" style="padding:24px;display:none;">
+            <div id="vademecumHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Gestión de Medicamentos</h3>
+              <button id="btnNuevoMedicamento" class="btn primary" type="button">+ Nuevo medicamento</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminMedicamentosTable"><thead>
+                <tr><th>Fármaco</th><th>Grupo</th><th>Dilución</th><th>Comentarios</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Infusiones -->
+          <div class="tab-content" id="tab-infusiones" style="padding:24px;display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Medicamentos de Infusiones</h3>
+              <button id="btnNuevaInfusion" class="btn primary" type="button">+ Nuevo medicamento</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminInfusionesTable"><thead>
+                <tr><th>Medicamento</th><th>Grupo</th><th>Dosis</th><th>Presentaciones</th><th style="width:220px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <!-- Tab Content: Sugerencias -->
+          <div class="tab-content" id="tab-sugerencias" style="padding:24px;display:none;overflow:visible;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Sugerencias de Usuarios</h3>
+            </div>
+            <div class="table-wrap" id="sugerenciasTableWrap" style="position:relative;z-index:1;">
+              <table id="adminSugerenciasTable"><thead>
+                <tr><th>Usuario</th><th>Fecha</th><th style="width:180px;">Acciones</th></tr>
+              </thead><tbody></tbody></table>
+            </div>
+            <div id="sugerenciasExpandible"></div>
+          </div>
+
+          <!-- Tab Content: Analytics IA -->
+          <!-- Tab Content: Evaluaciones -->
+          <div class="tab-content" id="tab-evaluaciones" style="padding:24px;display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <h3 style="margin:0;">Editar Evaluaciones</h3>
+              <button class="btn" onclick="cargarEvaluacionesAdmin()" style="font-size:13px;padding:10px 16px;">Recargar</button>
+            </div>
+            <div class="table-wrap">
+              <table id="adminEvaluacionesTable">
+                <thead><tr>
+                  <th>Quiz</th><th>Categoría</th><th>Dificultad</th><th>Preguntas</th><th>Descripción</th><th style="width:100px;text-align:center;">Acciones</th>
+                </tr></thead><tbody id="evaluacionesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-content" id="tab-analytics" style="padding:24px;display:none;">
+            <h3 style="margin:0 0 20px 0;" data-i18n="analytics.titulo">📊 Estadísticas del Asistente de IA</h3>
+            
+            <div id="aiAnalyticsDashboard" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+              <div class="card glass" style="padding:20px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">💬</div>
+                  <div>
+                    <p style="margin:0;font-size:13px;color:var(--muted);">Total Consultas</p>
+                    <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="aiTotalQueries">0</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card glass" style="padding:20px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:48px;height:48px;background:linear-gradient(135deg,#43e97b,#38f9d7);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">👍</div>
+                  <div>
+                    <p style="margin:0;font-size:13px;color:var(--muted);">Respuestas Útiles</p>
+                    <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="aiPositiveRatings">0</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card glass" style="padding:20px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:48px;height:48px;background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">👎</div>
+                  <div>
+                    <p style="margin:0;font-size:13px;color:var(--muted);">Mejora Necesaria</p>
+                    <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="aiNegativeRatings">0</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card glass" style="padding:20px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:48px;height:48px;background:linear-gradient(135deg,#4facfe,#00f2fe);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;">📈</div>
+                  <div>
+                    <p style="margin:0;font-size:13px;color:var(--muted);">Calidad Promedio</p>
+                    <p style="margin:4px 0 0 0;font-size:24px;font-weight:600;" id="aiAverageQuality">0%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+              <div class="card glass" style="padding:20px;">
+                <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">📈 Tendencia de Consultas</h4>
+                <div id="aiTrendChart" style="min-height:250px;"></div>
+              </div>
+
+              <div class="card glass" style="padding:20px;">
+                <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">📊 Distribución de Ratings</h4>
+                <div id="aiRatingChart" style="min-height:250px;display:flex;align-items:center;justify-content:center;"></div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+              <div class="card glass" style="padding:20px;">
+                <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">🔥 Consultas Más Frecuentes</h4>
+                <div id="aiTopQueries" style="display:flex;flex-direction:column;gap:12px;"></div>
+              </div>
+
+              <div class="card glass" style="padding:20px;">
+                <h4 style="margin:0 0 16px 0;font-size:16px;font-weight:600;">📋 Últimas Consultas</h4>
+                <div id="aiRecentLogs" style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;"></div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+              <button class="btn" onclick="loadAIAnalytics()">🔄 Recargar</button>
+              <button class="btn secondary" onclick="exportAIAnalytics()">📥 Exportar CSV</button>
+              <button class="btn secondary" onclick="exportAIAnalyticsPDF()">📄 Exportar PDF</button>
+            </div>
+          </div>
+
+          <!-- Tab Content: Sistema -->
+          <div class="tab-content" id="tab-sistema" style="padding:24px;display:none;">
+            <h3 style="margin:0 0 20px 0;">💾 Gestión de Backups</h3>
+            <div style="padding:16px;background:rgba(33,150,243,0.1);border-left:4px solid #2196f3;border-radius:6px;margin-bottom:16px;">
+              <p style="margin:0 0 8px 0;"><strong>ℹ️ Información:</strong> Utiliza esta sección para respaldar todos los datos del sistema antes de realizar actualizaciones. El backup incluye:</p>
+              <ul style="margin:8px 0;padding-left:24px;">
+                <li>Usuarios y configuraciones</li>
+                <li>Anuncios y guías</li>
+                <li>Medicamentos del vademecum</li>
+                <li>Sugerencias de usuarios</li>
+                <li>Plantillas de notas clínicas</li>
+                <li>Configuración de mantenimiento</li>
+              </ul>
+            </div>
+            
+            <h4 style="margin:24px 0 12px 0;">Crear Nuevo Backup</h4>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px;">
+              <button class="btn primary" onclick="guardarBackupEnServidor()">💾 Guardar en Servidor</button>
+              <button class="btn" onclick="exportarBackup()">📥 Descargar Backup</button>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input id="backupFileInput" type="file" accept=".json" style="display:none;" onchange="importarBackup()">
+                <button class="btn" onclick="document.getElementById('backupFileInput').click()">📤 Importar Backup</button>
+              </div>
+            </div>
+            
+            <h4 style="margin:24px 0 12px 0;">Backups Guardados en el Servidor</h4>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+              <button class="btn sm" onclick="cargarListaBackups()">🔄 Actualizar lista</button>
+              <span id="backupsCount" class="text-muted" style="font-size:14px;"></span>
+            </div>
+            <div class="table-wrap">
+              <table id="backupsServerTable">
+                <thead>
+                  <tr>
+                    <th>Archivo</th>
+                    <th>Fecha de Creación</th>
+                    <th>Tamaño</th>
+                    <th style="width:220px;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--muted);">Cargando backups...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div id="backupStatus" style="margin-top:16px;padding:12px;border-radius:6px;display:none;"></div>
+
+            <h3 style="margin:40px 0 20px 0;">⚙️ Modo Mantenimiento</h3>
+            <div style="padding:16px;background:rgba(255,193,7,0.1);border-left:4px solid #ffc107;border-radius:6px;margin-bottom:16px;">
+              <p style="margin:0;"><strong>⚠️ Importante:</strong> Cuando el modo mantenimiento esté activo, los usuarios verán una página de mantenimiento después de iniciar sesión. Solo los administradores podrán acceder al sistema completo.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+              <label class="switch" style="margin:0;">
+                <input id="toggleMantenimiento" type="checkbox">
+                <span class="slider"></span>
+                <span>Activar modo mantenimiento general</span>
+              </label>
+            </div>
+            <div id="mantenimientoMensajeSection" style="margin-bottom:24px;display:none;">
+              <div class="field">
+                <label>Mensaje personalizado para los usuarios</label>
+                <textarea id="mantenimientoMensaje" rows="3" placeholder="Ej: Estamos realizando mejoras en el sistema. Estaremos de vuelta pronto.">Estamos realizando mejoras en el sistema para brindarte una mejor experiencia. Por favor, vuelve en unos minutos.</textarea>
+              </div>
+              <button class="btn primary" onclick="guardarMantenimiento()">Guardar mensaje</button>
+            </div>
+
+            <h4 style="margin:24px 0 16px 0;padding-top:24px;border-top:1px solid var(--border);">🔧 Control Individual de Herramientas</h4>
+            <p style="margin:0 0 16px 0;color:var(--muted);font-size:14px;">Bloquea herramientas específicas que estén en proceso de ajuste. Los usuarios verán un mensaje indicando que la herramienta no está disponible temporalmente.</p>
+            <div id="toolsControlList" style="display:grid;gap:12px;"></div>
+          </div>
+        </div>
+
+        <footer class="app-footer">
+          <div class="footer-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <span class="separator">|</span>
+            <a href="terminos.html">Términos y Condiciones</a>
+            <span class="separator">|</span>
+            <a href="aviso-legal.html">Aviso Legal</a>
+            <span class="separator">|</span>
+            <a href="cookies.html">Cookies</a>
+          </div>
+          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+          <p class="contact">contacto@medtoolshub.cloud</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL USUARIO -->
+  <div class="modal-backdrop" id="modalUser">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Editar usuario</h3><button class="btn secondary sm" type="button" data-close-user>✕</button></header>
+      <form id="userForm">
+        <div class="grid" style="grid-template-columns:1fr 1fr;">
+          <div class="field"><label>Usuario</label><input id="u_username" type="text" disabled></div>
+          <div class="field"></div>
+          <div class="field"><label>Nombre</label><input id="u_firstName" type="text"></div>
+          <div class="field"><label>Apellido</label><input id="u_lastName" type="text"></div>
+          <div class="field"><label>Correo</label><input id="u_email" type="email"></div>
+          <div class="field"><label>Teléfono</label><input id="u_phone" type="text"></div>
+          <div class="field"><label>Categoría</label>
+            <select id="u_cat"><option>Estudiante</option><option>Interno</option><option>Médico General</option><option>Residente</option><option>Pediatra</option><option>Fisioterapeuta</option></select>
+          </div>
+          <div class="field"><label>Institución</label><input id="u_inst" type="text"></div>
+          <div class="field"><label>Rol</label><select id="u_role"><option value="user">USER</option><option value="admin">ADMIN</option></select></div>
+          <div class="field"><label>Estado</label><select id="u_status"><option value="pendiente">PENDIENTE</option><option value="aprobado">APROBADO</option><option value="rechazado">RECHAZADO</option><option value="suspendido">SUSPENDIDO</option></select></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-user  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FEATURE UPDATE -->
+  <div class="modal-backdrop" id="modalFeature">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Nueva actualización de función</h3><button class="btn secondary sm" type="button" data-close-feature>✕</button></header>
+      <form id="featureForm"><input type="hidden" id="featureId">
+        <div class="grid">
+          <div class="field"><label for="featureTitulo">Título</label><input id="featureTitulo" type="text" placeholder="Ej: Nuevo widget de alertas" required></div>
+          <div class="field"><label for="featureIcono">Icono</label><input id="featureIcono" type="text" placeholder="✨" value="✨" maxlength="2" required></div>
+          <div class="field"><label for="featureFecha">Fecha</label><input id="featureFecha" type="date" required></div>
+          <div class="field" style="grid-column:1 / -1"><label for="featureDescripcion">Descripción</label><textarea id="featureDescripcion" rows="3" placeholder="Describe la nueva función..." required></textarea></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-feature  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL ANUNCIO -->
+  <div class="modal-backdrop" id="modalAnuncio">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Editar anuncio</h3><button class="btn secondary sm" type="button" data-close-anuncio>✕</button></header>
+      <form id="anuncioForm"><input type="hidden" id="anuncioId">
+        <div class="grid" style="grid-template-columns:1fr 200px;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="field"><label for="anuncioTitulo">Título</label><input id="anuncioTitulo" type="text"></div>
+            <div class="field"><label for="anuncioFecha">Fecha</label><input id="anuncioFecha" type="date"></div>
+            <div class="field" style="flex:1;display:flex;flex-direction:column;"><label for="anuncioTexto">Contenido</label><textarea id="anuncioTexto" style="flex:1;min-height:200px;"></textarea></div>
+            <div class="field"><label class="switch"><input id="anuncioGlobal" type="checkbox" checked><span class="slider"></span><span>Visible para todos los usuarios</span></label></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="field"><label>Imagen</label><img id="anuncioPreview" class="thumb" alt="" style="width:100%;height:120px;border-radius:12px;border:1px solid var(--border);object-fit:cover;background:linear-gradient(135deg,var(--g1),var(--g2));display:none;"></div>
+            <button class="btn sm" type="button" onclick="document.getElementById('anuncioImg').click()">Añadir imagen</button>
+            <button class="btn secondary sm" type="button" id="btnAnuncioQuitarImg">Quitar imagen</button>
+            <input id="anuncioImg" type="file" accept="image/*" style="display:none;">
+          </div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-anuncio  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL GUÍA -->
+  <div class="modal-backdrop" id="modalGuia">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Editar guía</h3><button class="btn secondary sm" type="button" data-close-guia>✕</button></header>
+      <form id="guiaForm"><input type="hidden" id="guiaId">
+        <div class="grid">
+          <div class="field"><label for="guiaTitulo">Título</label><input id="guiaTitulo" type="text"></div>
+          <div class="field"><label for="guiaFecha">Fecha</label><input id="guiaFecha" type="date"></div>
+          <div class="field" style="grid-column:1 / -1"><label for="guiaTexto">Contenido</label><textarea id="guiaTexto"></textarea></div>
+          <div class="field" style="grid-column:1 / -1"><label for="guiaURL">Enlace (PDF o externo)</label><input id="guiaURL" type="url" placeholder="https://…"></div>
+          <div class="field" style="grid-column:1 / -1"><label class="switch"><input id="guiaGlobal" type="checkbox" checked><span class="slider"></span><span>Visible para todos los usuarios</span></label></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-guia  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL MEDICAMENTO -->
+  <div class="modal-backdrop" id="modalMedicamento">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Editar medicamento</h3><button class="btn secondary sm" type="button" data-close-med>✕</button></header>
+      <form id="medicamentoForm"><input type="hidden" id="medId">
+        <div class="grid">
+          <div class="field"><label for="medNombre">Fármaco</label><input id="medNombre" type="text" required></div>
+          <div class="field"><label for="medGrupo">Grupo farmacológico</label><input id="medGrupo" type="text" required></div>
+          <div class="field" style="grid-column:1 / -1"><label for="medDilucion">Dilución sugerida</label><textarea id="medDilucion" rows="2" required></textarea></div>
+          <div class="field" style="grid-column:1 / -1"><label for="medComentarios">Comentarios y dosificación</label><textarea id="medComentarios" rows="3" required></textarea></div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-med  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalCropAnuncio">
+    <div class="modal glass" style="max-width:700px;">
+      <header><h3 style="margin:0;">Recortar imagen del anuncio</h3><button class="btn secondary sm" type="button" id="closeCropAnuncio">✕</button></header>
+      <div style="position:relative;width:600px;height:400px;overflow:hidden;margin:0 auto;background:#000;border-radius:12px;">
+        <canvas id="cropCanvasAnuncio" style="position:absolute;top:0;left:0;cursor:move;"></canvas>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSliderAnuncio" min="50" max="300" value="50" style="width:200px;"></label>
+      </div>
+      <div class="auth-actions" style="margin-top:14px;">
+        <button class="btn grow" type="button" id="applyCropAnuncio">Aplicar recorte</button>
+        <button class="btn secondary" type="button" id="cancelCropAnuncio"  data-i18n="common.cancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUGERENCIA -->
+  <div class="modal-backdrop" id="modalSugerencia">
+    <div class="modal glass">
+      <header><h3 style="margin:0;">Responder sugerencia</h3><button class="btn secondary sm" type="button" data-close-sugerencia>✕</button></header>
+      <form id="sugerenciaAdminForm">
+        <input type="hidden" id="sug_id">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label>Usuario</label><input id="sug_username" type="text" disabled></div>
+          <div class="field" style="grid-column:1 / -1;"><label>Mensaje</label><textarea id="sug_mensaje" rows="3" disabled></textarea></div>
+          <div class="field" style="grid-column:1 / -1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <label style="margin:0;">Respuesta del administrador</label>
+              <button type="button" class="btn sm" onclick="usarRespuestaPredeterminada()" style="font-size:12px;">Usar respuesta predeterminada</button>
+            </div>
+            <textarea id="sug_respuesta" rows="4" placeholder="Escribe tu respuesta..."></textarea>
+          </div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit">Guardar respuesta</button><button class="btn secondary" type="button" data-close-sugerencia  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EVALUACIONES -->
+  <div class="modal-backdrop" id="modalEvaluacion">
+    <div class="modal glass" style="max-width:900px;max-height:90vh;overflow-y:auto;">
+      <header><h3 style="margin:0;">Editar Evaluación</h3><button class="btn secondary sm" type="button" onclick="document.getElementById('modalEvaluacion').style.display='none'">✕</button></header>
+      <div style="padding:24px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="field"><label style="color:var(--text);">Título</label><input id="evalTitle" type="text" placeholder="Nombre del quiz"></div>
+          <div class="field"><label style="color:var(--text);">Dificultad</label><select id="evalDifficulty"><option value="beginner">Principiante</option><option value="intermediate">Intermedio</option><option value="advanced">Avanzado</option></select></div>
+        </div>
+        <div class="field" style="margin-bottom:16px;"><label style="color:var(--text);">Descripción</label><textarea id="evalDescription" rows="2" placeholder="Descripción del quiz"></textarea></div>
+        <div style="margin-bottom:16px;"><h4 style="margin:0 0 12px 0;color:var(--text);">Preguntas</h4><div id="preguntasContainer"></div></div>
+        <button class="btn" onclick="agregarPreguntaVacia()" style="margin-bottom:16px;">+ Agregar Pregunta</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn grow" onclick="guardarEvaluacion()"  data-i18n="common.guardar">Guardar</button>
+          <button class="btn secondary" onclick="document.getElementById('modalEvaluacion').style.display='none'"  data-i18n="common.cancelar">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INFUSION -->
+  <div class="modal-backdrop" id="modalInfusion">
+    <div class="modal glass" style="max-width:600px;">
+      <header><h3 style="margin:0;">Editar medicamento de infusión</h3><button class="btn secondary sm" type="button" data-close-infusion>✕</button></header>
+      <form id="infusionForm"><input type="hidden" id="infId">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label for="infNombre">Nombre del medicamento</label><input id="infNombre" type="text" required></div>
+          <div class="field"><label for="infDosis">Dosis</label><input id="infDosis" type="text" placeholder="1MCG/KG/HORA" required></div>
+          <div class="field"><label for="infUnidad">Unidad</label>
+            <select id="infUnidad" required>
+              <option value="mcg/kg/h">mcg/kg/h</option>
+              <option value="mg/kg/h">mg/kg/h</option>
+              <option value="mcg/kg/min">mcg/kg/min</option>
+              <option value="mg/kg/day">mg/kg/day</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1 / -1;"><label for="infGrupo">Grupo</label>
+            <select id="infGrupo" required>
+              <option value="Vasopresor">Vasopresor</option>
+              <option value="Inotropico">Inotropico</option>
+              <option value="Sedoanalgesia">Sedoanalgesia</option>
+            </select>
+          </div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" data-close-infusion  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PRESENTATIONS -->
+  <div class="modal-backdrop" id="modalPresentations">
+    <div class="modal glass" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+      <header><h3 style="margin:0;">Gestionar Presentaciones</h3><button class="btn secondary sm" type="button" onclick="cerrarModalPresentaciones()">✕</button></header>
+      <div style="padding:24px;">
+        <div id="presentationsTableContainer"></div>
+        <button class="btn" id="btnNuevaPresentation" style="margin-top:16px;">+ Agregar Presentación</button>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn grow" onclick="cerrarModalPresentaciones()"  data-i18n="common.cerrar">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT PRESENTATION -->
+  <div class="modal-backdrop" id="modalEditPresentation">
+    <div class="modal glass" style="max-width:600px;">
+      <header><h3 style="margin:0;">Editar Presentación</h3><button class="btn secondary sm" type="button" onclick="document.getElementById('modalEditPresentation').style.display='none'">✕</button></header>
+      <form id="presentationForm" onsubmit="guardarPresentation(event)"><input type="hidden" id="presId" name="presId">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label for="presDescripcion">Descripción (ej: 500MCG/10ML = 50MCG/ML)</label><input id="presDescripcion" name="presDescripcion" type="text" placeholder="500MCG/10ML = 50MCG/ML" required></div>
+          <div class="field" style="grid-column:1 / -1;"><label for="presDiluciones">Diluciones (separadas por coma, ej: 12CC, 24CC, 50CC, 100CC)</label><textarea id="presDiluciones" name="presDiluciones" rows="2" placeholder="12CC, 24CC, 50CC, 100CC" required></textarea></div>
+          <div style="background:var(--card);padding:12px;border-radius:8px;grid-column:1 / -1;border:1px solid var(--border);">
+            <p style="margin:0;font-size:12px;color:var(--muted);">ℹ️ Las concentraciones se calculan automáticamente basadas en la descripción y diluciones.</p>
+          </div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Guardar</button><button class="btn secondary" type="button" onclick="document.getElementById('modalEditPresentation').style.display='none'"  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL ADD PRESENTATION -->
+  <div class="modal-backdrop" id="modalAddPresentation">
+    <div class="modal glass" style="max-width:600px;">
+      <header><h3 style="margin:0;">Agregar Presentación</h3><button class="btn secondary sm" type="button" onclick="document.getElementById('modalAddPresentation').style.display='none'">✕</button></header>
+      <form id="addPresentationForm" onsubmit="guardarNuevaPresentation(event)">
+        <div class="grid">
+          <div class="field" style="grid-column:1 / -1;"><label for="newPresDescripcion">Descripción (ej: 500MCG/10ML = 50MCG/ML)</label><input id="newPresDescripcion" name="newPresDescripcion" type="text" placeholder="500MCG/10ML = 50MCG/ML" required></div>
+          <div class="field" style="grid-column:1 / -1;"><label for="newPresDiluciones">Diluciones (separadas por coma, ej: 12CC, 24CC, 50CC, 100CC)</label><textarea id="newPresDiluciones" name="newPresDiluciones" rows="2" placeholder="12CC, 24CC, 50CC, 100CC" required></textarea></div>
+          <div style="background:var(--card);padding:12px;border-radius:8px;grid-column:1 / -1;border:1px solid var(--border);">
+            <p style="margin:0;font-size:12px;color:var(--muted);">ℹ️ Las concentraciones se calculan automáticamente basadas en la descripción y diluciones.</p>
+          </div>
+        </div>
+        <div class="auth-actions" style="margin-top:14px;"><button class="btn grow" type="submit"  data-i18n="common.guardar">Agregar</button><button class="btn secondary" type="button" onclick="document.getElementById('modalAddPresentation').style.display='none'"  data-i18n="common.cancelar">Cancelar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Contenedor global para menús dropdown (fuera de todo overflow) -->
+  <div id="sug-menus-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;"></div>
+  <div id="user-menus-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;"></div>
+
+  <script>
+    // Tab switching functionality with lazy loading
+    let loadedTabs = {};
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.admin-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.getAttribute('data-tab');
+          
+          // Remove active class from all tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          tabContents.forEach(tc => {
+            tc.style.display = 'none';
+            tc.classList.remove('active');
+          });
+          
+          // Add active class to clicked tab
+          this.classList.add('active');
+          const targetContent = document.getElementById(`tab-${targetTab}`);
+          if (targetContent) {
+            targetContent.style.display = 'block';
+            setTimeout(() => targetContent.classList.add('active'), 10);
+          }
+          
+          // Lazy load tab-specific data
+          if (!loadedTabs[targetTab]) {
+            if (targetTab === 'infusiones' && typeof cargarMedicamentosInfusiones === 'function') {
+              cargarMedicamentosInfusiones();
+              loadedTabs[targetTab] = true;
+            } else if (targetTab === 'analytics' && typeof loadAIAnalytics === 'function') {
+              loadAIAnalytics();
+              loadedTabs[targetTab] = true;
+            }
+          }
+        });
+      });
+    });
+  </script>
+
+  <script src="src/utils/languageSwitcher.js"></script>
+  <script src="src/utils/chartUtils.js"></script>
+  <script src="src/utils/reportGenerator.js"></script>
+  <script src="src/utils/notificationManager.js"></script>
+  <script src="src/utils/aiAnalyticsAdmin.js"></script>
+  <script src="src/utils/infusionAdmin.js"></script>
+  <script src="script.js"></script>
+</body></html>
+  <script>
+    // Funciones para edición de evaluaciones
+    let evaluacionesActuales = [];
+    let evaluacionEnEdicion = null;
+
+    function cargarEvaluacionesAdmin() {
+      if (typeof quizzes === 'undefined') {
+        console.log('quizzes no definido aún');
+        return;
+      }
+      
+      const tbody = document.getElementById('evaluacionesTableBody');
+      tbody.innerHTML = '';
+      
+      quizzes.assessments.forEach((quiz, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${quiz.title}</strong></td>
+          <td>${quiz.category}</td>
+          <td>${quiz.difficulty}</td>
+          <td>${quiz.questions.length}</td>
+          <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${quiz.description}</td>
+          <td style="text-align:center;">
+            <button class="btn sm" onclick="editarEvaluacion(${idx})" style="font-size:12px;padding:6px 10px;"  data-i18n="common.editar">Editar</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function editarEvaluacion(idx) {
+      evaluacionEnEdicion = idx;
+      const quiz = quizzes.assessments[idx];
+      
+      document.getElementById('evalTitle').value = quiz.title;
+      document.getElementById('evalDifficulty').value = quiz.difficulty;
+      document.getElementById('evalDescription').value = quiz.description;
+      
+      const container = document.getElementById('preguntasContainer');
+      container.innerHTML = '';
+      
+      quiz.questions.forEach((q, qIdx) => {
+        agregarPreguntaAlForm(q, qIdx);
+      });
+      
+      document.getElementById('modalEvaluacion').style.display = 'flex';
+    }
+
+    function agregarPreguntaAlForm(pregunta, idx) {
+      const container = document.getElementById('preguntasContainer');
+      const div = document.createElement('div');
+      div.style.cssText = 'margin-bottom:16px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--card);';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="color:var(--text);">Pregunta ${idx + 1}</strong>
+          <button type="button" class="btn sm secondary" onclick="this.parentElement.parentElement.remove()" style="font-size:11px;padding:4px 8px;"  data-i18n="common.eliminar">Eliminar</button>
+        </div>
+        <input type="text" placeholder="Pregunta" value="${pregunta.question}" style="width:100%;margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          ${[0,1,2,3].map(i => `
+            <div>
+              <label style="font-size:12px;color:var(--text);">Opción ${i+1} ${i === pregunta.correct ? '(✓)' : ''}</label>
+              <input type="text" value="${pregunta.options[i] || ''}" placeholder="Opción ${i+1}" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);">
+            </div>
+          `).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <div style="flex:1;"><label style="font-size:12px;color:var(--text);">Respuesta correcta (0-3)</label><input type="number" min="0" max="3" value="${pregunta.correct}" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);"></div>
+          <div style="flex:2;"><label style="font-size:12px;color:var(--text);">Explicación</label><input type="text" value="${pregunta.explanation}" placeholder="Explicación" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);"></div>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    function agregarPreguntaVacia() {
+      agregarPreguntaAlForm({ question: '', options: ['','','',''], correct: 0, explanation: '' }, document.getElementById('preguntasContainer').children.length);
+    }
+
+    function guardarEvaluacion() {
+      const title = document.getElementById('evalTitle').value;
+      const difficulty = document.getElementById('evalDifficulty').value;
+      const description = document.getElementById('evalDescription').value;
+      
+      const preguntas = [];
+      document.getElementById('preguntasContainer').querySelectorAll('div[style*="margin-bottom:16px"]').forEach((div, idx) => {
+        const inputs = div.querySelectorAll('input');
+        const q = {
+          id: idx + 1,
+          question: inputs[0].value,
+          options: [inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value],
+          correct: parseInt(inputs[5].value),
+          explanation: inputs[6].value
+        };
+        preguntas.push(q);
+      });
+      
+      quizzes.assessments[evaluacionEnEdicion].title = title;
+      quizzes.assessments[evaluacionEnEdicion].difficulty = difficulty;
+      quizzes.assessments[evaluacionEnEdicion].description = description;
+      quizzes.assessments[evaluacionEnEdicion].questions = preguntas;
+      
+      // Guardar en localStorage
+      localStorage.setItem('quizzesEditadas', JSON.stringify(quizzes.assessments));
+      
+      showToast('Evaluación guardada correctamente', 'success');
+      document.getElementById('modalEvaluacion').style.display = 'none';
+      cargarEvaluacionesAdmin();
+    }
+
+    // Cargar evaluaciones cuando se abre el admin
+    document.addEventListener('DOMContentLoaded', function() {
+      if (document.getElementById('evaluacionesTableBody')) {
+        setTimeout(() => cargarEvaluacionesAdmin(), 500);
+      }
+    });
+  </script>
+<script src="src/utils/quizSystem.js"></script>

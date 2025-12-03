@@ -1,0 +1,767 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<script src="src/utils/i18n.js"></script>
+  <script src="src/utils/themeCustomizer.js"></script>
+<script>
+(function(){
+  var currentTheme = localStorage.getItem('currentTheme') || 'default';
+  var themeMode = localStorage.getItem('themeMode') || 'light';
+  document.documentElement.setAttribute('data-theme', themeMode);
+  if (typeof themeCustomizer !== 'undefined') {
+    themeCustomizer.apply(currentTheme, themeMode);
+  }
+window.aplicarTema = function(themeName) {
+  if (typeof themeCustomizer !== 'undefined') {
+    const modeCheckbox = document.querySelector('.theme-toggle[type="checkbox"]');
+    const currentMode = (modeCheckbox && modeCheckbox.checked) ? 'dark' : 'light';
+    themeCustomizer.apply(themeName, currentMode);
+    document.querySelectorAll('#themesGrid > div').forEach(card => {
+      card.style.borderColor = 'transparent';
+    });
+    const clickedCard = event.target.closest('.card');
+    if (clickedCard) {
+      clickedCard.style.borderColor = 'var(--primary)';
+    }
+  }
+};
+window.toggleThemeMode = function() {
+  const checkbox = document.querySelector('.theme-toggle[type="checkbox"]');
+  const currentTheme = localStorage.getItem('currentTheme') || 'default';
+  const newMode = checkbox.checked ? 'dark' : 'light';
+  if (typeof themeCustomizer !== 'undefined') {
+    themeCustomizer.apply(currentTheme, newMode);
+  }
+  document.documentElement.setAttribute('data-theme', newMode);
+  document.documentElement.style.transition = 'none';
+  void document.documentElement.offsetHeight;
+  document.documentElement.style.transition = '';
+  setTimeout(() => {
+    location.reload();
+  }, 100);
+};
+})();
+</script>
+<script>(function(){var r=localStorage.getItem('userRole');if(r==='admin'){document.addEventListener('DOMContentLoaded',function(){var a=document.getElementById('adminNavLink');if(a)a.style.display='flex';});}})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#475569">
+<title>Med Tools Hub</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css">
+<style>
+  .config-tab {
+    color: var(--muted);
+    position: relative;
+  }
+  .config-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary) !important;
+  }
+  .config-tab:hover {
+    background: rgba(0,139,139,0.05);
+  }
+  .tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: rgba(var(--primary-rgb), 0.08);
+    color: var(--text);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
+  }
+  .stat-card h4 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .stat-card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .profile-form-grid {
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+  }
+  .profile-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  #tab-perfil {
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 768px) {
+    #tab-perfil {
+      display: block;
+    }
+    #tab-perfil > h3 {
+      margin-bottom: 16px;
+    }
+    .profile-form-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+    .profile-form-grid > div:first-child {
+      display: grid !important;
+      grid-template-columns: auto 1fr !important;
+      gap: 12px !important;
+      align-items: flex-start !important;
+      width: auto !important;
+    }
+    .profile-form-grid > div:first-child > .field {
+      grid-column: 1 !important;
+      width: auto !important;
+    }
+    .profile-form-grid > div:first-child > div:nth-child(2) {
+      grid-column: 1 !important;
+      width: 100%;
+      max-width: 150px;
+    }
+    .profile-form-grid > div:first-child > .profile-stats {
+      grid-column: 2 !important;
+      grid-row: 1 / 3 !important;
+      width: auto !important;
+      margin: 0 !important;
+    }
+    .profile-stats {
+      margin-bottom: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      grid-template-columns: 1fr !important;
+    }
+    .stat-card {
+      padding: 8px 10px;
+      min-width: 95px;
+    }
+    .stat-card h4 {
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .stat-card p {
+      font-size: 9px;
+    }
+    .profile-fields-grid {
+      gap: 8px;
+    }
+    .profile-fields-grid .field {
+      margin-bottom: 0;
+    }
+    .profile-fields-grid label {
+      font-size: 13px !important;
+    }
+    .profile-fields-grid input,
+    .profile-fields-grid select {
+      font-size: 14px !important;
+      padding: 8px 12px !important;
+    }
+  }
+</style>
+<script>
+  document.documentElement.classList.add('preload');
+  window.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('loaded');
+    document.documentElement.classList.remove('preload');
+  });
+</script>
+</head><body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-full">Med Tools Hub</span><span class="logo-short">MTH</span></div>
+      <nav>
+        <a href="main.html"><span class="icon">🏠</span><span>Principal</span></a>
+        <a href="vademecum.html"><span class="icon">💊</span><span>Vademecum</span></a>
+        <a href="herramientas.html"><span class="icon">🔧</span><span>Herramientas</span></a>
+        <a href="turnos.html"><span class="icon">📅</span><span>Turnos</span></a>
+        <a href="sugerencias.html"><span class="icon">💬</span><span>Sugerencias</span><span id="sugerenciasBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+        <a href="configuracion.html" class="active"><span class="icon">⚙️</span><span>Configuración</span></a>
+        <a href="admin.html" id="adminNavLink" style="display:none;"><span class="icon">🛠️</span><span>Administración</span><span id="adminBadge" class="sidebar-notification-badge" style="display:none;">0</span></a>
+      </nav>
+    </aside>
+    <div class="content">
+      <header class="header">
+        <button id="btnToggleSidebar" type="button"></button>
+        <div class="header-title-group">
+          <h2>⚙️ Configuración</h2>
+          <p class="header-subtitle">Personaliza tu perfil, seguridad y preferencias de la aplicación</p>
+        </div>
+        <div id="colombiaClock"></div>
+        <div class="user-info">
+          <img id="avatarTop" alt="">
+          <span id="mainUserInfo" class="text-muted"></span>
+          <button class="btn danger sm" type="button" onclick="logout()">Salir</button>
+        </div>
+      </header>
+      <main>
+        <!-- Modern Tabs Navigation -->
+        <div class="card glass" style="padding:0;overflow:hidden;">
+          <div style="display:flex;border-bottom:2px solid var(--border);overflow-x:auto;">
+            <button class="config-tab active" data-tab="perfil" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              👤 Perfil
+            </button>
+            <button class="config-tab" data-tab="seguridad" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🔒 Seguridad
+            </button>
+            <button class="config-tab" data-tab="preferencias" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🎨 Preferencias
+            </button>
+            <button class="config-tab" data-tab="biometria" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              🔐 Biometría
+            </button>
+            <button class="config-tab" data-tab="cuenta" style="padding:16px 24px;background:none;border:none;border-bottom:3px solid transparent;font-size:15px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              ⚠️ Cuenta
+            </button>
+          </div>
+
+          <!-- Tab Content -->
+          <div style="padding:24px;">
+            <!-- PERFIL TAB -->
+            <div class="tab-content" id="tab-perfil">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Información del Perfil</h3>
+              
+              <form id="cfgForm">
+                <div class="grid-2col profile-form-grid">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                    <div class="field" style="width:100%;">
+                      <label style="text-align:center;display:block;margin-bottom:8px;">Imagen de Perfil</label>
+                      <img id="avatarTopPreview" src="" alt="" class="profile-preview" style="margin:0 auto;display:block;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                    </div>
+                    <div style="display:flex;gap:6px;width:100%;flex-direction:row;">
+                      <button class="btn grow" type="button" style="font-size:13px;padding:10px 16px;flex:1;" onclick="document.getElementById('cfgAvatarFile').click()">📷 Cambiar imagen</button>
+                      <button class="btn secondary grow" type="button" style="font-size:13px;padding:10px 16px;flex:1;" id="cfgAvatarClear">🗑️ Quitar imagen</button>
+                      <input id="cfgAvatarFile" type="file" accept="image/*" style="display:none;">
+                    </div>
+                    <!-- Profile Stats -->
+                    <div class="profile-stats" style="margin-bottom:0;">
+                      <div class="stat-card">
+                        <h4 id="memberSinceDays">-</h4>
+                        <p>Member Since</p>
+                      </div>
+                      <div class="stat-card">
+                        <h4 id="userRoleBadge">-</h4>
+                        <p>Rol</p>
+                      </div>
+                      <div class="stat-card">
+                        <h4 id="accountStatusBadge">✓</h4>
+                        <p>Estado de cuenta</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="profile-fields-grid">
+                    <div class="field">
+                      <label>👤 Usuario</label>
+                      <input id="cfgUser" type="text" disabled style="background:rgba(0,0,0,0.05);cursor:not-allowed;">
+                    </div>
+                    <div class="field">
+                      <label>✏️ Nombre mostrado</label>
+                      <input id="cfgName" type="text" placeholder="Ingresa tu nombre completo">
+                    </div>
+                    <div class="field">
+                      <label>🎓 Categoría</label>
+                      <select id="cfgCat">
+                        <option value="">(sin especificar)</option>
+                        <option>Estudiante</option>
+                        <option>Interno</option>
+                        <option>Médico General</option>
+                        <option>Residente</option>
+                        <option>Pediatra</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>📧 Correo electrónico</label>
+                      <input id="cfgMail" type="email" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="field">
+                      <label>📱 Teléfono</label>
+                      <input id="cfgPhone" type="text" placeholder="+57 300 123 4567">
+                    </div>
+                    <div class="field">
+                      <label>🏥 Institución</label>
+                      <input id="cfgInst" type="text" placeholder="Hospital o clínica">
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:24px;display:flex;gap:12px;">
+                  <button class="btn grow" type="submit" style="flex:1;">💾 Guardar cambios</button>
+                  <button class="btn secondary" type="button" onclick="location.reload()" style="flex:0;">↻ Cancelar</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- SEGURIDAD TAB -->
+            <div class="tab-content" id="tab-seguridad" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Cambiar Contraseña</h3>
+              <p class="text-muted" style="margin-bottom:24px;">Asegúrate de usar una contraseña segura con al menos 8 caracteres.</p>
+              <form id="cfgPasswordForm">
+                <div style="max-width:600px;">
+                  <div class="field">
+                    <label>🔑 Contraseña actual</label>
+                    <input id="cfgCurrentPass" type="password" autocomplete="current-password" placeholder="Ingresa tu contraseña actual" required>
+                  </div>
+                  <div class="field">
+                    <label>🔐 Nueva contraseña</label>
+                    <input id="cfgNewPass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required>
+                  </div>
+                  <div class="field">
+                    <label>✓ Confirmar nueva contraseña</label>
+                    <input id="cfgConfirmPass" type="password" autocomplete="new-password" placeholder="Confirma tu nueva contraseña" required>
+                  </div>
+                </div>
+                <div style="margin-top:24px;display:flex;gap:12px;">
+                  <button class="btn grow" type="submit">🔒 Actualizar contraseña</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PREFERENCIAS TAB - UNIFICADO -->
+            <div class="tab-content" id="tab-preferencias" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);" data-i18n="page.configuracion.titulo">🎨 Preferencias de la Aplicación</h3>
+              
+              <!-- TEMAS PERSONALIZADOS -->
+              <div style="margin-bottom:32px;">
+                <h4 style="margin:0 0 12px 0;color:var(--text);font-size:16px;" data-i18n="config.temas">Temas Visuales</h4>
+                <p class="text-muted" style="margin:0 0 16px 0;font-size:13px;">Elige entre 6 temas profesionales adaptados para ambiente médico</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;" id="themesGrid">
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid var(--primary);" onclick="aplicarTema('default')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Slate</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#008B8B;border-radius:3px;"></div>
+                      <div style="flex:1;background:#20C997;border-radius:3px;"></div>
+                      <div style="flex:1;background:#FF6B6B;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid transparent;" onclick="aplicarTema('medical')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Médico</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#1565c0;border-radius:3px;"></div>
+                      <div style="flex:1;background:#0288d1;border-radius:3px;"></div>
+                      <div style="flex:1;background:#e91e63;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid transparent;" onclick="aplicarTema('ocean')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Océano</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#00838f;border-radius:3px;"></div>
+                      <div style="flex:1;background:#0097a7;border-radius:3px;"></div>
+                      <div style="flex:1;background:#ff6f00;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid transparent;" onclick="aplicarTema('forest')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Bosque</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#2e7d32;border-radius:3px;"></div>
+                      <div style="flex:1;background:#43a047;border-radius:3px;"></div>
+                      <div style="flex:1;background:#d32f2f;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid transparent;" onclick="aplicarTema('sunset')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Atardecer</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#e65100;border-radius:3px;"></div>
+                      <div style="flex:1;background:#ff6f00;border-radius:3px;"></div>
+                      <div style="flex:1;background:#9c27b0;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                  <div class="card glass" style="padding:12px;cursor:pointer;border:2px solid transparent;" onclick="aplicarTema('lavender')">
+                    <h4 style="margin:0 0 6px 0;font-size:13px;">Lavanda</h4>
+                    <div style="display:flex;gap:3px;height:32px;">
+                      <div style="flex:1;background:#6a1b9a;border-radius:3px;"></div>
+                      <div style="flex:1;background:#8e24aa;border-radius:3px;"></div>
+                      <div style="flex:1;background:#ff5722;border-radius:3px;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CONFIGURACIÓN DE VISUALIZACIÓN -->
+              <div style="margin-bottom:32px;">
+                <h4 style="margin:0 0 12px 0;color:var(--text);font-size:16px;">Configuración de Visualización</h4>
+                <div class="card glass" style="padding:16px;margin-bottom:12px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                      <h4 style="margin:0 0 2px 0;font-size:14px;" data-i18n="config.modo_oscuro">🌙 Modo oscuro</h4>
+                      <p class="text-muted" style="margin:0;font-size:12px;" data-i18n="config.modo_oscuro_desc">Cambia entre tema claro y oscuro</p>
+                    </div>
+                    <label class="switch">
+                      <input class="theme-toggle" type="checkbox" onchange="toggleThemeMode()">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="card glass" style="padding:16px;">
+                  <div>
+                    <h4 style="margin:0 0 8px 0;font-size:14px;" data-i18n="config.idioma">🌐 Idioma</h4>
+                    <p class="text-muted" style="margin:0 0 12px 0;font-size:12px;" data-i18n="config.idioma_desc">Selecciona tu idioma preferido</p>
+                    <div style="display:flex;gap:8px;">
+                      <button class="btn" id="langES" style="font-size:13px;padding:8px 14px;background:var(--primary);" onclick="cambiarIdioma('es')">🇪🇸 Español</button>
+                      <button class="btn secondary" id="langEN" style="font-size:13px;padding:8px 14px;" onclick="cambiarIdioma('en')">🇬🇧 English</button>
+                      <button class="btn secondary" id="langPT" style="font-size:13px;padding:8px 14px;" onclick="cambiarIdioma('pt')">🇧🇷 Português</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INFORMACIÓN DEL SISTEMA -->
+              <div>
+                <h4 style="margin:0 0 12px 0;color:var(--text);font-size:16px;" data-i18n="config.info_sistema">Información del Sistema</h4>
+                <div class="card glass" style="padding:16px;">
+                  <p class="text-muted" style="margin:0 0 8px 0;font-size:13px;"><span data-i18n="config.version">Versión</span>: <strong>2.0.0</strong></p>
+                  <p class="text-muted" style="margin:0 0 8px 0;font-size:13px;"><span data-i18n="config.actualizacion">Última actualización</span>: <strong>Noviembre 2025</strong></p>
+                  <p class="text-muted" style="margin:0;font-size:13px;">Plataforma: <strong>Med Tools Hub</strong></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIOMETRIA TAB -->
+            <div class="tab-content" id="tab-biometria" style="display:none;">
+              <h3 style="margin:0 0 20px 0;color:var(--text);">Autenticación Biométrica</h3>
+              <p class="text-muted" style="margin-bottom:24px;">Registra tu huella digital o Face ID para un acceso más rápido y seguro.</p>
+              
+              <div class="card glass" style="padding:20px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                  <h4 style="margin:0;font-size:15px;">Dispositivos biométricos registrados</h4>
+                </div>
+                <div id="bioCredentialsList" style="max-height:300px;overflow-y:auto;">
+                  <p class="text-muted" style="text-align:center;padding:20px;">Cargando...</p>
+                </div>
+              </div>
+              
+              <div style="margin-top:24px;display:flex;gap:12px;">
+                <button class="btn grow" type="button" id="registerBioBtn" style="flex:1;">📱 Registrar nuevo dispositivo</button>
+              </div>
+            </div>
+
+            <!-- CUENTA TAB -->
+            <div class="tab-content" id="tab-cuenta" style="display:none;">
+              <div class="card glass" style="border:2px solid #ff9800;background:rgba(255,152,0,0.05);padding:24px;margin-bottom:24px;">
+                <h3 style="margin:0 0 12px 0;color:#ff9800;display:flex;align-items:center;gap:8px;">
+                  ⚠️ Zona de Precaución
+                </h3>
+                <p class="text-muted" style="margin-bottom:16px;font-size:14px;">
+                  Las acciones en esta sección son importantes y pueden afectar tu cuenta. Por favor, procede con cuidado.
+                </p>
+              </div>
+
+              <div class="card glass" style="border:2px solid #d32f2f;background:rgba(211,47,47,0.05);padding:24px;">
+                <h3 style="margin:0 0 12px 0;color:#d32f2f;display:flex;align-items:center;gap:8px;">
+                  🗑️ Eliminar Cuenta
+                </h3>
+                <p class="text-muted" style="margin-bottom:16px;font-size:14px;">
+                  Una vez que elimines tu cuenta, <strong>no hay vuelta atrás</strong>. Todos tus datos, incluyendo tu perfil, configuraciones y contenido, serán eliminados permanentemente.
+                </p>
+                <ul class="text-muted" style="margin:0 0 20px 20px;font-size:13px;line-height:1.8;">
+                  <li>Se eliminarán todos tus datos personales</li>
+                  <li>Perderás acceso a todas las funciones de la plataforma</li>
+                  <li>Esta acción no se puede deshacer</li>
+                </ul>
+                <button class="btn danger" type="button" id="btnDeleteAccount">
+                  ⚠️ Eliminar mi cuenta permanentemente
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="app-footer">
+          <div class="footer-links">
+            <a href="privacidad.html">Política de Privacidad</a>
+            <span class="separator">|</span>
+            <a href="terminos.html">Términos y Condiciones</a>
+            <span class="separator">|</span>
+            <a href="aviso-legal.html">Aviso Legal</a>
+            <span class="separator">|</span>
+            <a href="cookies.html">Cookies</a>
+          </div>
+          <p class="trademark">NBR® 2025 | Med Tools Hub</p>
+          <p class="contact">contacto@medtoolshub.cloud</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalCrop">
+    <div class="modal glass" style="max-width:700px;">
+      <header><h3 style="margin:0;">Recortar imagen</h3><button class="btn secondary sm" type="button" id="closeCrop">✕</button></header>
+      <div style="position:relative;width:600px;height:400px;overflow:hidden;margin:0 auto;background:#000;border-radius:12px;">
+        <canvas id="cropCanvas" style="position:absolute;top:0;left:0;cursor:move;"></canvas>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="display:block;margin-bottom:8px;font-size:14px;">Zoom: <input type="range" id="zoomSlider" min="50" max="300" value="50" style="width:200px;"></label>
+      </div>
+      <div class="auth-actions" style="margin-top:14px;">
+        <button class="btn grow" type="button" id="applyCrop">Aplicar recorte</button>
+        <button class="btn secondary" type="button" id="cancelCrop">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    // Tab switching functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize theme mode checkbox
+      const themeCheckbox = document.querySelector('.theme-toggle[type="checkbox"]');
+      const savedMode = localStorage.getItem('themeMode') || 'light';
+      if (themeCheckbox) {
+        themeCheckbox.checked = savedMode === 'dark';
+      }
+      
+      const tabs = document.querySelectorAll('.config-tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const targetTab = this.getAttribute('data-tab');
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          tabContents.forEach(content => {
+            content.style.display = 'none';
+          });
+          
+          const targetContent = document.getElementById('tab-' + targetTab);
+          if (targetContent) {
+            targetContent.style.display = 'block';
+            // Load biometric credentials when biometria tab is opened
+            if (targetTab === 'biometria') {
+              loadBiometricCredentials();
+            }
+          }
+        });
+      });
+
+      // Load user stats from API
+      async function loadUserStats() {
+        try {
+          const response = await fetch('/api/profile');
+          if (!response.ok) throw new Error('Failed to load profile');
+          
+          const userData = await response.json();
+          
+          // Display registration date
+          if (userData.createdAt) {
+            const created = new Date(userData.createdAt);
+            const day = created.getDate().toString().padStart(2, '0');
+            const month = (created.getMonth() + 1).toString().padStart(2, '0');
+            const year = created.getFullYear();
+            document.getElementById('memberSinceDays').textContent = `${day}/${month}/${year}`;
+          } else {
+            document.getElementById('memberSinceDays').textContent = '-';
+          }
+          
+          // Set role badge
+          const roleElement = document.getElementById('userRoleBadge');
+          if (userData.role === 'admin') {
+            roleElement.textContent = 'ADMIN';
+            // Keep subtle styling from CSS - no override needed
+          } else {
+            roleElement.textContent = 'USUARIO';
+          }
+
+          // Set account status
+          const statusElement = document.getElementById('accountStatusBadge');
+          if (userData.status === 'aprobado') {
+            statusElement.textContent = '✓';
+            statusElement.parentElement.querySelector('p').textContent = 'Activa';
+          } else {
+            statusElement.textContent = '⏳';
+            statusElement.parentElement.querySelector('p').textContent = 'Pendiente';
+          }
+        } catch (e) {
+          console.error('Error loading user stats:', e);
+          document.getElementById('memberSinceDays').textContent = '-';
+          document.getElementById('userRoleBadge').textContent = '-';
+          document.getElementById('accountStatusBadge').textContent = '?';
+        }
+      }
+
+      // Biometric functions
+      async function loadBiometricCredentials() {
+        const listDiv = document.getElementById('bioCredentialsList');
+        if (!listDiv) return;
+        
+        try {
+          const response = await fetch('/api/biometric/credentials');
+          if (!response.ok) throw new Error('Failed to load credentials');
+          
+          const credentials = await response.json();
+          
+          if (credentials.length === 0) {
+            listDiv.innerHTML = '<p class="text-muted" style="text-align:center;padding:20px;">No hay dispositivos registrados.<br><small>Toca "Registrar nuevo dispositivo" para comenzar.</small></p>';
+            return;
+          }
+          
+          listDiv.innerHTML = credentials.map((cred, idx) => {
+            const created = new Date(cred.created_at);
+            const dateStr = created.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+            const deviceType = cred.device_type === 'platform' ? '📱 Dispositivo integrado' : '🔐 Clave de seguridad';
+            
+            return `
+              <div class="card glass" style="padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <h4 style="margin:0 0 4px 0;font-size:14px;">${deviceType}</h4>
+                  <p class="text-muted" style="margin:0;font-size:12px;">Registrado: ${dateStr}</p>
+                  <p class="text-muted" style="margin:4px 0 0 0;font-size:11px;">ID: ${cred.credential_id.substring(0, 20)}...</p>
+                </div>
+                <button class="btn danger sm" data-delete-bio="${cred.id}" type="button">🗑️ Eliminar</button>
+              </div>
+            `;
+          }).join('');
+          
+          // Add event listeners for delete buttons
+          listDiv.querySelectorAll('[data-delete-bio]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const credId = btn.getAttribute('data-delete-bio');
+              if (!confirm('¿Eliminar este dispositivo biométrico? Tendrás que registrarlo nuevamente para usarlo.')) return;
+              
+              try {
+                const delRes = await fetch(`/api/biometric/credentials/${credId}`, { method: 'DELETE' });
+                if (!delRes.ok) throw new Error('Failed to delete');
+                
+                await loadBiometricCredentials();
+                showNotification('Dispositivo eliminado correctamente', 'success');
+              } catch (err) {
+                console.error('Error deleting credential:', err);
+                showNotification('Error al eliminar dispositivo: ' + err.message, 'error');
+              }
+            });
+          });
+        } catch (err) {
+          console.error('Error loading credentials:', err);
+          listDiv.innerHTML = '<p class="text-muted" style="text-align:center;padding:20px;color:#d32f2f;">Error al cargar dispositivos:<br><small>' + err.message + '</small></p>';
+        }
+      }
+
+      async function registerBiometric() {
+        if (!window.SimpleWebAuthnBrowser?.startRegistration) {
+          showNotification('Tu navegador no soporta autenticación biométrica', 'error');
+          return;
+        }
+
+        try {
+          const registerBtn = document.getElementById('registerBioBtn');
+          registerBtn.disabled = true;
+          const oldText = registerBtn.textContent;
+          registerBtn.textContent = '⏳ Preparando...';
+
+          // Get session to get username
+          const sessionRes = await fetch('/api/session');
+          if (!sessionRes.ok) throw new Error('Not authenticated');
+          
+          const session = await sessionRes.json();
+          if (!session.authenticated) throw new Error('Not authenticated');
+          
+          const username = session.user.username;
+
+          // Get registration options
+          const optionsRes = await fetch('/api/biometric/register-options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+          });
+
+          if (!optionsRes.ok) throw new Error('Failed to get registration options');
+          
+          const options = await optionsRes.json();
+          registerBtn.textContent = '⏳ Coloca tu dedo o cara...';
+
+          // Validate options structure before calling startRegistration
+          if (!options.challenge || !options.rpId || !options.userId) {
+            throw new Error('Opciones de registro inválidas del servidor');
+          }
+
+          // Start registration with proper structure
+          const credential = await window.SimpleWebAuthnBrowser.startRegistration({
+            challenge: options.challenge,
+            rp: options.rp,
+            user: options.user,
+            pubKeyCredParams: options.pubKeyCredParams,
+            timeout: options.timeout,
+            attestation: options.attestation,
+            authenticatorSelection: options.authenticatorSelection,
+            extensions: options.extensions
+          });
+
+          registerBtn.textContent = '⏳ Verificando...';
+
+          // Verify with server
+          const verifyRes = await fetch('/api/biometric/register-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, credential })
+          });
+
+          const verification = await verifyRes.json();
+
+          if (!verification.verified) throw new Error('Verification failed');
+
+          showNotification('✅ Dispositivo biométrico registrado exitosamente', 'success');
+          await loadBiometricCredentials();
+          registerBtn.textContent = oldText;
+          registerBtn.disabled = false;
+        } catch (err) {
+          console.error('Biometric registration error:', err);
+          showNotification('❌ Error: ' + err.message, 'error');
+          const registerBtn = document.getElementById('registerBioBtn');
+          registerBtn.textContent = '📱 Registrar nuevo dispositivo';
+          registerBtn.disabled = false;
+        }
+      }
+
+      function showNotification(msg, type = 'info') {
+        const notifDiv = document.createElement('div');
+        notifDiv.style.cssText = 'position:fixed;top:20px;right:20px;background:var(--card);border:1px solid var(--border);padding:16px 20px;border-radius:8px;z-index:10000;box-shadow:var(--shadow-lg);animation:slideIn 0.3s ease;max-width:300px;';
+        notifDiv.textContent = msg;
+        
+        if (type === 'success') notifDiv.style.borderLeft = '4px solid #16a34a';
+        else if (type === 'error') notifDiv.style.borderLeft = '4px solid #dc2626';
+        else notifDiv.style.borderLeft = '4px solid var(--primary)';
+        
+        document.body.appendChild(notifDiv);
+        setTimeout(() => notifDiv.remove(), 4000);
+      }
+
+      // Setup biometric button
+      const registerBioBtn = document.getElementById('registerBioBtn');
+      if (registerBioBtn) {
+        registerBioBtn.addEventListener('click', registerBiometric);
+      }
+      
+      // Load stats on page load
+      loadUserStats();
+      
+      // Initialize theme customizer
+      if (typeof themeCustomizer !== 'undefined') {
+        themeCustomizer.loadSaved();
+      }
+    });
+  </script>
+  <script src="src/utils/deviceManager.js"></script>
+  <script>
+    function cambiarIdioma(lang) {
+      if (typeof i18n !== 'undefined') {
+        i18n.setLanguage(lang);
+      }
+    }
+  </script>
+</body></html>

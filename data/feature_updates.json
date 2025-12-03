@@ -1,0 +1,11 @@
+[
+  {
+    "id": "e75213a4-d376-40f9-be7a-539e6ab68483",
+    "titulo": "Nueva funcion en herramienta de infusiones",
+    "descripcion": "Modifica la presentacion del medicamente de acuerdo a tu institucion",
+    "icono": "✨",
+    "fecha": "2025-11-25",
+    "is_feature_update": true,
+    "created_at": "2025-11-25T16:48:39.161Z"
+  }
+]

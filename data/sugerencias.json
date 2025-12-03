@@ -1,0 +1,22 @@
+[
+  {
+    "id": "5dfb0513-d97c-45e0-ae7d-39c6e9ce2db8",
+    "username": "admin",
+    "mensaje": "pruabakjksjadfskjdhfsjkdfsdfsd",
+    "respuesta": "hjgsjhgdjhgkjghqwkjeqwe",
+    "fecha": "2025-10-06T23:39:23.053Z",
+    "respondida": true,
+    "fechaRespuesta": "2025-10-06T23:40:03.423Z",
+    "vista": true
+  },
+  {
+    "id": "3c96c6da-50a1-4580-a310-bdbabc6e688b",
+    "username": "usuario",
+    "mensaje": "dfghdfghdfghdfgh",
+    "respuesta": "Muchas gracias por tu sugerencia. Hemos tomado nota de tus comentarios y trabajaremos para implementar las mejoras necesarias. Tu retroalimentación es muy valiosa para nosotros.",
+    "fecha": "2025-11-02T21:57:38.608Z",
+    "respondida": true,
+    "fechaRespuesta": "2025-11-23T06:46:09.690Z",
+    "vista": false
+  }
+]

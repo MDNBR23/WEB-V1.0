@@ -1,0 +1,37 @@
+[
+  {
+    "id": "4e5f1335-669b-4300-96b3-882313e5b00a",
+    "titulo": "Guía RCP Neonatal 2024",
+    "fecha": "2025-10-06",
+    "texto": "Protocolo actualizado de reanimación cardiopulmonar neonatal.",
+    "url": "",
+    "global": true
+  },
+  {
+    "id": "e3c23761-7633-4d34-9880-7851fe137ec6",
+    "titulo": "Recomendaciones en ventilación mecánica no invasiva en población neonatal",
+    "fecha": "2023-11-01",
+    "texto": "Consenso de expertos\nRecomendaciones para el uso de modos de ventilación mecánica no invasiva en la población neonatal asociación colombiana de neonatología\nASCON Regional Centro\nEdición 1. 01 de noviembre de 2023",
+    "url": "https://www.ascon.org.co/wp-content/uploads/2023/11/CONSENSO-DE-EXPERTOS-VENTILACI%C3%93N-USO-DE-MODOS-DE-VENTILACION-MECANICA-NO-INVASIVA-EN-LA-POBLACION-NEONATA.pdf",
+    "global": true,
+    "owner": "admin"
+  },
+  {
+    "titulo": "67567",
+    "fecha": "0077-05-06",
+    "texto": "567567",
+    "url": "",
+    "global": true,
+    "id": "392af64c-1b77-4e0b-88a9-c1803a00f83d",
+    "owner": "admin"
+  },
+  {
+    "titulo": "5675",
+    "fecha": "0066-06-06",
+    "texto": "657567",
+    "url": "",
+    "global": true,
+    "id": "46635c6e-6fe1-4c60-b1f1-9c24b7a98da4",
+    "owner": "admin"
+  }
+]
