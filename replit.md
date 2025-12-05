@@ -8,16 +8,7 @@
 - **Consultas Seguras**: Todas las consultas usan parametros para prevenir SQL injection
 - **Tablas Creadas**: users, shifts, medications, anuncios, guias, sugerencias, biometric_credentials, tools_status, maintenance, feature_updates
 - **Indices Optimizados**: idx_shifts_username_date para consultas de turnos
-
-#### Datos Migrados
-| Tabla | Registros |
-|-------|-----------|
-| Users | 12 |
-| Shifts | 18 |
-| Medications | 32 |
-| Anuncios | 2 |
-| Guias | 8 |
-| Sugerencias | 4 |
+- **Archivos JSON eliminados**: Los archivos de respaldo en data/ y backups/ fueron eliminados ya que PostgreSQL es la fuente de datos
 
 ### Optimizaciones de Rendimiento (v2.2)
 - **Lazy Loading de Pestañas**: Las infusiones solo se cargan cuando el usuario accede a la pestaña
@@ -173,5 +164,26 @@ Razon CC/HORA = (Dosis x Peso) / (Dosis/Dia / Dilucion Total)
 
 ---
 
-**Ultima actualizacion:** 2025-12-05 05:00 UTC
-**Estado:** Completamente migrado a PostgreSQL y listo para producción
+---
+
+### Replit Setup (December 2025)
+
+**Environment Configuration:**
+- PostgreSQL database provisioned using Replit's built-in database
+- DATABASE_URL and related PG* environment variables configured automatically
+- Port 5000 configured for frontend web access with 0.0.0.0 binding
+- Cache-Control headers configured for proper preview functionality in Replit iframe
+
+**Default Credentials:**
+- Username: `admin`
+- Password: `1234`
+
+**Deployment:**
+- Configured for autoscale deployment
+- Production-ready with database migrations on startup
+- WebAuthn configured for Replit cross-origin support
+
+---
+
+**Ultima actualizacion:** 2025-12-05 05:20 UTC
+**Estado:** Completamente migrado a PostgreSQL y configurado para Replit
