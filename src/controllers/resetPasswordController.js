@@ -1,26 +1,29 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 const { sendEmail } = require('../services/emailService');
 
 exports.resetPasswordRequest = async (req, res) => {
   try {
     const {username, email} = req.body;
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === username && u.email === email);
+    const result = await query(
+      'SELECT * FROM users WHERE username = $1 AND email = $2',
+      [username, email]
+    );
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Usuario o email no coinciden'});
     }
     
+    const user = result.rows[0];
     const resetToken = crypto.randomInt(100000, 1000000).toString();
-    const resetExpiry = Date.now() + 600000;
+    const resetExpiry = new Date(Date.now() + 600000);
     
-    user.resetToken = resetToken;
-    user.resetExpiry = resetExpiry;
-    
-    await writeJSON('users.json', users);
+    await query(
+      'UPDATE users SET reset_token = $1, reset_expiry = $2 WHERE username = $3',
+      [resetToken, resetExpiry, username]
+    );
     
     const emailContent = `Hola ${user.name || user.username},
 
@@ -97,19 +100,22 @@ exports.resetPassword = async (req, res) => {
   try {
     const {token, newPassword} = req.body;
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.resetToken === token && u.resetExpiry > Date.now());
+    const result = await query(
+      'SELECT * FROM users WHERE reset_token = $1 AND reset_expiry > NOW()',
+      [token]
+    );
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(400).json({error: 'Código inválido o expirado'});
     }
     
+    const user = result.rows[0];
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    delete user.resetToken;
-    delete user.resetExpiry;
     
-    await writeJSON('users.json', users);
+    await query(
+      'UPDATE users SET password = $1, reset_token = NULL, reset_expiry = NULL WHERE username = $2',
+      [hashedPassword, user.username]
+    );
     
     res.json({success: true, message: 'Contraseña restablecida exitosamente'});
   } catch (err) {

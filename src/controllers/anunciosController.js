@@ -1,17 +1,33 @@
-const crypto = require('crypto');
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 
 exports.getAnuncios = async (req, res) => {
   try {
-    const globalAnuncios = await readJSON('anuncios_global.json', []);
+    let result;
     
     if (req.session.user.role === 'admin') {
-      return res.json(globalAnuncios);
+      result = await query('SELECT * FROM anuncios WHERE active = true ORDER BY priority DESC, created_at DESC');
+    } else {
+      result = await query(
+        'SELECT * FROM anuncios WHERE active = true AND (created_by IS NULL OR created_by = $1) ORDER BY priority DESC, created_at DESC',
+        [req.session.user.username]
+      );
     }
     
-    const userAnuncios = await readJSON(`anuncios_${req.session.user.username}.json`, []);
-    const combined = [...globalAnuncios, ...userAnuncios];
-    res.json(combined);
+    const anuncios = result.rows.map(row => ({
+      id: row.id,
+      titulo: row.title,
+      title: row.title,
+      fecha: row.created_at ? new Date(row.created_at).toISOString().slice(0, 10) : null,
+      texto: row.content,
+      content: row.content,
+      img: '',
+      global: !row.created_by,
+      type: row.type,
+      priority: row.priority,
+      owner: row.created_by
+    }));
+    
+    res.json(anuncios);
   } catch (err) {
     console.error('Error getting anuncios:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -20,33 +36,32 @@ exports.getAnuncios = async (req, res) => {
 
 exports.saveAnuncio = async (req, res) => {
   try {
-    const anuncio = {
-      ...req.body,
-      id: req.body.id || crypto.randomUUID(),
-      owner: req.session.user.username
-    };
+    const { id, titulo, title, texto, content, type, priority, global } = req.body;
     
-    if (req.session.user.role === 'admin' && req.body.global) {
-      const globalAnuncios = await readJSON('anuncios_global.json', []);
-      const index = globalAnuncios.findIndex(a => a.id === anuncio.id);
-      if (index >= 0) {
-        globalAnuncios[index] = anuncio;
-      } else {
-        globalAnuncios.push(anuncio);
+    const anuncioTitle = titulo || title;
+    const anuncioContent = texto || content;
+    const createdBy = (req.session.user.role === 'admin' && global) ? null : req.session.user.username;
+    
+    if (id) {
+      const result = await query(
+        `UPDATE anuncios SET title = $1, content = $2, type = $3, priority = $4, created_by = $5
+         WHERE id = $6 RETURNING *`,
+        [anuncioTitle, anuncioContent, type || 'info', priority || 0, createdBy, id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({error: 'Anuncio no encontrado'});
       }
-      await writeJSON('anuncios_global.json', globalAnuncios);
+      
+      res.json({success: true, anuncio: result.rows[0]});
     } else {
-      const userAnuncios = await readJSON(`anuncios_${req.session.user.username}.json`, []);
-      const index = userAnuncios.findIndex(a => a.id === anuncio.id);
-      if (index >= 0) {
-        userAnuncios[index] = anuncio;
-      } else {
-        userAnuncios.push(anuncio);
-      }
-      await writeJSON(`anuncios_${req.session.user.username}.json`, userAnuncios);
+      const result = await query(
+        `INSERT INTO anuncios (title, content, type, priority, created_by, active)
+         VALUES ($1, $2, $3, $4, $5, true) RETURNING *`,
+        [anuncioTitle, anuncioContent, type || 'info', priority || 0, createdBy]
+      );
+      res.json({success: true, anuncio: result.rows[0]});
     }
-    
-    res.json({success: true, anuncio});
   } catch (err) {
     console.error('Error saving anuncio:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -57,16 +72,15 @@ exports.deleteAnuncio = async (req, res) => {
   try {
     const {id} = req.params;
     
-    if (req.session.user.role === 'admin') {
-      const globalAnuncios = await readJSON('anuncios_global.json', []);
-      const filtered = globalAnuncios.filter(a => a.id !== id);
-      await writeJSON('anuncios_global.json', filtered);
+    let sql = 'DELETE FROM anuncios WHERE id = $1';
+    const params = [id];
+    
+    if (req.session.user.role !== 'admin') {
+      sql += ' AND created_by = $2';
+      params.push(req.session.user.username);
     }
     
-    const userAnuncios = await readJSON(`anuncios_${req.session.user.username}.json`, []);
-    const filtered = userAnuncios.filter(a => a.id !== id);
-    await writeJSON(`anuncios_${req.session.user.username}.json`, filtered);
-    
+    await query(sql, params);
     res.json({success: true});
   } catch (err) {
     console.error('Error deleting anuncio:', err);

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 const { sendEmail } = require('../services/emailService');
 
 exports.register = async (req, res) => {
@@ -11,13 +11,13 @@ exports.register = async (req, res) => {
       return res.status(400).json({error: 'Datos incompletos'});
     }
     
-    const users = await readJSON('users.json', []);
-    
-    if (users.find(u => u.username === username)) {
+    const existingUser = await query('SELECT username FROM users WHERE username = $1', [username]);
+    if (existingUser.rows.length > 0) {
       return res.status(400).json({error: 'Ese usuario ya existe'});
     }
     
-    if (users.find(u => u.email === email)) {
+    const existingEmail = await query('SELECT email FROM users WHERE email = $1', [email]);
+    if (existingEmail.rows.length > 0) {
       return res.status(400).json({error: 'Ese correo electrónico ya está registrado'});
     }
     
@@ -25,26 +25,15 @@ exports.register = async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const fullName = `${firstName} ${lastName}`;
     
-    const newUser = {
-      username,
-      name: fullName,
-      firstName: firstName,
-      lastName: lastName,
-      password: hashedPassword,
-      email,
-      phone: phone || '',
-      institucion: institucion || '',
-      role: 'user',
-      status: 'pendiente',
-      cat: cat || '',
-      avatar: '',
-      emailVerified: false,
-      verificationToken,
-      createdAt: new Date().toISOString()
-    };
-    
-    users.push(newUser);
-    await writeJSON('users.json', users);
+    await query(`
+      INSERT INTO users (
+        username, name, first_name, last_name, password, email, phone,
+        institucion, role, status, cat, avatar, email_verified, verification_token
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    `, [
+      username, fullName, firstName, lastName, hashedPassword, email,
+      phone || '', institucion || '', 'user', 'pendiente', cat || '', '', false, verificationToken
+    ]);
     
     const protocol = req.protocol || 'https';
     const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
@@ -113,19 +102,20 @@ exports.login = async (req, res) => {
   try {
     const {username, password} = req.body;
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === username);
+    const result = await query('SELECT * FROM users WHERE username = $1', [username]);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(401).json({error: 'Usuario no existe'});
     }
+    
+    const user = result.rows[0];
     
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({error: 'Contraseña incorrecta'});
     }
     
-    if (!user.emailVerified) {
+    if (!user.email_verified) {
       return res.status(401).json({error: 'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.'});
     }
     
@@ -145,11 +135,11 @@ exports.login = async (req, res) => {
       return res.status(401).json({error: 'Tu registro no ha sido aprobado'});
     }
     
-    const now = new Date().toISOString();
-    user.lastLogin = now;
-    user.lastHeartbeat = now;
-    user.isOnline = true;
-    await writeJSON('users.json', users);
+    const now = new Date();
+    await query(
+      'UPDATE users SET last_login = $1, last_heartbeat = $1, is_online = true WHERE username = $2',
+      [now, username]
+    );
     
     req.session.userId = user.username;
     req.session.user = {
@@ -178,12 +168,10 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     if (req.session.user) {
-      const users = await readJSON('users.json', []);
-      const user = users.find(u => u.username === req.session.user.username);
-      if (user) {
-        user.isOnline = false;
-        await writeJSON('users.json', users);
-      }
+      await query(
+        'UPDATE users SET is_online = false WHERE username = $1',
+        [req.session.user.username]
+      );
     }
     req.session.destroy();
     res.json({success: true});
@@ -210,14 +198,15 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({error: 'Token de verificación requerido'});
     }
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.verificationToken === token);
+    const result = await query('SELECT * FROM users WHERE verification_token = $1', [token]);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Token de verificación inválido o expirado'});
     }
     
-    if (user.emailVerified) {
+    const user = result.rows[0];
+    
+    if (user.email_verified) {
       return res.json({
         success: true,
         message: 'Tu correo electrónico ya había sido verificado anteriormente.',
@@ -225,10 +214,10 @@ exports.verifyEmail = async (req, res) => {
       });
     }
     
-    user.emailVerified = true;
-    user.verificationToken = null;
-    
-    await writeJSON('users.json', users);
+    await query(
+      'UPDATE users SET email_verified = true, verification_token = NULL WHERE username = $1',
+      [user.username]
+    );
     
     res.json({
       success: true,
@@ -248,14 +237,15 @@ exports.resendVerification = async (req, res) => {
       return res.status(400).json({error: 'Usuario requerido'});
     }
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === username);
+    const result = await query('SELECT * FROM users WHERE username = $1', [username]);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
     
-    if (user.emailVerified) {
+    const user = result.rows[0];
+    
+    if (user.email_verified) {
       return res.json({
         success: true,
         message: 'El correo ya está verificado.',
@@ -264,9 +254,10 @@ exports.resendVerification = async (req, res) => {
     }
     
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    user.verificationToken = verificationToken;
-    
-    await writeJSON('users.json', users);
+    await query(
+      'UPDATE users SET verification_token = $1 WHERE username = $2',
+      [verificationToken, username]
+    );
     
     const protocol = req.get('host').includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${req.get('host')}`;

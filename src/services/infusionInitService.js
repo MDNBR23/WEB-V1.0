@@ -1,4 +1,4 @@
-const { pool } = require('../config/database');
+const { query } = require('./dbService');
 
 const defaultMedications = [
   {
@@ -59,26 +59,28 @@ const defaultMedications = [
 
 async function initializeInfusionMedications() {
   try {
-    // Primero, limpiar presentaciones existentes para evitar duplicados
-    await pool.query('DELETE FROM medication_presentations');
+    const existingResult = await query('SELECT COUNT(*) FROM infusion_medications');
+    if (parseInt(existingResult.rows[0].count) > 0) {
+      console.log('Infusion medications already exist, skipping initialization');
+      return;
+    }
     
     for (const med of defaultMedications) {
-      const result = await pool.query(
-        'INSERT INTO infusion_medications (nombre, dosis, unidad, grupo) VALUES ($1, $2, $3, $4) ON CONFLICT (nombre) DO UPDATE SET dosis = $2, unidad = $3, grupo = $4 RETURNING id',
+      const result = await query(
+        'INSERT INTO infusion_medications (nombre, dosis, unidad, grupo) VALUES ($1, $2, $3, $4) RETURNING id',
         [med.nombre, med.dosis, med.unidad, med.grupo]
       );
       
       const medId = result.rows[0].id;
       
-      // Insertar UNA SOLA presentación por medicamento
       for (const pres of med.presentations) {
-        await pool.query(
+        await query(
           'INSERT INTO medication_presentations (medication_id, descripcion, diluciones, concentracion) VALUES ($1, $2, $3, $4)',
           [medId, pres.descripcion, JSON.stringify(pres.diluciones), pres.concentracion]
         );
       }
     }
-    console.log('Infusion medications initialized successfully - 6 meds with 1 presentation each');
+    console.log('Infusion medications initialized successfully');
   } catch (err) {
     console.error('Error initializing infusion medications:', err);
   }

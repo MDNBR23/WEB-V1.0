@@ -1,6 +1,23 @@
-# Med Tools Hub - Calculadora de Infusiones v2.2
+# Med Tools Hub - v2.3 (PostgreSQL Edition)
 
-## ESTADO: OPTIMIZADO Y COMPLETAMENTE FUNCIONAL
+## ESTADO: MIGRADO A POSTGRESQL - LISTO PARA PRODUCCION
+
+### Migracion a PostgreSQL (v2.3)
+- **Base de Datos**: Migrado de archivos JSON a PostgreSQL para mejor escalabilidad
+- **Conexion Pooling**: Servicio dbService.js con pool de conexiones
+- **Consultas Seguras**: Todas las consultas usan parametros para prevenir SQL injection
+- **Tablas Creadas**: users, shifts, medications, anuncios, guias, sugerencias, biometric_credentials, tools_status, maintenance, feature_updates
+- **Indices Optimizados**: idx_shifts_username_date para consultas de turnos
+
+#### Datos Migrados
+| Tabla | Registros |
+|-------|-----------|
+| Users | 12 |
+| Shifts | 18 |
+| Medications | 32 |
+| Anuncios | 2 |
+| Guias | 8 |
+| Sugerencias | 4 |
 
 ### Optimizaciones de Rendimiento (v2.2)
 - **Lazy Loading de Pestañas**: Las infusiones solo se cargan cuando el usuario accede a la pestaña
@@ -127,10 +144,21 @@ Razon CC/HORA = (Dosis x Peso) / (Dosis/Dia / Dilucion Total)
 ├── src/
 │   ├── config/
 │   │   └── database.js       # Configuracion PostgreSQL
+│   ├── controllers/          # Controladores (todos usando PostgreSQL)
+│   │   ├── authController.js
+│   │   ├── usersController.js
+│   │   ├── shiftsController.js
+│   │   ├── medicationsController.js
+│   │   └── ...
 │   ├── services/
-│   │   └── infusionInitService.js  # Inicializacion de datos
+│   │   ├── dbService.js      # Servicio de base de datos PostgreSQL
+│   │   ├── initService.js    # Inicializacion de tablas
+│   │   └── infusionInitService.js
 │   └── utils/
-│       └── infusionAdmin.js  # Funciones admin
+│       └── infusionAdmin.js
+├── scripts/
+│   └── migrate-to-postgres.js  # Script de migracion JSON -> PostgreSQL
+├── data/                     # Archivos JSON originales (backup)
 ├── public/                   # Archivos estaticos
 └── styles.css               # Estilos globales
 ```
@@ -145,5 +173,5 @@ Razon CC/HORA = (Dosis x Peso) / (Dosis/Dia / Dilucion Total)
 
 ---
 
-**Ultima actualizacion:** 2025-12-01 00:15 UTC
-**Estado:** Completamente optimizado y listo para producción
+**Ultima actualizacion:** 2025-12-05 05:00 UTC
+**Estado:** Completamente migrado a PostgreSQL y listo para producción

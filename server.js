@@ -4,7 +4,6 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 
-const { initializeDatabase } = require('./src/config/database');
 const sessionConfig = require('./src/config/session');
 const { initializeData } = require('./src/services/initService');
 const { initializeInfusionMedications } = require('./src/services/infusionInitService');
@@ -78,7 +77,6 @@ app.use('/api/ai', aiRoutes);
 app.use('/api', toolsRoutes);
 
 Promise.all([
-  initializeDatabase(),
   initializeData(),
   initializeInfusionMedications()
 ]).then(() => {

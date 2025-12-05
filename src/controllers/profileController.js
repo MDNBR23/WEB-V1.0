@@ -1,28 +1,20 @@
 const bcrypt = require('bcryptjs');
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 const { sendEmail } = require('../services/emailService');
 
 exports.getProfile = async (req, res) => {
   try {
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === req.session.user.username);
+    const result = await query(
+      `SELECT username, name, email, phone, institucion, cat, avatar, role, status, created_at as "createdAt"
+       FROM users WHERE username = $1`,
+      [req.session.user.username]
+    );
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
     
-    res.json({
-      username: user.username,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      institucion: user.institucion,
-      cat: user.cat,
-      avatar: user.avatar,
-      role: user.role,
-      status: user.status,
-      createdAt: user.createdAt
-    });
+    res.json(result.rows[0]);
   } catch (err) {
     console.error('Error getting profile:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -32,23 +24,33 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const updates = req.body;
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === req.session.user.username);
+    const username = req.session.user.username;
     
-    if (!user) {
-      return res.status(404).json({error: 'Usuario no encontrado'});
+    const allowedFields = ['name', 'email', 'phone', 'institucion', 'cat', 'avatar'];
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        setClauses.push(`${key} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
     }
     
-    ['name', 'email', 'phone', 'institucion', 'cat', 'avatar'].forEach(key => {
-      if (updates[key] !== undefined) {
-        user[key] = updates[key];
-      }
-    });
+    if (setClauses.length === 0) {
+      return res.status(400).json({error: 'No hay campos para actualizar'});
+    }
     
-    await writeJSON('users.json', users);
+    values.push(username);
+    await query(
+      `UPDATE users SET ${setClauses.join(', ')} WHERE username = $${paramIndex}`,
+      values
+    );
     
-    req.session.user.name = user.name;
-    req.session.user.cat = user.cat;
+    if (updates.name) req.session.user.name = updates.name;
+    if (updates.cat) req.session.user.cat = updates.cat;
     
     res.json({success: true});
   } catch (err) {
@@ -65,12 +67,13 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({error: 'Datos incompletos'});
     }
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === req.session.user.username);
+    const result = await query('SELECT * FROM users WHERE username = $1', [req.session.user.username]);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
+    
+    const user = result.rows[0];
     
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
@@ -78,9 +81,7 @@ exports.changePassword = async (req, res) => {
     }
     
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    
-    await writeJSON('users.json', users);
+    await query('UPDATE users SET password = $1 WHERE username = $2', [hashedPassword, user.username]);
     
     if (user.email) {
       const emailContent = `Hola ${user.name || user.username},
@@ -118,11 +119,11 @@ Med Tools Hub`;
       <p>Hola <strong>${user.name || user.username}</strong>,</p>
       <p>Tu contraseña en Med Tools Hub ha sido cambiada exitosamente.</p>
       <div class="info">
-        <strong>📅 Fecha y hora del cambio:</strong><br>
+        <strong>Fecha y hora del cambio:</strong><br>
         ${new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' })}
       </div>
       <div class="alert">
-        <strong>⚠️ Importante:</strong><br>
+        <strong>Importante:</strong><br>
         Si no fuiste tú quien realizó este cambio, por favor contacta inmediatamente con el soporte o restablece tu contraseña.
       </div>
     </div>
@@ -163,20 +164,20 @@ exports.deleteAccount = async (req, res) => {
       return res.status(403).json({error: 'No se puede eliminar la cuenta de administrador'});
     }
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === username);
+    const result = await query('SELECT * FROM users WHERE username = $1', [username]);
     
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
+    
+    const user = result.rows[0];
     
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({error: 'Contraseña incorrecta'});
     }
     
-    const filtered = users.filter(u => u.username !== username);
-    await writeJSON('users.json', filtered);
+    await query('DELETE FROM users WHERE username = $1', [username]);
     
     if (user.email) {
       await sendEmail({

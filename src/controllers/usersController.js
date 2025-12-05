@@ -1,50 +1,29 @@
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 const { sendEmail } = require('../services/emailService');
 
 exports.getUsers = async (req, res) => {
   try {
-    const users = await readJSON('users.json', []);
     const HEARTBEAT_TIMEOUT = 5 * 60 * 1000;
     const now = Date.now();
-    let modified = false;
     
-    users.forEach(u => {
-      if (u.isOnline) {
-        if (!u.lastHeartbeat) {
-          u.isOnline = false;
-          modified = true;
-        } else {
-          const lastHeartbeatTime = new Date(u.lastHeartbeat).getTime();
-          if (isNaN(lastHeartbeatTime) || now - lastHeartbeatTime > HEARTBEAT_TIMEOUT) {
-            u.isOnline = false;
-            modified = true;
-          }
-        }
-      }
-    });
+    await query(`
+      UPDATE users 
+      SET is_online = false 
+      WHERE is_online = true 
+      AND (last_heartbeat IS NULL OR last_heartbeat < NOW() - INTERVAL '5 minutes')
+    `);
     
-    if (modified) {
-      await writeJSON('users.json', users);
-    }
+    const result = await query(`
+      SELECT 
+        username, name, first_name as "firstName", last_name as "lastName",
+        email, phone, institucion, role, status, cat, avatar,
+        created_at as "createdAt", is_online as "isOnline",
+        last_login as "lastLogin", last_heartbeat as "lastHeartbeat"
+      FROM users
+      ORDER BY created_at DESC
+    `);
     
-    const sanitized = users.map(u => ({
-      username: u.username,
-      name: u.name,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      email: u.email,
-      phone: u.phone,
-      institucion: u.institucion,
-      role: u.role,
-      status: u.status,
-      cat: u.cat,
-      avatar: u.avatar,
-      createdAt: u.createdAt,
-      isOnline: u.isOnline || false,
-      lastLogin: u.lastLogin,
-      lastHeartbeat: u.lastHeartbeat
-    }));
-    res.json(sanitized);
+    res.json(result.rows);
   } catch (err) {
     console.error('Error getting users:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -56,33 +35,56 @@ exports.updateUser = async (req, res) => {
     const {username} = req.params;
     const updates = req.body;
     
-    const users = await readJSON('users.json', []);
-    const user = users.find(u => u.username === username);
+    const userResult = await query('SELECT * FROM users WHERE username = $1', [username]);
     
-    if (!user) {
+    if (userResult.rows.length === 0) {
       return res.status(404).json({error: 'Usuario no encontrado'});
     }
     
+    const user = userResult.rows[0];
     const previousStatus = user.status;
     
-    Object.keys(updates).forEach(key => {
-      if (key !== 'username' && key !== 'password') {
-        if (username === 'admin' && (key === 'status' || key === 'role')) {
-          return;
-        }
-        user[key] = updates[key];
-      }
-    });
+    const allowedFields = ['name', 'first_name', 'last_name', 'email', 'phone', 
+                           'institucion', 'role', 'status', 'cat', 'avatar'];
     
-    if (updates.firstName || updates.lastName) {
-      const firstName = updates.firstName || user.firstName || '';
-      const lastName = updates.lastName || user.lastName || '';
-      user.name = `${firstName} ${lastName}`.trim();
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    for (const [key, value] of Object.entries(updates)) {
+      let dbKey = key;
+      if (key === 'firstName') dbKey = 'first_name';
+      if (key === 'lastName') dbKey = 'last_name';
+      
+      if (allowedFields.includes(dbKey)) {
+        if (username === 'admin' && (dbKey === 'status' || dbKey === 'role')) {
+          continue;
+        }
+        setClauses.push(`${dbKey} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
     }
     
-    await writeJSON('users.json', users);
+    if (updates.firstName || updates.lastName) {
+      const firstName = updates.firstName || user.first_name || '';
+      const lastName = updates.lastName || user.last_name || '';
+      const fullName = `${firstName} ${lastName}`.trim();
+      setClauses.push(`name = $${paramIndex}`);
+      values.push(fullName);
+      paramIndex++;
+    }
     
-    if (previousStatus !== 'aprobado' && user.status === 'aprobado' && user.email) {
+    if (setClauses.length > 0) {
+      values.push(username);
+      await query(
+        `UPDATE users SET ${setClauses.join(', ')} WHERE username = $${paramIndex}`,
+        values
+      );
+    }
+    
+    const newStatus = updates.status || previousStatus;
+    if (previousStatus !== 'aprobado' && newStatus === 'aprobado' && user.email) {
       const protocol = req.protocol || 'https';
       const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
       const baseUrl = `${protocol}://${host}`;
@@ -148,10 +150,7 @@ exports.deleteUser = async (req, res) => {
       return res.status(400).json({error: 'No puedes eliminarte a ti mismo'});
     }
     
-    const users = await readJSON('users.json', []);
-    const filtered = users.filter(u => u.username !== username);
-    
-    await writeJSON('users.json', filtered);
+    await query('DELETE FROM users WHERE username = $1', [username]);
     res.json({success: true});
   } catch (err) {
     console.error('Error deleting user:', err);

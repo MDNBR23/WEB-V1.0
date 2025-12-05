@@ -1,17 +1,34 @@
-const crypto = require('crypto');
-const { readJSON, writeJSON } = require('../services/fileService');
+const { query } = require('../services/dbService');
 
 exports.getGuias = async (req, res) => {
   try {
-    const globalGuias = await readJSON('guias_global.json', []);
+    let result;
     
     if (req.session.user.role === 'admin') {
-      return res.json(globalGuias);
+      result = await query('SELECT * FROM guias WHERE active = true ORDER BY created_at DESC');
+    } else {
+      result = await query(
+        'SELECT * FROM guias WHERE active = true AND (created_by IS NULL OR created_by = $1) ORDER BY created_at DESC',
+        [req.session.user.username]
+      );
     }
     
-    const userGuias = await readJSON(`guias_${req.session.user.username}.json`, []);
-    const combined = [...globalGuias, ...userGuias];
-    res.json(combined);
+    const guias = result.rows.map(row => ({
+      id: row.id,
+      titulo: row.title,
+      title: row.title,
+      fecha: row.created_at ? new Date(row.created_at).toISOString().slice(0, 10) : null,
+      texto: row.content,
+      content: row.content,
+      url: row.file_url,
+      file_url: row.file_url,
+      categoria: row.category,
+      category: row.category,
+      global: !row.created_by,
+      owner: row.created_by
+    }));
+    
+    res.json(guias);
   } catch (err) {
     console.error('Error getting guias:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -20,33 +37,34 @@ exports.getGuias = async (req, res) => {
 
 exports.saveGuia = async (req, res) => {
   try {
-    const guia = {
-      ...req.body,
-      id: req.body.id || crypto.randomUUID(),
-      owner: req.session.user.username
-    };
+    const { id, titulo, title, texto, content, url, file_url, categoria, category, global } = req.body;
     
-    if (req.session.user.role === 'admin' && req.body.global) {
-      const globalGuias = await readJSON('guias_global.json', []);
-      const index = globalGuias.findIndex(g => g.id === guia.id);
-      if (index >= 0) {
-        globalGuias[index] = guia;
-      } else {
-        globalGuias.push(guia);
+    const guiaTitle = titulo || title;
+    const guiaContent = texto || content;
+    const guiaUrl = url || file_url;
+    const guiaCategory = categoria || category;
+    const createdBy = (req.session.user.role === 'admin' && global) ? null : req.session.user.username;
+    
+    if (id) {
+      const result = await query(
+        `UPDATE guias SET title = $1, content = $2, file_url = $3, category = $4, created_by = $5, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $6 RETURNING *`,
+        [guiaTitle, guiaContent, guiaUrl, guiaCategory, createdBy, id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({error: 'Guía no encontrada'});
       }
-      await writeJSON('guias_global.json', globalGuias);
+      
+      res.json({success: true, guia: result.rows[0]});
     } else {
-      const userGuias = await readJSON(`guias_${req.session.user.username}.json`, []);
-      const index = userGuias.findIndex(g => g.id === guia.id);
-      if (index >= 0) {
-        userGuias[index] = guia;
-      } else {
-        userGuias.push(guia);
-      }
-      await writeJSON(`guias_${req.session.user.username}.json`, userGuias);
+      const result = await query(
+        `INSERT INTO guias (title, content, file_url, category, created_by, active)
+         VALUES ($1, $2, $3, $4, $5, true) RETURNING *`,
+        [guiaTitle, guiaContent, guiaUrl, guiaCategory, createdBy]
+      );
+      res.json({success: true, guia: result.rows[0]});
     }
-    
-    res.json({success: true, guia});
   } catch (err) {
     console.error('Error saving guia:', err);
     res.status(500).json({error: 'Error en el servidor'});
@@ -57,16 +75,15 @@ exports.deleteGuia = async (req, res) => {
   try {
     const {id} = req.params;
     
-    if (req.session.user.role === 'admin') {
-      const globalGuias = await readJSON('guias_global.json', []);
-      const filtered = globalGuias.filter(g => g.id !== id);
-      await writeJSON('guias_global.json', filtered);
+    let sql = 'DELETE FROM guias WHERE id = $1';
+    const params = [id];
+    
+    if (req.session.user.role !== 'admin') {
+      sql += ' AND created_by = $2';
+      params.push(req.session.user.username);
     }
     
-    const userGuias = await readJSON(`guias_${req.session.user.username}.json`, []);
-    const filtered = userGuias.filter(g => g.id !== id);
-    await writeJSON(`guias_${req.session.user.username}.json`, filtered);
-    
+    await query(sql, params);
     res.json({success: true});
   } catch (err) {
     console.error('Error deleting guia:', err);
